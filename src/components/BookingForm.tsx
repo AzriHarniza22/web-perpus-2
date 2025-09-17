@@ -84,6 +84,28 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
+      // Ensure user profile exists
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single()
+
+      if (!profile) {
+        // Create profile if it doesn't exist
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || '',
+            institution: user.user_metadata?.institution || '',
+            phone: user.user_metadata?.phone || '',
+          })
+
+        if (profileError) throw profileError
+      }
+
       const { data, error } = await supabase
         .from('bookings')
         .insert({

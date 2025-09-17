@@ -4,12 +4,13 @@ import { redirect } from 'next/navigation'
 import BookingForm from '../../../components/BookingForm'
 
 interface PageProps {
-  params: {
+  params: Promise<{
     roomId: string
-  }
+  }>
 }
 
 export default async function BookRoomPage({ params }: PageProps) {
+  const { roomId } = await params
   const cookieStore = await cookies()
 
   const supabase = createServerClient(
@@ -35,11 +36,31 @@ export default async function BookRoomPage({ params }: PageProps) {
     redirect('/login')
   }
 
+  // Ensure user profile exists
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile) {
+    // Create profile if it doesn't exist
+    await supabase
+      .from('profiles')
+      .insert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || '',
+        institution: user.user_metadata?.institution || '',
+        phone: user.user_metadata?.phone || '',
+      })
+  }
+
   // Get room details
   const { data: room } = await supabase
     .from('rooms')
     .select('*')
-    .eq('id', params.roomId)
+    .eq('id', roomId)
     .eq('is_active', true)
     .single()
 
@@ -51,7 +72,7 @@ export default async function BookRoomPage({ params }: PageProps) {
   const { data: bookings } = await supabase
     .from('bookings')
     .select('start_time, end_time, status')
-    .eq('room_id', params.roomId)
+    .eq('room_id', roomId)
     .in('status', ['approved', 'pending'])
 
   return (

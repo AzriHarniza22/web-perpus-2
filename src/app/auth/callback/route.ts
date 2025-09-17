@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       // Check if profile exists, if not create it
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, role')
         .eq('id', data.user.id)
         .single()
 
@@ -47,7 +47,15 @@ export async function GET(request: NextRequest) {
           })
       }
 
-      return NextResponse.redirect(`${origin}${next}`)
+      // Check user role and redirect accordingly
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
+
+      const redirectPath = userProfile?.role === 'admin' ? '/admin' : (next || '/')
+      return NextResponse.redirect(`${origin}${redirectPath}`)
     }
   }
 
