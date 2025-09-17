@@ -1,7 +1,19 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+interface BookingWithRoom {
+  id: string
+  start_time: string
+  end_time: string
+  status: string
+  event_description?: string
+  notes?: string
+  created_at: string
+  rooms?: { name: string }
+}
 
 export default async function HistoryPage() {
   const cookieStore = await cookies()
@@ -47,9 +59,9 @@ export default async function HistoryPage() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-xl font-semibold">Perpustakaan Aceh</h1>
           <div className="flex items-center space-x-4">
-            <a href="/" className="text-blue-600 hover:underline">
+            <Link href="/" className="text-blue-600 hover:underline">
               Back to Home
-            </a>
+            </Link>
             <form action="/auth/signout" method="post">
               <button type="submit" className="text-blue-600 hover:underline">
                 Sign out
@@ -70,7 +82,7 @@ export default async function HistoryPage() {
 
         <div className="space-y-4">
           {bookings && bookings.length > 0 ? (
-            bookings.map((booking: any) => (
+            bookings.map((booking: BookingWithRoom) => (
               <Card key={booking.id}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
@@ -120,12 +132,12 @@ export default async function HistoryPage() {
                   Anda belum memiliki reservasi
                 </p>
                 <div className="text-center mt-4">
-                  <a
+                  <Link
                     href="/"
                     className="inline-block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
                   >
                     Buat Reservasi Baru
-                  </a>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

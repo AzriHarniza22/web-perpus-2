@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -48,13 +49,14 @@ export default function LoginPage() {
       } else {
         router.push('/')
       }
-    } catch (error: any) {
-      if (error.message.includes('Email not confirmed')) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred'
+      if (errorMessage.includes('Email not confirmed')) {
         setIsEmailNotConfirmed(true)
         setError('Email belum dikonfirmasi. Silakan periksa email Anda atau kirim ulang email konfirmasi.')
       } else {
         setIsEmailNotConfirmed(false)
-        setError(error.message)
+        setError(errorMessage)
       }
     } finally {
       setLoading(false)
@@ -71,8 +73,8 @@ export default function LoginPage() {
       })
 
       if (error) throw error
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
     }
   }
 
@@ -136,9 +138,9 @@ export default function LoginPage() {
           </div>
           <p className="mt-4 text-center text-sm">
             Belum punya akun?{' '}
-            <a href="/register" className="text-blue-600 hover:underline">
+            <Link href="/register" className="text-blue-600 hover:underline">
               Daftar di sini
-            </a>
+            </Link>
           </p>
         </CardContent>
       </Card>

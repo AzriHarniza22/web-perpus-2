@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import BookingForm from '../../../components/BookingForm'
 
 interface PageProps {
@@ -81,9 +82,9 @@ export default async function BookRoomPage({ params }: PageProps) {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-xl font-semibold">Perpustakaan Aceh</h1>
           <div className="flex items-center space-x-4">
-            <a href="/" className="text-blue-600 hover:underline">
+            <Link href="/" className="text-blue-600 hover:underline">
               Back to Home
-            </a>
+            </Link>
             <form action="/auth/signout" method="post">
               <button type="submit" className="text-blue-600 hover:underline">
                 Sign out

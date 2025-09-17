@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import RoomManagement from '../../components/admin/RoomManagement'
 import BookingManagement from '../../components/admin/BookingManagement'
 import Reports from '../../components/admin/Reports'
@@ -49,9 +50,9 @@ export default async function AdminPage() {
           <h1 className="text-xl font-semibold">Admin Panel - Perpustakaan Aceh</h1>
           <div className="flex items-center space-x-4">
             <span>Welcome, {profile?.full_name}</span>
-            <a href="/" className="text-blue-600 hover:underline">
+            <Link href="/" className="text-blue-600 hover:underline">
               Back to Home
-            </a>
+            </Link>
             <form action="/auth/signout" method="post">
               <button type="submit" className="text-blue-600 hover:underline">
                 Sign out

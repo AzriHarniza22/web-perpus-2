@@ -4,6 +4,14 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
+interface BookingStatus {
+  status: string
+}
+
+interface BookingWithRoom {
+  rooms: { name: string } | null
+}
+
 interface Stats {
   totalBookings: number
   approvedBookings: number
@@ -35,9 +43,9 @@ export default function Reports() {
         .select('status')
 
       const totalBookings = bookingStats?.length || 0
-      const approvedBookings = bookingStats?.filter((b: any) => b.status === 'approved').length || 0
-      const pendingBookings = bookingStats?.filter((b: any) => b.status === 'pending').length || 0
-      const rejectedBookings = bookingStats?.filter((b: any) => b.status === 'rejected').length || 0
+      const approvedBookings = bookingStats?.filter((b: BookingStatus) => b.status === 'approved').length || 0
+      const pendingBookings = bookingStats?.filter((b: BookingStatus) => b.status === 'pending').length || 0
+      const rejectedBookings = bookingStats?.filter((b: BookingStatus) => b.status === 'rejected').length || 0
 
       // Get room statistics
       const { data: roomStats } = await supabase
@@ -50,7 +58,7 @@ export default function Reports() {
         .not('status', 'eq', 'cancelled')
 
       const roomCount: { [key: string]: number } = {}
-      roomStats?.forEach((booking: any) => {
+      roomStats?.forEach((booking: BookingWithRoom) => {
         const roomName = booking.rooms?.name
         if (roomName) {
           roomCount[roomName] = (roomCount[roomName] || 0) + 1
@@ -71,7 +79,7 @@ export default function Reports() {
         monthlyCount[monthName] = 0
       }
 
-      bookingStats?.forEach((booking: any) => {
+      bookingStats?.forEach(() => {
         const date = new Date() // In real app, use booking.created_at
         const monthName = date.toLocaleString('id-ID', { month: 'long' })
         monthlyCount[monthName] = (monthlyCount[monthName] || 0) + 1

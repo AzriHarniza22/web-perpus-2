@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -66,8 +67,8 @@ export default function RegisterPage() {
         // Email confirmation required
         router.push(`/confirm?email=${encodeURIComponent(formData.email)}`)
       }
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
@@ -83,8 +84,8 @@ export default function RegisterPage() {
       })
 
       if (error) throw error
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
     }
   }
 
@@ -166,9 +167,9 @@ export default function RegisterPage() {
           </div>
           <p className="mt-4 text-center text-sm">
             Sudah punya akun?{' '}
-            <a href="/login" className="text-blue-600 hover:underline">
+            <Link href="/login" className="text-blue-600 hover:underline">
               Login di sini
-            </a>
+            </Link>
           </p>
         </CardContent>
       </Card>

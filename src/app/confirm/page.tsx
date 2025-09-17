@@ -40,8 +40,8 @@ export default function ConfirmPage() {
       if (error) throw error
 
       setMessage('Confirmation email sent! Please check your inbox.')
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
