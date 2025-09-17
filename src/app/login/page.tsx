@@ -34,6 +34,12 @@ export default function LoginPage() {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (user) {
+        // Check if email is confirmed
+        if (!user.email_confirmed_at) {
+          router.push(`/confirm?email=${encodeURIComponent(user.email || email)}`)
+          return
+        }
+
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')

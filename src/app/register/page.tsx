@@ -42,7 +42,8 @@ export default function RegisterPage() {
             full_name: formData.fullName,
             institution: formData.institution,
             phone: formData.phone,
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       })
 
