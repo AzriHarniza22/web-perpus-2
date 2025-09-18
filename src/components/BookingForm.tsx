@@ -37,6 +37,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
   const [endTime, setEndTime] = useState('')
   const [eventDescription, setEventDescription] = useState('')
   const [notes, setNotes] = useState('')
+  const [proposalFile, setProposalFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -106,6 +107,26 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
         if (profileError) throw profileError
       }
 
+      let proposalFileUrl = null
+      if (proposalFile) {
+        const fileExt = proposalFile.name.split('.').pop()
+        const fileName = `${user.id}_${Date.now()}.${fileExt}`
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('proposals')
+          .upload(fileName, proposalFile, {
+            cacheControl: '3600',
+            upsert: false
+          })
+
+        if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`)
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('proposals')
+          .getPublicUrl(fileName)
+
+        proposalFileUrl = publicUrl
+      }
+
       const { data, error } = await supabase
         .from('bookings')
         .insert({
@@ -114,6 +135,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
           start_time: startDateTime.toISOString(),
           end_time: endDateTime.toISOString(),
           event_description: eventDescription,
+          proposal_file: proposalFileUrl,
           notes: notes,
         })
         .select()
@@ -233,6 +255,17 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any special requirements or notes"
               />
+            </div>
+
+            <div>
+              <Label htmlFor="proposalFile">Upload Proposal Letter (Optional)</Label>
+              <Input
+                id="proposalFile"
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={(e) => setProposalFile(e.target.files?.[0] || null)}
+              />
+              <p className="text-sm text-muted-foreground mt-1">Upload your reservation letter (PDF, DOC, DOCX)</p>
             </div>
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
