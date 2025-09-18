@@ -15,6 +15,7 @@ interface Booking {
   end_time: string
   status: string
   event_description: string | null
+  proposal_file: string | null
   notes: string | null
   created_at: string
   profiles: {
@@ -109,6 +110,28 @@ export default function BookingManagement() {
                     <p className="text-sm text-gray-600 mt-1">
                       Event: {booking.event_description}
                     </p>
+                  )}
+                  {booking.notes && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      Notes: {booking.notes}
+                    </p>
+                  )}
+                  {booking.proposal_file && (
+                    <div className="mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        asChild
+                      >
+                        <a
+                          href={booking.proposal_file}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View Proposal
+                        </a>
+                      </Button>
+                    </div>
                   )}
                 </div>
                 <div className="flex items-center space-x-2">
