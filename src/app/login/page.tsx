@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import useAuthStore from '@/lib/authStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,34 +13,24 @@ import { Label } from '@/components/ui/label'
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [isEmailNotConfirmed, setIsEmailNotConfirmed] = useState(false)
+  const { login, isLoading, user, fetchUser } = useAuthStore()
   const router = useRouter()
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+  useEffect(() => {
+    fetchUser()
+  }, [fetchUser])
 
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+  useEffect(() => {
+    if (user) {
+      // Check if email is confirmed
+      if (!user.email_confirmed_at) {
+        router.push(`/confirm?email=${encodeURIComponent(user.email ?? '')}`)
+        return
+      }
 
-      if (error) throw error
-
-      // Check user role after successful login
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (user) {
-        // Check if email is confirmed
-        if (!user.email_confirmed_at) {
-          router.push(`/confirm?email=${encodeURIComponent(user.email || email)}`)
-          return
-        }
-
+      const checkRoleAndRedirect = async () => {
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')
@@ -52,9 +43,18 @@ export default function LoginPage() {
         } else {
           router.push('/')
         }
-      } else {
-        router.push('/')
       }
+
+      checkRoleAndRedirect()
+    }
+  }, [user, router, email])
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+
+    try {
+      await login(email, password)
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred'
       if (errorMessage.includes('Email not confirmed')) {
@@ -64,8 +64,6 @@ export default function LoginPage() {
         setIsEmailNotConfirmed(false)
         setError(errorMessage)
       }
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -128,8 +126,8 @@ export default function LoginPage() {
                 </Button>
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Loading...' : 'Login'}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Loading...' : 'Login'}
             </Button>
           </form>
           <div className="mt-4">

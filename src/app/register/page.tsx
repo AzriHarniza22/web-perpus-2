@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import useAuthStore from '@/lib/authStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,8 +18,8 @@ export default function RegisterPage() {
     institution: '',
     phone: '',
   })
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const { register, isLoading, user } = useAuthStore()
   const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,31 +31,18 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError('')
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-            institution: formData.institution,
-            phone: formData.phone,
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`
-        }
-      })
+      await register(formData.email, formData.password)
 
-      if (error) throw error
-
-      // If user is immediately signed in (no email confirmation), create profile
-      if (data.session && data.user) {
+      // Insert profile since register only does signUp
+      const currentUser = useAuthStore.getState().user
+      if (currentUser) {
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
-            id: data.user.id,
+            id: currentUser.id,
             email: formData.email,
             full_name: formData.fullName,
             institution: formData.institution,
@@ -70,8 +58,6 @@ export default function RegisterPage() {
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -152,8 +138,8 @@ export default function RegisterPage() {
               />
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Loading...' : 'Daftar'}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Loading...' : 'Daftar'}
             </Button>
           </form>
           <div className="mt-4">

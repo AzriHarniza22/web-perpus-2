@@ -1,0 +1,320 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { supabase } from './supabase'
+import useAuthStore from './authStore'
+import type { User } from '@supabase/supabase-js'
+import { sendBookingConfirmation, sendBookingStatusUpdate } from './notifications'
+
+export interface Room {
+  id: string
+  name: string
+  capacity: number
+  facilities: string[]
+  description?: string
+  photos?: string[]
+  layout?: string
+  is_active: boolean
+}
+
+export interface Booking {
+  id: string
+  user_id: string
+  room_id: string
+  start_time: string
+  end_time: string
+  status: string
+  event_description?: string
+  proposal_file?: string
+  notes?: string
+  created_at: string
+}
+
+export interface BookingWithRelations extends Booking {
+  profiles: {
+    full_name: string
+    email: string
+    role?: string
+  }
+  rooms: {
+    name: string
+    capacity?: number
+  }
+}
+
+export interface Profile {
+  id: string
+  email: string
+  full_name: string
+  institution?: string
+  phone?: string
+  role?: string
+}
+
+// Fetch all bookings with profiles and rooms
+export const useBookings = () => {
+  return useQuery<BookingWithRelations[]>({
+    queryKey: ['bookings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          profiles:user_id (
+            full_name,
+            email,
+            role
+          ),
+          rooms:room_id (
+            name,
+            capacity
+          )
+        `)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      return data || []
+    },
+  })
+}
+
+// Fetch bookings for a specific room
+export const useRoomBookings = (roomId: string) => {
+  return useQuery({
+    queryKey: ['bookings', roomId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('start_time, end_time, status')
+        .eq('room_id', roomId)
+        .order('start_time')
+
+      if (error) throw error
+      return data || []
+    },
+    enabled: !!roomId,
+  })
+}
+
+// Update booking status
+export const useUpdateBookingStatus = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status })
+        .eq('id', id)
+
+      if (error) throw error
+      await sendBookingStatusUpdate(id, status)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] })
+    },
+  })
+}
+
+// Create booking
+export const useCreateBooking = () => {
+  const { user } = useAuthStore()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (bookingData: Omit<Booking, 'id' | 'created_at' | 'user_id'> & { proposalFile?: File }) => {
+      if (!user) throw new Error('Not authenticated')
+
+      // Ensure profile exists
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single()
+
+      if (!profile) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email!,
+            full_name: user.user_metadata?.full_name || '',
+            institution: user.user_metadata?.institution || '',
+            phone: user.user_metadata?.phone || '',
+          })
+
+        if (profileError) throw profileError
+      }
+
+      let proposalFileUrl: string | null = null
+      if (bookingData.proposalFile) {
+        const fileExt = bookingData.proposalFile.name.split('.').pop()
+        const fileName = `${user.id}_${Date.now()}.${fileExt}`
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('proposals')
+          .upload(fileName, bookingData.proposalFile, {
+            cacheControl: '3600',
+            upsert: false,
+          })
+
+        if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`)
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('proposals')
+          .getPublicUrl(fileName)
+
+        proposalFileUrl = publicUrl
+      }
+
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert({
+          ...bookingData,
+          user_id: user.id,
+          proposal_file: proposalFileUrl,
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      await sendBookingConfirmation(data.id)
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] })
+    },
+  })
+}
+
+// Fetch all rooms
+export const useRooms = () => {
+  return useQuery({
+    queryKey: ['rooms'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('rooms')
+        .select('*')
+        .order('name')
+
+      if (error) throw error
+      return data || []
+    },
+  })
+}
+
+// Create or update room
+export const useUpsertRoom = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (roomData: Partial<Room> & { id?: string }) => {
+      if (roomData.id) {
+        const { error } = await supabase
+          .from('rooms')
+          .update(roomData)
+          .eq('id', roomData.id)
+
+        if (error) throw error
+      } else {
+        const { data, error } = await supabase
+          .from('rooms')
+          .insert(roomData)
+          .select()
+          .single()
+
+        if (error) throw error
+        return data
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rooms'] })
+    },
+  })
+}
+
+// Delete room
+export const useDeleteRoom = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('rooms')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rooms'] })
+    },
+  })
+}
+
+// Toggle room active status
+export const useToggleRoomActive = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase
+        .from('rooms')
+        .update({ is_active: !is_active })
+        .eq('id', id)
+
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rooms'] })
+    },
+  })
+}
+
+// Fetch booking stats for reports
+export const useBookingStats = () => {
+  return useQuery({
+    queryKey: ['bookingStats'],
+    queryFn: async () => {
+      const { data: bookingStats } = await supabase
+        .from('bookings')
+        .select('status, created_at, room_id')
+
+      if (!bookingStats) return null
+
+      const totalBookings = bookingStats.length
+      const approvedBookings = bookingStats.filter((b: any) => b.status === 'approved').length
+      const pendingBookings = bookingStats.filter((b: any) => b.status === 'pending').length
+      const rejectedBookings = bookingStats.filter((b: any) => b.status === 'rejected').length
+
+      // Room stats
+      const roomCount: { [key: string]: number } = {}
+      const { data: rooms } = await supabase.from('rooms').select('id, name')
+      bookingStats.forEach((booking: any) => {
+        const room = rooms?.find((r: any) => r.id === booking.room_id)
+        const roomName = room?.name
+        if (roomName) {
+          roomCount[roomName] = (roomCount[roomName] || 0) + 1
+        }
+      })
+      const roomStats = Object.entries(roomCount).map(([room_name, booking_count]) => ({ room_name, booking_count }))
+
+      // Monthly stats (last 12 months)
+      const monthlyCount: { [key: string]: number } = {}
+      const currentDate = new Date()
+      for (let i = 0; i < 12; i++) {
+        const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1)
+        const monthName = date.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+        monthlyCount[monthName] = 0
+      }
+      bookingStats.forEach((booking: any) => {
+        const date = new Date(booking.created_at)
+        const monthName = date.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+        monthlyCount[monthName] = (monthlyCount[monthName] || 0) + 1
+      })
+      const monthlyStats = Object.entries(monthlyCount).map(([month, count]) => ({ month, count }))
+
+      return {
+        totalBookings,
+        approvedBookings,
+        pendingBookings,
+        rejectedBookings,
+        roomStats,
+        monthlyStats,
+      }
+    },
+  })
+}

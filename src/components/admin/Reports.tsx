@@ -1,111 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useBookingStats } from '@/lib/api'
 
-interface BookingStatus {
-  status: string
-}
-
-interface BookingWithRoom {
-  rooms: { name: string } | null
-}
-
-interface Stats {
-  totalBookings: number
-  approvedBookings: number
-  pendingBookings: number
-  rejectedBookings: number
-  roomStats: Array<{
-    room_name: string
-    booking_count: number
-  }>
-  monthlyStats: Array<{
-    month: string
-    count: number
-  }>
-}
 
 export default function Reports() {
-  const [stats, setStats] = useState<Stats | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: stats, isLoading } = useBookingStats()
 
-  useEffect(() => {
-    fetchStats()
-  }, [])
-
-  const fetchStats = async () => {
-    try {
-      // Get booking statistics
-      const { data: bookingStats } = await supabase
-        .from('bookings')
-        .select('status')
-
-      const totalBookings = bookingStats?.length || 0
-      const approvedBookings = bookingStats?.filter((b: BookingStatus) => b.status === 'approved').length || 0
-      const pendingBookings = bookingStats?.filter((b: BookingStatus) => b.status === 'pending').length || 0
-      const rejectedBookings = bookingStats?.filter((b: BookingStatus) => b.status === 'rejected').length || 0
-
-      // Get room statistics
-      const { data: roomStats } = await supabase
-        .from('bookings')
-        .select(`
-          rooms:room_id (
-            name
-          )
-        `)
-        .not('status', 'eq', 'cancelled')
-
-      const roomCount: { [key: string]: number } = {}
-      roomStats?.forEach((booking: BookingWithRoom) => {
-        const roomName = booking.rooms?.name
-        if (roomName) {
-          roomCount[roomName] = (roomCount[roomName] || 0) + 1
-        }
-      })
-
-      const roomStatsArray = Object.entries(roomCount).map(([room_name, booking_count]) => ({
-        room_name,
-        booking_count
-      }))
-
-      // Get monthly statistics (simplified)
-      const currentYear = new Date().getFullYear()
-      const monthlyCount: { [key: string]: number } = {}
-
-      for (let i = 1; i <= 12; i++) {
-        const monthName = new Date(currentYear, i - 1, 1).toLocaleString('id-ID', { month: 'long' })
-        monthlyCount[monthName] = 0
-      }
-
-      bookingStats?.forEach(() => {
-        const date = new Date() // In real app, use booking.created_at
-        const monthName = date.toLocaleString('id-ID', { month: 'long' })
-        monthlyCount[monthName] = (monthlyCount[monthName] || 0) + 1
-      })
-
-      const monthlyStats = Object.entries(monthlyCount).map(([month, count]) => ({
-        month,
-        count
-      }))
-
-      setStats({
-        totalBookings,
-        approvedBookings,
-        pendingBookings,
-        rejectedBookings,
-        roomStats: roomStatsArray,
-        monthlyStats
-      })
-    } catch (error) {
-      console.error('Error fetching stats:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (loading) {
+  if (isLoading) {
     return <div>Loading...</div>
   }
 

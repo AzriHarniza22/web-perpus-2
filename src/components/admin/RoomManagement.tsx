@@ -1,27 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useRooms, useUpsertRoom, useDeleteRoom, useToggleRoomActive, type Room } from '@/lib/api'
 
-interface Room {
-  id: string
-  name: string
-  description: string | null
-  capacity: number
-  facilities: string[]
-  photos: string[] | null
-  layout: string | null
-  is_active: boolean
-}
 
 export default function RoomManagement() {
-  const [rooms, setRooms] = useState<Room[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: rooms = [], isLoading } = useRooms()
   const [editingRoom, setEditingRoom] = useState<Room | null>(null)
   const [formData, setFormData] = useState({
     name: '',
@@ -32,25 +21,11 @@ export default function RoomManagement() {
     layout: '',
   })
 
-  useEffect(() => {
-    fetchRooms()
-  }, [])
+  const upsertRoomMutation = useUpsertRoom()
+  const deleteRoomMutation = useDeleteRoom()
+  const toggleRoomActiveMutation = useToggleRoomActive()
 
-  const fetchRooms = async () => {
-    const { data, error } = await supabase
-      .from('rooms')
-      .select('*')
-      .order('name')
-
-    if (error) {
-      console.error('Error fetching rooms:', error)
-    } else {
-      setRooms(data || [])
-    }
-    setLoading(false)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const roomData = {
       name: formData.name,
@@ -59,31 +34,10 @@ export default function RoomManagement() {
       facilities: formData.facilities.split(',').map(f => f.trim()).filter(f => f),
       photos: formData.photos.split(',').map(p => p.trim()).filter(p => p) || null,
       layout: formData.layout || null,
+      ...(editingRoom && { id: editingRoom.id }),
     }
 
-    if (editingRoom) {
-      const { error } = await supabase
-        .from('rooms')
-        .update(roomData)
-        .eq('id', editingRoom.id)
-
-      if (error) {
-        console.error('Error updating room:', error)
-      } else {
-        setEditingRoom(null)
-        fetchRooms()
-      }
-    } else {
-      const { error } = await supabase
-        .from('rooms')
-        .insert(roomData)
-
-      if (error) {
-        console.error('Error creating room:', error)
-      } else {
-        fetchRooms()
-      }
-    }
+    upsertRoomMutation.mutate(roomData as any)
 
     setFormData({
       name: '',
@@ -93,6 +47,9 @@ export default function RoomManagement() {
       photos: '',
       layout: '',
     })
+    if (editingRoom) {
+      setEditingRoom(null)
+    }
   }
 
   const handleEdit = (room: Room) => {
@@ -107,35 +64,17 @@ export default function RoomManagement() {
     })
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this room?')) {
-      const { error } = await supabase
-        .from('rooms')
-        .delete()
-        .eq('id', id)
-
-      if (error) {
-        console.error('Error deleting room:', error)
-      } else {
-        fetchRooms()
-      }
+      deleteRoomMutation.mutate(id)
     }
   }
 
-  const toggleActive = async (id: string, is_active: boolean) => {
-    const { error } = await supabase
-      .from('rooms')
-      .update({ is_active: !is_active })
-      .eq('id', id)
-
-    if (error) {
-      console.error('Error updating room status:', error)
-    } else {
-      fetchRooms()
-    }
+  const toggleActive = (id: string, is_active: boolean) => {
+    toggleRoomActiveMutation.mutate({ id, is_active })
   }
 
-  if (loading) {
+  if (isLoading) {
     return <div>Loading...</div>
   }
 
@@ -227,7 +166,7 @@ export default function RoomManagement() {
 
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Existing Rooms</h3>
-          {rooms.map((room) => (
+          {rooms.map((room: Room) => (
             <div key={room.id} className="border rounded-lg p-4">
               <div className="flex justify-between items-start">
                 <div>

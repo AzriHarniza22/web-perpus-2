@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
-import { sendBookingConfirmation } from '@/lib/notifications'
 import { Button } from '@/components/ui/button'
+import { useCreateBooking } from '@/lib/api'
+import useAuthStore from '@/lib/authStore'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,22 +13,9 @@ import { Calendar } from '@/components/ui/calendar'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 
-interface Room {
-  id: string
-  name: string
-  capacity: number
-  facilities: string[]
-}
-
-interface Booking {
-  start_time: string
-  end_time: string
-  status: string
-}
-
 interface BookingFormProps {
-  room: Room
-  existingBookings: Booking[]
+  room: any
+  existingBookings: any[]
 }
 
 export default function BookingForm({ room, existingBookings }: BookingFormProps) {
@@ -38,9 +25,11 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
   const [eventDescription, setEventDescription] = useState('')
   const [notes, setNotes] = useState('')
   const [proposalFile, setProposalFile] = useState<File | null>(null)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+
+  const { user } = useAuthStore()
+  const createBookingMutation = useCreateBooking()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -78,80 +67,30 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
       return
     }
 
-    setLoading(true)
     setError('')
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
-
-      // Ensure user profile exists
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .single()
-
-      if (!profile) {
-        // Create profile if it doesn't exist
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: user.id,
-            email: user.email,
-            full_name: user.user_metadata?.full_name || '',
-            institution: user.user_metadata?.institution || '',
-            phone: user.user_metadata?.phone || '',
-          })
-
-        if (profileError) throw profileError
-      }
-
-      let proposalFileUrl = null
-      if (proposalFile) {
-        const fileExt = proposalFile.name.split('.').pop()
-        const fileName = `${user.id}_${Date.now()}.${fileExt}`
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('proposals')
-          .upload(fileName, proposalFile, {
-            cacheControl: '3600',
-            upsert: false
-          })
-
-        if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`)
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('proposals')
-          .getPublicUrl(fileName)
-
-        proposalFileUrl = publicUrl
-      }
-
-      const { data, error } = await supabase
-        .from('bookings')
-        .insert({
-          user_id: user.id,
-          room_id: room.id,
-          start_time: startDateTime.toISOString(),
-          end_time: endDateTime.toISOString(),
-          event_description: eventDescription,
-          proposal_file: proposalFileUrl,
-          notes: notes,
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-
-      // Send confirmation notification
-      await sendBookingConfirmation(data.id)
-
-      router.push('/?success=Booking submitted successfully')
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
-    } finally {
-      setLoading(false)
+    if (!user) {
+      setError('Not authenticated')
+      return
     }
+
+    const bookingData = {
+      room_id: room.id,
+      start_time: startDateTime.toISOString(),
+      end_time: endDateTime.toISOString(),
+      status: 'pending',
+      event_description: eventDescription,
+      notes: notes,
+    }
+
+    createBookingMutation.mutate(bookingData, {
+      onSuccess: () => {
+        router.push('/?success=Booking submitted successfully')
+      },
+      onError: (err) => {
+        setError(err instanceof Error ? err.message : 'An error occurred')
+      },
+    })
   }
 
   const isDateDisabled = (date: Date) => {
@@ -270,8 +209,8 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Submitting...' : 'Submit Reservation'}
+            <Button type="submit" className="w-full" disabled={createBookingMutation.isPending}>
+              {createBookingMutation.isPending ? 'Submitting...' : 'Submit Reservation'}
             </Button>
           </form>
         </CardContent>

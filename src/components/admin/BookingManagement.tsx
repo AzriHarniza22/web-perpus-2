@@ -1,76 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
-import { sendBookingStatusUpdate } from '@/lib/notifications'
+import { useState } from 'react'
+import { useBookings, useUpdateBookingStatus } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import type { BookingWithRelations } from '@/lib/api'
 
-interface Booking {
-  id: string
-  user_id: string
-  room_id: string
-  start_time: string
-  end_time: string
-  status: string
-  event_description: string | null
-  proposal_file: string | null
-  notes: string | null
-  created_at: string
-  profiles: {
-    full_name: string
-    email: string
-  }
-  rooms: {
-    name: string
-  }
-}
 
 export default function BookingManagement() {
-  const [bookings, setBookings] = useState<Booking[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: bookings = [], isLoading } = useBookings()
+  const updateBookingStatusMutation = useUpdateBookingStatus()
 
-  useEffect(() => {
-    fetchBookings()
-  }, [])
-
-  const fetchBookings = async () => {
-    const { data, error } = await supabase
-      .from('bookings')
-      .select(`
-        *,
-        profiles:user_id (
-          full_name,
-          email
-        ),
-        rooms:room_id (
-          name
-        )
-      `)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error fetching bookings:', error)
-    } else {
-      setBookings(data || [])
-    }
-    setLoading(false)
-  }
-
-  const updateBookingStatus = async (id: string, status: string) => {
-    const { error } = await supabase
-      .from('bookings')
-      .update({ status })
-      .eq('id', id)
-
-    if (error) {
-      console.error('Error updating booking status:', error)
-    } else {
-      // Send status update notification
-      await sendBookingStatusUpdate(id, status)
-      fetchBookings()
-    }
+  const updateBookingStatus = (id: string, status: string) => {
+    updateBookingStatusMutation.mutate({ id, status })
   }
 
   const formatDateTime = (dateString: string) => {
@@ -83,7 +26,7 @@ export default function BookingManagement() {
     })
   }
 
-  if (loading) {
+  if (isLoading) {
     return <div>Loading...</div>
   }
 
@@ -95,7 +38,7 @@ export default function BookingManagement() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {bookings.map((booking) => (
+          {bookings.map((booking: BookingWithRelations) => (
             <div key={booking.id} className="border rounded-lg p-4">
               <div className="flex justify-between items-start mb-2">
                 <div>
