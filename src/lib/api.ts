@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from './supabase'
 import useAuthStore from './authStore'
-import type { User } from '@supabase/supabase-js'
 import { sendBookingConfirmation, sendBookingStatusUpdate } from './notifications'
 
 export interface Room {
@@ -147,7 +146,7 @@ export const useCreateBooking = () => {
       if (bookingData.proposalFile) {
         const fileExt = bookingData.proposalFile.name.split('.').pop()
         const fileName = `${user.id}_${Date.now()}.${fileExt}`
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('proposals')
           .upload(fileName, bookingData.proposalFile, {
             cacheControl: '3600',
@@ -276,16 +275,29 @@ export const useBookingStats = () => {
 
       if (!bookingStats) return null
 
-      const totalBookings = bookingStats.length
-      const approvedBookings = bookingStats.filter((b: any) => b.status === 'approved').length
-      const pendingBookings = bookingStats.filter((b: any) => b.status === 'pending').length
-      const rejectedBookings = bookingStats.filter((b: any) => b.status === 'rejected').length
+      type BookingStat = {
+        status: string
+        created_at: string
+        room_id: string
+      }
+
+      type RoomStat = {
+        id: string
+        name: string
+      }
+
+      const stats = bookingStats as BookingStat[]
+      const totalBookings = stats.length
+      const approvedBookings = stats.filter((b) => b.status === 'approved').length
+      const pendingBookings = stats.filter((b) => b.status === 'pending').length
+      const rejectedBookings = stats.filter((b) => b.status === 'rejected').length
 
       // Room stats
       const roomCount: { [key: string]: number } = {}
       const { data: rooms } = await supabase.from('rooms').select('id, name')
-      bookingStats.forEach((booking: any) => {
-        const room = rooms?.find((r: any) => r.id === booking.room_id)
+      const roomData = rooms as RoomStat[] | null
+      stats.forEach((booking) => {
+        const room = roomData?.find((r) => r.id === booking.room_id)
         const roomName = room?.name
         if (roomName) {
           roomCount[roomName] = (roomCount[roomName] || 0) + 1
@@ -301,7 +313,7 @@ export const useBookingStats = () => {
         const monthName = date.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
         monthlyCount[monthName] = 0
       }
-      bookingStats.forEach((booking: any) => {
+      stats.forEach((booking) => {
         const date = new Date(booking.created_at)
         const monthName = date.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
         monthlyCount[monthName] = (monthlyCount[monthName] || 0) + 1

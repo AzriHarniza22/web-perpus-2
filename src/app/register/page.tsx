@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -19,7 +19,8 @@ export default function RegisterPage() {
     phone: '',
   })
   const [error, setError] = useState('')
-  const { register, isLoading, user } = useAuthStore()
+  const [isRegistering, setIsRegistering] = useState(false)
+  const { register } = useAuthStore()
   const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,6 +33,7 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setIsRegistering(true)
 
     try {
       await register(formData.email, formData.password)
@@ -58,6 +60,8 @@ export default function RegisterPage() {
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
+    } finally {
+      setIsRegistering(false)
     }
   }
 
@@ -138,8 +142,8 @@ export default function RegisterPage() {
               />
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Loading...' : 'Daftar'}
+            <Button type="submit" className="w-full" disabled={isRegistering}>
+              {isRegistering ? 'Loading...' : 'Daftar'}
             </Button>
           </form>
           <div className="mt-4">

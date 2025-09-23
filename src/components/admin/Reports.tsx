@@ -4,11 +4,9 @@ import { useState, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Calendar } from '@/components/ui/calendar'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useBookingStats, useBookings } from '@/lib/api'
-import { CalendarIcon, Download, FileText, BarChart3, Users, Clock, TrendingUp, FileImage } from 'lucide-react'
-import { format, startOfMonth, endOfMonth, subMonths, isWithinInterval } from 'date-fns'
+import { Download, FileText, BarChart3, Users, Clock, TrendingUp, FileImage } from 'lucide-react'
+import { format, subMonths, isWithinInterval } from 'date-fns'
 import { id } from 'date-fns/locale'
 import jsPDF from 'jspdf'
 
@@ -249,7 +247,7 @@ export default function Reports() {
     let yPosition = 20
 
     // Helper function to add text with line breaks
-    const addText = (text: string, x: number, y: number, options?: any) => {
+    const addText = (text: string, x: number, y: number, options?: { align?: string }) => {
       const splitText = pdf.splitTextToSize(text, pageWidth - 40)
       pdf.text(splitText, x, y, options)
       return y + (splitText.length * 6)

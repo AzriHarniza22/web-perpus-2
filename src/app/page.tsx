@@ -9,6 +9,8 @@ import { Calendar } from '@/components/ui/calendar'
 import { useBookings } from '@/lib/api'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
+import { motion } from 'framer-motion'
+import { CalendarDays, Users, BookOpen, Clock, Star, CheckCircle, ArrowRight, Play } from 'lucide-react'
 import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js'
 
 export default function HomePage() {

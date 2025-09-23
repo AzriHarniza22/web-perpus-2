@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { useCreateBooking } from '@/lib/api'
+import { useCreateBooking, type Room, type Booking } from '@/lib/api'
 import useAuthStore from '@/lib/authStore'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -14,8 +14,8 @@ import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 
 interface BookingFormProps {
-  room: any
-  existingBookings: any[]
+  room: Room
+  existingBookings: Booking[]
 }
 
 export default function BookingForm({ room, existingBookings }: BookingFormProps) {
@@ -24,7 +24,6 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
   const [endTime, setEndTime] = useState('')
   const [eventDescription, setEventDescription] = useState('')
   const [notes, setNotes] = useState('')
-  const [proposalFile, setProposalFile] = useState<File | null>(null)
   const [error, setError] = useState('')
   const router = useRouter()
 
@@ -194,17 +193,6 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any special requirements or notes"
               />
-            </div>
-
-            <div>
-              <Label htmlFor="proposalFile">Upload Proposal Letter (Optional)</Label>
-              <Input
-                id="proposalFile"
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={(e) => setProposalFile(e.target.files?.[0] || null)}
-              />
-              <p className="text-sm text-muted-foreground mt-1">Upload your reservation letter (PDF, DOC, DOCX)</p>
             </div>
 
             {error && <p className="text-red-500 text-sm">{error}</p>}

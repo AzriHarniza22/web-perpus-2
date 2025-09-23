@@ -29,15 +29,15 @@ export default function RoomManagement() {
     e.preventDefault()
     const roomData = {
       name: formData.name,
-      description: formData.description || null,
+      description: formData.description || undefined,
       capacity: parseInt(formData.capacity),
       facilities: formData.facilities.split(',').map(f => f.trim()).filter(f => f),
-      photos: formData.photos.split(',').map(p => p.trim()).filter(p => p) || null,
-      layout: formData.layout || null,
+      photos: formData.photos.split(',').map(p => p.trim()).filter(p => p) || undefined,
+      layout: formData.layout || undefined,
       ...(editingRoom && { id: editingRoom.id }),
     }
 
-    upsertRoomMutation.mutate(roomData as any)
+    upsertRoomMutation.mutate(roomData)
 
     setFormData({
       name: '',
