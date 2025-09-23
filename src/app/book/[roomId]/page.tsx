@@ -72,7 +72,7 @@ export default async function BookRoomPage({ params }: PageProps) {
   // Get existing bookings for this room
   const { data: bookings } = await supabase
     .from('bookings')
-    .select('start_time, end_time, status')
+    .select('*')
     .eq('room_id', roomId)
     .in('status', ['approved', 'pending'])
 

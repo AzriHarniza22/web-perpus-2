@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useBookingStats, useBookings } from '@/lib/api'
 import { Download, FileText, BarChart3, Users, Clock, TrendingUp, FileImage } from 'lucide-react'
 import { format, subMonths, isWithinInterval } from 'date-fns'
-import { id } from 'date-fns/locale'
 import jsPDF from 'jspdf'
 
 // Types for enhanced analytics
