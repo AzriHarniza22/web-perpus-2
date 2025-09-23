@@ -4,10 +4,27 @@ import { useState, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useBookingStats, useBookings } from '@/lib/api'
+import { useBookingStats, useBookings, useNotificationStats } from '@/lib/api'
 import { Download, FileText, BarChart3, Users, Clock, TrendingUp, FileImage } from 'lucide-react'
 import { format, subMonths, isWithinInterval } from 'date-fns'
 import jsPDF from 'jspdf'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  Area,
+  AreaChart
+} from 'recharts'
 
 // Types for enhanced analytics
 interface UserAnalytics {
@@ -16,9 +33,22 @@ interface UserAnalytics {
   topUsers: Array<{
     name: string
     email: string
+    institution?: string
     bookingCount: number
     approvedCount: number
   }>
+}
+
+interface InstitutionAnalytics {
+  institution: string
+  bookingCount: number
+  userCount: number
+}
+
+interface FacilitiesAnalytics {
+  facility: string
+  usageCount: number
+  roomCount: number
 }
 
 interface TimeAnalytics {
@@ -45,11 +75,14 @@ interface RoomUtilization {
 export default function Reports() {
   const { data: stats, isLoading: statsLoading } = useBookingStats()
   const { data: bookings, isLoading: bookingsLoading } = useBookings()
+  const { data: notificationStats, isLoading: notificationLoading } = useNotificationStats()
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
     from: subMonths(new Date(), 3),
     to: new Date()
   })
   const [selectedPeriod, setSelectedPeriod] = useState('3months')
+  const [selectedChartView, setSelectedChartView] = useState('overview')
+  const [hoveredData, setHoveredData] = useState<any>(null)
 
   // Calculate enhanced analytics
   const enhancedAnalytics = useMemo(() => {
@@ -65,13 +98,14 @@ export default function Reports() {
     })
 
     // User Analytics
-    const userStats = new Map<string, { name: string; email: string; bookings: typeof bookings }>()
+    const userStats = new Map<string, { name: string; email: string; institution?: string; bookings: typeof bookings }>()
     filteredBookings.forEach(booking => {
       const userId = booking.user_id
       if (!userStats.has(userId)) {
         userStats.set(userId, {
           name: booking.profiles?.full_name || 'Unknown',
           email: booking.profiles?.email || 'Unknown',
+          institution: booking.profiles?.institution || 'Unknown',
           bookings: []
         })
       }
@@ -85,12 +119,30 @@ export default function Reports() {
         .map(user => ({
           name: user.name,
           email: user.email,
+          institution: user.institution,
           bookingCount: user.bookings.length,
           approvedCount: user.bookings.filter(b => b.status === 'approved').length
         }))
         .sort((a, b) => b.bookingCount - a.bookingCount)
         .slice(0, 10)
     }
+
+    // Institution Analytics
+    const institutionStats = new Map<string, { institution: string; bookingCount: number; userCount: number }>()
+    Array.from(userStats.values()).forEach(user => {
+      const institution = user.institution || 'Unknown'
+      if (!institutionStats.has(institution)) {
+        institutionStats.set(institution, {
+          institution,
+          bookingCount: 0,
+          userCount: 0
+        })
+      }
+      institutionStats.get(institution)!.bookingCount += user.bookings.length
+      institutionStats.get(institution)!.userCount += 1
+    })
+    const institutionAnalytics = Array.from(institutionStats.values())
+      .sort((a, b) => b.bookingCount - a.bookingCount)
 
     // Time Analytics
     const hourStats = new Map<number, number>()
@@ -125,6 +177,24 @@ export default function Reports() {
       averageDuration: filteredBookings.length > 0 ? totalDuration / filteredBookings.length : 0
     }
 
+    // Facilities Analytics
+    const facilitiesStats = new Map<string, { facility: string; usageCount: number; roomCount: number }>()
+    filteredBookings.forEach(booking => {
+      const facilities = booking.rooms?.facilities || []
+      facilities.forEach(facility => {
+        if (!facilitiesStats.has(facility)) {
+          facilitiesStats.set(facility, {
+            facility,
+            usageCount: 0,
+            roomCount: 0
+          })
+        }
+        facilitiesStats.get(facility)!.usageCount += 1
+      })
+    })
+    const facilitiesAnalytics = Array.from(facilitiesStats.values())
+      .sort((a, b) => b.usageCount - a.usageCount)
+
     // Room Utilization
     const roomUtilization: RoomUtilization[] = stats.roomStats.map(roomStat => {
       const roomBookings = filteredBookings.filter(b => {
@@ -141,7 +211,7 @@ export default function Reports() {
       return {
         roomId: roomStat.room_name,
         roomName: roomStat.room_name,
-        totalCapacity: 0, // Would need to fetch from rooms table
+        totalCapacity: roomStat.capacity || 0,
         totalBookings: roomStat.booking_count,
         utilizationRate: roomStat.booking_count > 0 ? (totalDuration / (24 * 30)) * 100 : 0, // Monthly utilization rate
         averageDuration: roomBookings.length > 0 ? totalDuration / roomBookings.length : 0
@@ -152,9 +222,66 @@ export default function Reports() {
       userAnalytics,
       timeAnalytics,
       roomUtilization,
+      institutionAnalytics,
+      facilitiesAnalytics,
       filteredBookings
     }
-  }, [bookings, stats, dateRange])
+  }, [bookings, stats, dateRange, notificationStats])
+
+  // Prepare chart data
+  const basicStatsChartData = useMemo(() => {
+    if (!stats || !enhancedAnalytics) return []
+    return [
+      {
+        name: 'Reservasi',
+        total: stats.totalBookings,
+        approved: stats.approvedBookings,
+        pending: stats.pendingBookings,
+        rejected: stats.rejectedBookings
+      }
+    ]
+  }, [stats, enhancedAnalytics])
+
+  const userAnalyticsChartData = useMemo(() => {
+    if (!enhancedAnalytics) return []
+    return enhancedAnalytics.userAnalytics.topUsers.slice(0, 8).map(user => ({
+      name: user.name.split(' ')[0], // First name only for chart
+      bookings: user.bookingCount,
+      approved: user.approvedCount
+    }))
+  }, [enhancedAnalytics])
+
+  const timeAnalyticsChartData = useMemo(() => {
+    if (!enhancedAnalytics) return { peakHours: [], peakDays: [] }
+    return {
+      peakHours: enhancedAnalytics.timeAnalytics.peakHours.map(h => ({
+        hour: `${h.hour}:00`,
+        bookings: h.count
+      })),
+      peakDays: enhancedAnalytics.timeAnalytics.peakDays.map(d => ({
+        day: d.day,
+        bookings: d.count
+      }))
+    }
+  }, [enhancedAnalytics])
+
+  const roomUtilizationChartData = useMemo(() => {
+    if (!enhancedAnalytics) return []
+    return enhancedAnalytics.roomUtilization.map(room => ({
+      name: room.roomName,
+      utilization: Math.min(room.utilizationRate, 100),
+      bookings: room.totalBookings,
+      avgDuration: room.averageDuration
+    }))
+  }, [enhancedAnalytics])
+
+  const monthlyTrendsChartData = useMemo(() => {
+    if (!stats) return []
+    return stats.monthlyStats.map(month => ({
+      month: month.month,
+      bookings: month.count
+    }))
+  }, [stats])
 
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period)
@@ -187,18 +314,36 @@ export default function Reports() {
       ['Disetujui', stats?.approvedBookings || 0],
       ['Menunggu', stats?.pendingBookings || 0],
       ['Ditolak', stats?.rejectedBookings || 0],
+      ['Dibatalkan', stats?.cancelledBookings || 0],
+      ['Selesai', stats?.completedBookings || 0],
       [''],
       ['=== USER ANALYTICS ==='],
       ['Total Users', enhancedAnalytics.userAnalytics.totalUsers],
       ['Active Users', enhancedAnalytics.userAnalytics.activeUsers],
       [''],
       ['Top Users:'],
-      ['Nama', 'Email', 'Total Booking', 'Disetujui'],
+      ['Nama', 'Email', 'Institusi', 'Total Booking', 'Disetujui'],
       ...enhancedAnalytics.userAnalytics.topUsers.map(user => [
         user.name,
         user.email,
+        user.institution || 'Unknown',
         user.bookingCount,
         user.approvedCount
+      ]),
+      [''],
+      ['=== INSTITUTION ANALYTICS ==='],
+      ['Institusi', 'Total Booking', 'Jumlah User'],
+      ...enhancedAnalytics.institutionAnalytics.map(inst => [
+        inst.institution,
+        inst.bookingCount,
+        inst.userCount
+      ]),
+      [''],
+      ['=== FACILITIES ANALYTICS ==='],
+      ['Fasilitas', 'Jumlah Penggunaan'],
+      ...enhancedAnalytics.facilitiesAnalytics.map(fac => [
+        fac.facility,
+        fac.usageCount
       ]),
       [''],
       ['=== TIME ANALYTICS ==='],
@@ -213,13 +358,37 @@ export default function Reports() {
       ['Average Duration (hours)', enhancedAnalytics.timeAnalytics.averageDuration],
       [''],
       ['=== ROOM UTILIZATION ==='],
-      ['Room Name', 'Total Bookings', 'Utilization Rate (%)', 'Average Duration (hours)'],
+      ['Room Name', 'Total Bookings', 'Capacity', 'Utilization Rate (%)', 'Average Duration (hours)'],
       ...enhancedAnalytics.roomUtilization.map(room => [
         room.roomName,
         room.totalBookings,
+        room.totalCapacity,
         room.utilizationRate.toFixed(2),
         room.averageDuration.toFixed(2)
-      ])
+      ]),
+      [''],
+      ['=== DETAILED BOOKING LIST ==='],
+      ['ID', 'User', 'Email', 'Institution', 'Room', 'Start Time', 'End Time', 'Status', 'Event Description', 'Notes'],
+      ...enhancedAnalytics.filteredBookings.map(booking => [
+        booking.id,
+        booking.profiles?.full_name || 'Unknown',
+        booking.profiles?.email || 'Unknown',
+        booking.profiles?.institution || 'Unknown',
+        booking.rooms?.name || 'Unknown',
+        format(new Date(booking.start_time), 'dd/MM/yyyy HH:mm'),
+        format(new Date(booking.end_time), 'dd/MM/yyyy HH:mm'),
+        booking.status,
+        booking.event_description || '',
+        booking.notes || ''
+      ]),
+      [''],
+      ['=== NOTIFICATION STATISTICS ==='],
+      ['Total Notifications', notificationStats?.totalNotifications || 0],
+      ['Sent', notificationStats?.sentNotifications || 0],
+      ['Failed', notificationStats?.failedNotifications || 0],
+      ['Pending', notificationStats?.pendingNotifications || 0],
+      ['Email Notifications', notificationStats?.emailNotifications || 0],
+      ['WhatsApp Notifications', notificationStats?.whatsappNotifications || 0]
     ]
 
     const csvContent = csvData.map(row =>
@@ -246,43 +415,86 @@ export default function Reports() {
     let yPosition = 20
 
     // Helper function to add text with line breaks
-    const addText = (text: string, x: number, y: number, options?: { align?: string }) => {
-      const splitText = pdf.splitTextToSize(text, pageWidth - 40)
+    const addText = (text: string, x: number, y: number, options?: { align?: string; maxWidth?: number }) => {
+      const maxWidth = options?.maxWidth || pageWidth - 40
+      const splitText = pdf.splitTextToSize(text, maxWidth)
       pdf.text(splitText, x, y, options)
-      return y + (splitText.length * 6)
+      return y + (splitText.length * 7)
     }
 
     // Helper function to check if we need a new page
     const checkNewPage = (requiredHeight: number) => {
-      if (yPosition + requiredHeight > pageHeight - 20) {
+      if (yPosition + requiredHeight > pageHeight - 30) {
         pdf.addPage()
-        yPosition = 20
+        // Add header to new page
+        pdf.setFontSize(10)
+        pdf.setFont('helvetica', 'italic')
+        pdf.text(`Laporan Analytics Perpustakaan Aceh - ${format(new Date(), 'dd/MM/yyyy')}`, 20, 15)
+        pdf.setFont('helvetica', 'normal')
+        yPosition = 25
       }
     }
 
-    // Title
-    pdf.setFontSize(18)
+    // Helper function to add a section header with background
+    const addSectionHeader = (title: string, sectionNumber?: string) => {
+      checkNewPage(25)
+      pdf.setFillColor(240, 240, 240)
+      pdf.rect(15, yPosition - 5, pageWidth - 30, 15, 'F')
+      pdf.setFontSize(14)
+      pdf.setFont('helvetica', 'bold')
+      pdf.setTextColor(0, 0, 0)
+      const headerText = sectionNumber ? `${sectionNumber}. ${title}` : title
+      pdf.text(headerText, 20, yPosition + 5)
+      yPosition += 20
+      pdf.setFont('helvetica', 'normal')
+      pdf.setFontSize(11)
+    }
+
+    // Title with background
+    pdf.setFillColor(0, 102, 204)
+    pdf.rect(0, 0, pageWidth, 40, 'F')
+    pdf.setTextColor(255, 255, 255)
+    pdf.setFontSize(22)
     pdf.setFont('helvetica', 'bold')
-    yPosition = addText('LAPORAN ANALYTICS PERPUSTAKAAN ACEH', 20, yPosition, { align: 'center' })
-    yPosition += 10
+    pdf.text('LAPORAN ANALYTICS PERPUSTAKAAN ACEH', pageWidth/2, 20, { align: 'center' })
+    pdf.setTextColor(0, 0, 0)
+    yPosition = 50
 
-    // Period
-    pdf.setFontSize(12)
+    // Period and generated info
+    pdf.setFontSize(11)
     pdf.setFont('helvetica', 'normal')
-    const periodText = `Periode: ${format(dateRange.from || new Date(), 'dd/MM/yyyy')} - ${format(dateRange.to || new Date(), 'dd/MM/yyyy')}`
-    yPosition = addText(periodText, 20, yPosition, { align: 'center' })
-    yPosition += 10
+    const periodText = `${format(dateRange.from || new Date(), 'dd/MM/yyyy')} - ${format(dateRange.to || new Date(), 'dd/MM/yyyy')}`
+    yPosition = addText(`Periode: ${periodText}`, 20, yPosition)
+    const generatedText = `Dibuat: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`
+    yPosition = addText(generatedText, pageWidth - 20, yPosition, { align: 'right' })
+    yPosition += 15
 
-    // Generated date
-    const generatedText = `Generated: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`
-    yPosition = addText(generatedText, 20, yPosition, { align: 'center' })
-    yPosition += 20
+    // Table of Contents
+    addSectionHeader('DAFTAR ISI')
+    pdf.setFontSize(11)
+    pdf.setFont('helvetica', 'normal')
+    yPosition = addText('1. Statistik Umum', 30, yPosition)
+    yPosition = addText('2. User Analytics', 30, yPosition)
+    yPosition = addText('3. Institution Analytics', 30, yPosition)
+    yPosition = addText('4. Facilities Analytics', 30, yPosition)
+    yPosition = addText('5. Time Analytics', 30, yPosition)
+    yPosition = addText('6. Room Utilization', 30, yPosition)
+    yPosition = addText('7. Notification Statistics', 30, yPosition)
+    yPosition += 15
+
+    // Executive Summary
+    addSectionHeader('RINGKASAN EKSEKUTIF')
+    pdf.setFontSize(11)
+    pdf.setFont('helvetica', 'normal')
+    yPosition = addText(`Total Reservasi: ${stats?.totalBookings || 0}`, 30, yPosition)
+    yPosition = addText(`Tingkat Persetujuan: ${stats?.totalBookings ? Math.round((stats.approvedBookings / stats.totalBookings) * 100) : 0}%`, 30, yPosition)
+    yPosition = addText(`Total Pengguna Aktif: ${enhancedAnalytics.userAnalytics.totalUsers}`, 30, yPosition)
+    yPosition = addText(`Rata-rata Durasi Booking: ${enhancedAnalytics.timeAnalytics.averageDuration.toFixed(1)} jam`, 30, yPosition)
+    yPosition = addText(`Institusi Terdaftar: ${enhancedAnalytics.institutionAnalytics.length}`, 30, yPosition)
+    yPosition += 10
 
     // General Statistics
-    pdf.setFontSize(14)
-    pdf.setFont('helvetica', 'bold')
-    yPosition = addText('STATISTIK UMUM', 20, yPosition)
-    yPosition += 10
+    addSectionHeader('STATISTIK UMUM', '1')
 
     pdf.setFontSize(11)
     pdf.setFont('helvetica', 'normal')
@@ -290,15 +502,53 @@ export default function Reports() {
     yPosition = addText(`Disetujui: ${stats?.approvedBookings || 0}`, 30, yPosition)
     yPosition = addText(`Menunggu: ${stats?.pendingBookings || 0}`, 30, yPosition)
     yPosition = addText(`Ditolak: ${stats?.rejectedBookings || 0}`, 30, yPosition)
+    yPosition = addText(`Dibatalkan: ${stats?.cancelledBookings || 0}`, 30, yPosition)
+    yPosition = addText(`Selesai: ${stats?.completedBookings || 0}`, 30, yPosition)
     yPosition = addText(`Tingkat Persetujuan: ${stats?.totalBookings ? Math.round((stats.approvedBookings / stats.totalBookings) * 100) : 0}%`, 30, yPosition)
-    yPosition += 10
+    yPosition += 15
+
+    // Simple status distribution chart
+    checkNewPage(80)
+    yPosition = addText('Distribusi Status Reservasi:', 30, yPosition)
+    yPosition += 5
+
+    const chartWidth = 120
+    const chartHeight = 40
+    const maxValue = Math.max(stats?.approvedBookings || 0, stats?.pendingBookings || 0, stats?.rejectedBookings || 0, stats?.cancelledBookings || 0, stats?.completedBookings || 0)
+
+    // Draw chart background
+    pdf.setFillColor(245, 245, 245)
+    pdf.rect(30, yPosition, chartWidth, chartHeight, 'F')
+
+    // Draw bars
+    const barWidth = chartWidth / 5
+    const statuses = [
+      { label: 'Approved', value: stats?.approvedBookings || 0, color: [16, 185, 129] },
+      { label: 'Pending', value: stats?.pendingBookings || 0, color: [245, 158, 11] },
+      { label: 'Rejected', value: stats?.rejectedBookings || 0, color: [239, 68, 68] },
+      { label: 'Cancelled', value: stats?.cancelledBookings || 0, color: [107, 114, 128] },
+      { label: 'Completed', value: stats?.completedBookings || 0, color: [59, 130, 246] }
+    ]
+
+    statuses.forEach((status, index) => {
+      const barHeight = maxValue > 0 ? (status.value / maxValue) * (chartHeight - 10) : 0
+      const x = 30 + (index * barWidth) + 2
+      const y = yPosition + chartHeight - barHeight - 5
+
+      pdf.setFillColor(status.color[0], status.color[1], status.color[2])
+      pdf.rect(x, y, barWidth - 4, barHeight, 'F')
+
+      // Label
+      pdf.setFontSize(8)
+      pdf.setTextColor(0, 0, 0)
+      pdf.text(status.label, x + (barWidth - 4) / 2, yPosition + chartHeight + 8, { align: 'center' })
+      pdf.text(status.value.toString(), x + (barWidth - 4) / 2, y - 2, { align: 'center' })
+    })
+
+    yPosition += chartHeight + 20
 
     // User Analytics
-    checkNewPage(50)
-    pdf.setFontSize(14)
-    pdf.setFont('helvetica', 'bold')
-    yPosition = addText('USER ANALYTICS', 20, yPosition)
-    yPosition += 10
+    addSectionHeader('USER ANALYTICS', '2')
 
     pdf.setFontSize(11)
     pdf.setFont('helvetica', 'normal')
@@ -309,17 +559,61 @@ export default function Reports() {
     // Top Users
     yPosition = addText('Top 5 Pengguna Teraktif:', 30, yPosition)
     enhancedAnalytics.userAnalytics.topUsers.slice(0, 5).forEach((user, index) => {
-      const userText = `${index + 1}. ${user.name} (${user.email}) - ${user.bookingCount} booking, ${user.approvedCount} disetujui`
+      const userText = `${index + 1}. ${user.name} (${user.email}, ${user.institution || 'Unknown'}) - ${user.bookingCount} booking, ${user.approvedCount} disetujui`
       yPosition = addText(userText, 40, yPosition)
     })
     yPosition += 10
 
-    // Time Analytics
-    checkNewPage(50)
-    pdf.setFontSize(14)
-    pdf.setFont('helvetica', 'bold')
-    yPosition = addText('TIME ANALYTICS', 20, yPosition)
+    // Institution Analytics
+    addSectionHeader('INSTITUTION ANALYTICS', '3')
+    enhancedAnalytics.institutionAnalytics.slice(0, 5).forEach((inst) => {
+      const instText = `${inst.institution}: ${inst.bookingCount} bookings, ${inst.userCount} users`
+      yPosition = addText(instText, 30, yPosition)
+    })
+    yPosition += 15
+
+    // Simple institution chart
+    if (enhancedAnalytics.institutionAnalytics.length > 0) {
+      checkNewPage(60)
+      yPosition = addText('Top 5 Institusi:', 30, yPosition)
+      yPosition += 5
+
+      const chartWidth = 120
+      const chartHeight = 30
+      const maxValue = Math.max(...enhancedAnalytics.institutionAnalytics.slice(0, 5).map(inst => inst.bookingCount))
+
+      // Draw chart background
+      pdf.setFillColor(245, 245, 245)
+      pdf.rect(30, yPosition, chartWidth, chartHeight, 'F')
+
+      enhancedAnalytics.institutionAnalytics.slice(0, 5).forEach((inst, index) => {
+        const barHeight = maxValue > 0 ? (inst.bookingCount / maxValue) * (chartHeight - 10) : 0
+        const x = 30 + (index * 24) + 1
+        const y = yPosition + chartHeight - barHeight - 5
+
+        pdf.setFillColor(59, 130, 246)
+        pdf.rect(x, y, 22, barHeight, 'F')
+
+        // Label
+        pdf.setFontSize(7)
+        pdf.setTextColor(0, 0, 0)
+        pdf.text(inst.institution.substring(0, 8), x + 11, yPosition + chartHeight + 6, { align: 'center' })
+        pdf.text(inst.bookingCount.toString(), x + 11, y - 2, { align: 'center' })
+      })
+
+      yPosition += chartHeight + 15
+    }
+
+    // Facilities Analytics
+    addSectionHeader('FACILITIES ANALYTICS', '4')
+    enhancedAnalytics.facilitiesAnalytics.slice(0, 8).forEach((fac) => {
+      const facText = `${fac.facility}: ${fac.usageCount} usages`
+      yPosition = addText(facText, 30, yPosition)
+    })
     yPosition += 10
+
+    // Time Analytics
+    addSectionHeader('TIME ANALYTICS', '5')
 
     pdf.setFontSize(11)
     pdf.setFont('helvetica', 'normal')
@@ -341,24 +635,40 @@ export default function Reports() {
     yPosition += 10
 
     // Room Utilization
-    checkNewPage(50)
-    pdf.setFontSize(14)
-    pdf.setFont('helvetica', 'bold')
-    yPosition = addText('ROOM UTILIZATION', 20, yPosition)
-    yPosition += 10
+    addSectionHeader('ROOM UTILIZATION', '6')
 
     pdf.setFontSize(11)
     pdf.setFont('helvetica', 'normal')
     enhancedAnalytics.roomUtilization.forEach((room) => {
-      const roomText = `${room.roomName}: ${room.totalBookings} bookings, ${room.utilizationRate.toFixed(1)}% utilization, ${room.averageDuration.toFixed(1)}h avg duration`
+      const roomText = `${room.roomName}: ${room.totalBookings} bookings, capacity ${room.totalCapacity}, ${room.utilizationRate.toFixed(1)}% utilization, ${room.averageDuration.toFixed(1)}h avg duration`
       yPosition = addText(roomText, 30, yPosition)
     })
+    yPosition += 10
+
+    // Notification Statistics
+    addSectionHeader('NOTIFICATION STATISTICS', '7')
+
+    pdf.setFontSize(11)
+    pdf.setFont('helvetica', 'normal')
+    yPosition = addText(`Total Notifications: ${notificationStats?.totalNotifications || 0}`, 30, yPosition)
+    yPosition = addText(`Sent: ${notificationStats?.sentNotifications || 0}`, 30, yPosition)
+    yPosition = addText(`Failed: ${notificationStats?.failedNotifications || 0}`, 30, yPosition)
+    yPosition = addText(`Pending: ${notificationStats?.pendingNotifications || 0}`, 30, yPosition)
+    yPosition = addText(`Email: ${notificationStats?.emailNotifications || 0}`, 30, yPosition)
+    yPosition = addText(`WhatsApp: ${notificationStats?.whatsappNotifications || 0}`, 30, yPosition)
+
+
+    // Add footer to the last page
+    pdf.setFontSize(8)
+    pdf.setTextColor(128, 128, 128)
+    pdf.text('Laporan Analytics Perpustakaan Aceh', 20, pageHeight - 10)
+    pdf.text(`Dibuat: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, pageWidth - 30, pageHeight - 10, { align: 'right' })
 
     // Save the PDF
     pdf.save(`laporan-analytics-${format(new Date(), 'yyyy-MM-dd')}.pdf`)
   }
 
-  if (statsLoading || bookingsLoading) {
+  if (statsLoading || bookingsLoading || notificationLoading) {
     return <div className="flex items-center justify-center p-8">Loading...</div>
   }
 
@@ -404,55 +714,109 @@ export default function Reports() {
         </CardHeader>
       </Card>
 
-      {/* Basic Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Reservasi</p>
-                <p className="text-2xl font-bold">{stats.totalBookings}</p>
+      {/* Basic Statistics Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Key Metrics Cards */}
+        <div className="grid grid-cols-2 gap-4">
+          <Card className="transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Reservasi</p>
+                  <p className="text-2xl font-bold">{stats.totalBookings}</p>
+                  <p className="text-xs text-muted-foreground">Approved: {stats.approvedBookings} | Pending: {stats.pendingBookings}</p>
+                </div>
+                <FileText className="h-8 w-8 text-blue-600" />
               </div>
-              <FileText className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Tingkat Persetujuan</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {stats.totalBookings > 0 ? Math.round((stats.approvedBookings / stats.totalBookings) * 100) : 0}%
-                </p>
+          <Card className="transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Tingkat Persetujuan</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {stats.totalBookings > 0 ? Math.round((stats.approvedBookings / stats.totalBookings) * 100) : 0}%
+                  </p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-green-600" />
               </div>
-              <TrendingUp className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Pengguna</p>
-                <p className="text-2xl font-bold">{enhancedAnalytics.userAnalytics.totalUsers}</p>
+          <Card className="transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Pengguna</p>
+                  <p className="text-2xl font-bold">{enhancedAnalytics.userAnalytics.totalUsers}</p>
+                </div>
+                <Users className="h-8 w-8 text-purple-600" />
               </div>
-              <Users className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Rata-rata Durasi</p>
-                <p className="text-2xl font-bold">{enhancedAnalytics.timeAnalytics.averageDuration.toFixed(1)}h</p>
+          <Card className="transition-all duration-200 hover:shadow-lg hover:scale-105 cursor-pointer">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Rata-rata Durasi</p>
+                  <p className="text-2xl font-bold">{enhancedAnalytics.timeAnalytics.averageDuration.toFixed(1)}h</p>
+                </div>
+                <Clock className="h-8 w-8 text-orange-600" />
               </div>
-              <Clock className="h-8 w-8 text-orange-600" />
-            </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Booking Status Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Status Reservasi</CardTitle>
+            <CardDescription>Distribusi status booking dalam periode ini</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={basicStatsChartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="name" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#f9fafb',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
+                />
+                <Legend />
+                <Bar
+                  dataKey="approved"
+                  stackId="a"
+                  fill="#10b981"
+                  name="Disetujui"
+                  animationBegin={0}
+                  animationDuration={1000}
+                />
+                <Bar
+                  dataKey="pending"
+                  stackId="a"
+                  fill="#f59e0b"
+                  name="Menunggu"
+                  animationBegin={200}
+                  animationDuration={1000}
+                />
+                <Bar
+                  dataKey="rejected"
+                  stackId="a"
+                  fill="#ef4444"
+                  name="Ditolak"
+                  animationBegin={400}
+                  animationDuration={1000}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
@@ -465,47 +829,173 @@ export default function Reports() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Top Users Bar Chart */}
             <div>
-              <h4 className="font-semibold mb-3">Top 5 Pengguna Teraktif</h4>
-              <div className="space-y-2">
-                {enhancedAnalytics.userAnalytics.topUsers.slice(0, 5).map((user, index) => (
-                  <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                    <div>
-                      <p className="font-medium">{user.name}</p>
-                      <p className="text-sm text-gray-600">{user.email}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">{user.bookingCount} booking</p>
-                      <p className="text-sm text-green-600">{user.approvedCount} disetujui</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <h4 className="font-semibold mb-3">Top Pengguna Teraktif</h4>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={userAnalyticsChartData} layout="horizontal">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis type="number" stroke="#6b7280" />
+                  <YAxis dataKey="name" type="category" width={80} stroke="#6b7280" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#f9fafb',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Bar
+                    dataKey="bookings"
+                    fill="#3b82f6"
+                    name="Total Booking"
+                    animationBegin={0}
+                    animationDuration={1200}
+                  />
+                  <Bar
+                    dataKey="approved"
+                    fill="#10b981"
+                    name="Disetujui"
+                    animationBegin={300}
+                    animationDuration={1200}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
 
+            {/* Time Analytics Charts */}
             <div>
               <h4 className="font-semibold mb-3">Time Analytics</h4>
               <div className="space-y-4">
                 <div>
                   <p className="text-sm font-medium mb-2">Jam Sibuk</p>
-                  {enhancedAnalytics.timeAnalytics.peakHours.map((hour, index) => (
-                    <div key={index} className="flex justify-between text-sm">
-                      <span>Jam {hour.hour}:00</span>
-                      <span>{hour.count} booking</span>
-                    </div>
-                  ))}
+                  <ResponsiveContainer width="100%" height={120}>
+                    <AreaChart data={timeAnalyticsChartData.peakHours}>
+                      <XAxis dataKey="hour" stroke="#6b7280" />
+                      <YAxis stroke="#6b7280" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#f9fafb',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="bookings"
+                        stroke="#f59e0b"
+                        fill="#fef3c7"
+                        animationBegin={0}
+                        animationDuration={1500}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
 
                 <div>
                   <p className="text-sm font-medium mb-2">Hari Sibuk</p>
-                  {enhancedAnalytics.timeAnalytics.peakDays.map((day, index) => (
-                    <div key={index} className="flex justify-between text-sm">
-                      <span>{day.day}</span>
-                      <span>{day.count} booking</span>
-                    </div>
-                  ))}
+                  <ResponsiveContainer width="100%" height={120}>
+                    <BarChart data={timeAnalyticsChartData.peakDays}>
+                      <XAxis dataKey="day" stroke="#6b7280" />
+                      <YAxis stroke="#6b7280" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#f9fafb',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                      />
+                      <Bar
+                        dataKey="bookings"
+                        fill="#8b5cf6"
+                        animationBegin={0}
+                        animationDuration={1500}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Institution Analytics */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Institution Analytics</CardTitle>
+          <CardDescription>Statistik penggunaan berdasarkan institusi</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {enhancedAnalytics.institutionAnalytics.slice(0, 8).map((inst, index) => (
+              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <p className="font-medium">{inst.institution}</p>
+                  <p className="text-sm text-gray-600">{inst.userCount} users</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-blue-600">{inst.bookingCount}</p>
+                  <p className="text-xs text-gray-500">bookings</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Facilities Analytics */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Facilities Analytics</CardTitle>
+          <CardDescription>Penggunaan fasilitas ruangan</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {enhancedAnalytics.facilitiesAnalytics.slice(0, 9).map((fac, index) => (
+              <div key={index} className="border rounded-lg p-3 text-center">
+                <h5 className="font-medium text-sm">{fac.facility}</h5>
+                <p className="text-lg font-bold text-green-600">{fac.usageCount}</p>
+                <p className="text-xs text-gray-600">usages</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Notification Statistics */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Notification Statistics</CardTitle>
+          <CardDescription>Statistik pengiriman notifikasi</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="text-center p-3 border rounded-lg">
+              <p className="text-sm font-medium text-gray-600">Total</p>
+              <p className="text-2xl font-bold text-blue-600">{notificationStats?.totalNotifications || 0}</p>
+            </div>
+            <div className="text-center p-3 border rounded-lg">
+              <p className="text-sm font-medium text-gray-600">Sent</p>
+              <p className="text-2xl font-bold text-green-600">{notificationStats?.sentNotifications || 0}</p>
+            </div>
+            <div className="text-center p-3 border rounded-lg">
+              <p className="text-sm font-medium text-gray-600">Failed</p>
+              <p className="text-2xl font-bold text-red-600">{notificationStats?.failedNotifications || 0}</p>
+            </div>
+            <div className="text-center p-3 border rounded-lg">
+              <p className="text-sm font-medium text-gray-600">Email</p>
+              <p className="text-2xl font-bold text-purple-600">{notificationStats?.emailNotifications || 0}</p>
+            </div>
+            <div className="text-center p-3 border rounded-lg">
+              <p className="text-sm font-medium text-gray-600">WhatsApp</p>
+              <p className="text-2xl font-bold text-orange-600">{notificationStats?.whatsappNotifications || 0}</p>
+            </div>
+            <div className="text-center p-3 border rounded-lg">
+              <p className="text-sm font-medium text-gray-600">Pending</p>
+              <p className="text-2xl font-bold text-yellow-600">{notificationStats?.pendingNotifications || 0}</p>
             </div>
           </div>
         </CardContent>
@@ -518,25 +1008,48 @@ export default function Reports() {
           <CardDescription>Tingkat penggunaan ruangan</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={roomUtilizationChartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="name" stroke="#6b7280" />
+              <YAxis stroke="#6b7280" />
+              <Tooltip
+                formatter={(value, name) => {
+                  if (name === 'utilization') return [`${value}%`, 'Utilization Rate']
+                  if (name === 'bookings') return [value, 'Total Bookings']
+                  if (name === 'avgDuration') return [`${value}h`, 'Avg Duration']
+                  return [value, name]
+                }}
+                contentStyle={{
+                  backgroundColor: '#f9fafb',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
+              <Legend />
+              <Bar
+                dataKey="utilization"
+                fill="#3b82f6"
+                name="Utilization %"
+                animationBegin={0}
+                animationDuration={1200}
+              />
+              <Bar
+                dataKey="bookings"
+                fill="#10b981"
+                name="Total Bookings"
+                animationBegin={300}
+                animationDuration={1200}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {enhancedAnalytics.roomUtilization.map((room, index) => (
-              <div key={index} className="border rounded-lg p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="font-semibold">{room.roomName}</h4>
-                  <span className="text-sm text-gray-600">
-                    {room.totalBookings} booking
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full"
-                    style={{ width: `${Math.min(room.utilizationRate, 100)}%` }}
-                  ></div>
-                </div>
-                <div className="flex justify-between text-sm text-gray-600 mt-1">
-                  <span>Utilization: {room.utilizationRate.toFixed(1)}%</span>
-                  <span>Avg Duration: {room.averageDuration.toFixed(1)}h</span>
-                </div>
+              <div key={index} className="border rounded-lg p-3 text-center">
+                <h5 className="font-medium text-sm">{room.roomName}</h5>
+                <p className="text-xs text-gray-600">{room.totalBookings} bookings</p>
+                <p className="text-xs text-blue-600">{room.utilizationRate.toFixed(1)}% utilization</p>
               </div>
             ))}
           </div>
@@ -550,15 +1063,98 @@ export default function Reports() {
           <CardDescription>Tren bulanan reservasi</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={monthlyTrendsChartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="month" stroke="#6b7280" />
+              <YAxis stroke="#6b7280" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#f9fafb',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="bookings"
+                stroke="#3b82f6"
+                strokeWidth={3}
+                dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
+                activeDot={{ r: 8, stroke: '#3b82f6', strokeWidth: 2, fill: '#fff' }}
+                animationBegin={0}
+                animationDuration={2000}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             {stats.monthlyStats.slice(0, 6).map((month, index) => (
-              <div key={index} className="text-center p-4 border rounded-lg">
-                <p className="font-semibold">{month.month}</p>
-                <p className="text-2xl font-bold text-blue-600">{month.count}</p>
-                <p className="text-sm text-gray-600">reservasi</p>
+              <div key={index} className="text-center p-2 border rounded">
+                <p className="text-xs font-medium">{month.month}</p>
+                <p className="text-lg font-bold text-blue-600">{month.count}</p>
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Status Trends */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Status Trends Over Time</CardTitle>
+          <CardDescription>Tren status booking dalam 6 bulan terakhir</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={stats.statusTrends}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="month" stroke="#6b7280" />
+              <YAxis stroke="#6b7280" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#f9fafb',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="approved"
+                stroke="#10b981"
+                strokeWidth={2}
+                name="Approved"
+                dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="pending"
+                stroke="#f59e0b"
+                strokeWidth={2}
+                name="Pending"
+                dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="rejected"
+                stroke="#ef4444"
+                strokeWidth={2}
+                name="Rejected"
+                dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="cancelled"
+                stroke="#6b7280"
+                strokeWidth={2}
+                name="Cancelled"
+                dot={{ fill: '#6b7280', strokeWidth: 2, r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
     </div>

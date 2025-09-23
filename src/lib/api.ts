@@ -31,11 +31,13 @@ export interface BookingWithRelations extends Booking {
   profiles: {
     full_name: string
     email: string
+    institution?: string
     role?: string
   }
   rooms: {
     name: string
     capacity?: number
+    facilities?: string[]
   }
 }
 
@@ -46,6 +48,17 @@ export interface Profile {
   institution?: string
   phone?: string
   role?: string
+}
+
+export interface Notification {
+  id: string
+  booking_id: string
+  type: string
+  recipient: string
+  message: string
+  status: string
+  sent_at?: string
+  created_at: string
 }
 
 // Fetch all bookings with profiles and rooms
@@ -60,14 +73,15 @@ export const useBookings = () => {
           profiles:user_id (
             full_name,
             email,
+            institution,
             role
           ),
           rooms:room_id (
             name,
-            capacity
+            capacity,
+            facilities
           )
         `)
-        .eq('status', 'approved')
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -293,7 +307,7 @@ export const useBookingStats = () => {
     queryFn: async () => {
       const { data: bookingStats } = await supabase
         .from('bookings')
-        .select('status, created_at, room_id')
+        .select('status, created_at, room_id, start_time, end_time')
 
       if (!bookingStats) return null
 
@@ -301,11 +315,14 @@ export const useBookingStats = () => {
         status: string
         created_at: string
         room_id: string
+        start_time: string
+        end_time: string
       }
 
       type RoomStat = {
         id: string
         name: string
+        capacity: number
       }
 
       const stats = bookingStats as BookingStat[]
@@ -313,19 +330,27 @@ export const useBookingStats = () => {
       const approvedBookings = stats.filter((b) => b.status === 'approved').length
       const pendingBookings = stats.filter((b) => b.status === 'pending').length
       const rejectedBookings = stats.filter((b) => b.status === 'rejected').length
+      const cancelledBookings = stats.filter((b) => b.status === 'cancelled').length
+      const completedBookings = stats.filter((b) => b.status === 'completed').length
 
-      // Room stats
+      // Room stats with capacity
       const roomCount: { [key: string]: number } = {}
-      const { data: rooms } = await supabase.from('rooms').select('id, name')
+      const roomCapacity: { [key: string]: number } = {}
+      const { data: rooms } = await supabase.from('rooms').select('id, name, capacity')
       const roomData = rooms as RoomStat[] | null
       stats.forEach((booking) => {
         const room = roomData?.find((r) => r.id === booking.room_id)
         const roomName = room?.name
         if (roomName) {
           roomCount[roomName] = (roomCount[roomName] || 0) + 1
+          roomCapacity[roomName] = room.capacity
         }
       })
-      const roomStats = Object.entries(roomCount).map(([room_name, booking_count]) => ({ room_name, booking_count }))
+      const roomStats = Object.entries(roomCount).map(([room_name, booking_count]) => ({
+        room_name,
+        booking_count,
+        capacity: roomCapacity[room_name] || 0
+      }))
 
       // Monthly stats (last 12 months)
       const monthlyCount: { [key: string]: number } = {}
@@ -342,13 +367,81 @@ export const useBookingStats = () => {
       })
       const monthlyStats = Object.entries(monthlyCount).map(([month, count]) => ({ month, count }))
 
+      // Status distribution over time (last 6 months)
+      const statusOverTime: { [key: string]: { [status: string]: number } } = {}
+      for (let i = 0; i < 6; i++) {
+        const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1)
+        const monthName = date.toLocaleString('id-ID', { month: 'short', year: 'numeric' })
+        statusOverTime[monthName] = { approved: 0, pending: 0, rejected: 0, cancelled: 0, completed: 0 }
+      }
+      stats.forEach((booking) => {
+        const date = new Date(booking.created_at)
+        const monthName = date.toLocaleString('id-ID', { month: 'short', year: 'numeric' })
+        if (statusOverTime[monthName]) {
+          statusOverTime[monthName][booking.status as keyof typeof statusOverTime[string]] =
+            (statusOverTime[monthName][booking.status as keyof typeof statusOverTime[string]] || 0) + 1
+        }
+      })
+      const statusTrends = Object.entries(statusOverTime).map(([month, statuses]) => ({ month, ...statuses }))
+
       return {
         totalBookings,
         approvedBookings,
         pendingBookings,
         rejectedBookings,
+        cancelledBookings,
+        completedBookings,
         roomStats,
         monthlyStats,
+        statusTrends,
+      }
+    },
+  })
+}
+
+// Fetch notification stats for reports
+export const useNotificationStats = () => {
+  return useQuery({
+    queryKey: ['notificationStats'],
+    queryFn: async () => {
+      const { data: notifications } = await supabase
+        .from('notifications')
+        .select('type, status, sent_at, created_at')
+
+      if (!notifications) return null
+
+      const notificationStats = notifications as Notification[]
+      const totalNotifications = notificationStats.length
+      const sentNotifications = notificationStats.filter((n) => n.status === 'sent').length
+      const failedNotifications = notificationStats.filter((n) => n.status === 'failed').length
+      const pendingNotifications = notificationStats.filter((n) => n.status === 'pending').length
+
+      const emailNotifications = notificationStats.filter((n) => n.type === 'email').length
+      const whatsappNotifications = notificationStats.filter((n) => n.type === 'whatsapp').length
+
+      // Monthly notification stats
+      const monthlyNotifications: { [key: string]: number } = {}
+      const currentDate = new Date()
+      for (let i = 0; i < 6; i++) {
+        const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1)
+        const monthName = date.toLocaleString('id-ID', { month: 'short', year: 'numeric' })
+        monthlyNotifications[monthName] = 0
+      }
+      notificationStats.forEach((notification) => {
+        const date = new Date(notification.created_at)
+        const monthName = date.toLocaleString('id-ID', { month: 'short', year: 'numeric' })
+        monthlyNotifications[monthName] = (monthlyNotifications[monthName] || 0) + 1
+      })
+      const monthlyNotificationStats = Object.entries(monthlyNotifications).map(([month, count]) => ({ month, count }))
+
+      return {
+        totalNotifications,
+        sentNotifications,
+        failedNotifications,
+        pendingNotifications,
+        emailNotifications,
+        whatsappNotifications,
+        monthlyNotificationStats,
       }
     },
   })
