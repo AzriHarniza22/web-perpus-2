@@ -68,6 +68,7 @@ export const useBookings = () => {
             capacity
           )
         `)
+        .eq('status', 'approved')
         .order('created_at', { ascending: false })
 
       if (error) throw error

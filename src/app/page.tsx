@@ -5,12 +5,32 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Calendar } from '@/components/ui/calendar'
+import { useBookings } from '@/lib/api'
+import { format } from 'date-fns'
+import { id } from 'date-fns/locale'
 import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js'
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const { data: bookings } = useBookings()
+
+  const bookedDates = bookings ? [...new Set(bookings.map(b => new Date(b.start_time).toDateString()))].map(d => new Date(d)) : []
+
+  const getBookedTimes = (date: Date) => {
+    return bookings ? bookings.filter(booking => {
+      const bookingDate = new Date(booking.start_time)
+      return bookingDate.toDateString() === date.toDateString()
+    }).map(booking => ({
+      start: new Date(booking.start_time),
+      end: new Date(booking.end_time),
+      room: booking.rooms?.name,
+      status: booking.status
+    })) : []
+  }
 
   useEffect(() => {
     const getUser = async () => {
@@ -138,6 +158,30 @@ export default function HomePage() {
           >
             Masuk
           </Button>
+        </div>
+        <div className="mt-12 flex justify-center">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={setSelectedDate}
+            modifiers={{ booked: bookedDates }}
+            locale={id}
+          />
+          {selectedDate && (
+            <div className="mt-4 text-left">
+              <h4 className="font-medium mb-2">Booked times for {format(selectedDate, 'PPP', { locale: id })}:</h4>
+              <div className="space-y-1">
+                {getBookedTimes(selectedDate).map((time, index) => (
+                  <div key={index} className="text-sm text-red-600">
+                    {format(time.start, 'HH:mm')} - {format(time.end, 'HH:mm')} ({time.room}) - {time.status}
+                  </div>
+                ))}
+                {getBookedTimes(selectedDate).length === 0 && (
+                  <p className="text-sm text-green-600">No bookings for this date</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

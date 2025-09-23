@@ -104,7 +104,9 @@ CREATE POLICY "Admins can manage rooms" ON public.rooms FOR ALL USING (
   auth.uid() IS NOT NULL
 );
 
--- Bookings: Users can view/manage their own, admins can view all
+-- Bookings: Users can view/manage their own, admins can view all, anonymous can view approved
+DROP POLICY IF EXISTS "Anyone can view approved bookings" ON public.bookings;
+CREATE POLICY "Anyone can view approved bookings" ON public.bookings FOR SELECT USING (status = 'approved');
 DROP POLICY IF EXISTS "Users can view own bookings" ON public.bookings;
 CREATE POLICY "Users can view own bookings" ON public.bookings FOR SELECT USING (auth.uid() = user_id);
 DROP POLICY IF EXISTS "Users can create bookings" ON public.bookings;

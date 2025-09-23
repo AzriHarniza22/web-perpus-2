@@ -122,7 +122,8 @@ function Calendar({
           defaultClassNames.disabled
         ),
         hidden: cn("invisible", defaultClassNames.hidden),
-        ...classNames,
+        booked: "bg-red-100 text-red-900",
+        ...(classNames as any),
       }}
       components={{
         Root: ({ className, rootRef, ...props }) => {
