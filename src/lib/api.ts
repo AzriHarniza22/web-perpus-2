@@ -76,6 +76,28 @@ export const useBookings = () => {
   })
 }
 
+// Fetch all bookings for calendar display (approved and pending)
+export const useCalendarBookings = () => {
+  return useQuery<BookingWithRelations[]>({
+    queryKey: ['calendarBookings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          rooms:room_id (
+            name
+          )
+        `)
+        .in('status', ['approved', 'pending'])
+        .order('start_time', { ascending: true })
+
+      if (error) throw error
+      return data || []
+    },
+  })
+}
+
 // Fetch bookings for a specific room
 export const useRoomBookings = (roomId: string) => {
   return useQuery({
