@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
         .eq('id', data.user.id)
         .single()
 
-      const redirectPath = userProfile?.role === 'admin' ? '/admin' : (next || '/')
+      const redirectPath = userProfile?.role === 'admin' ? '/admin' : (next || '/dashboard')
       return NextResponse.redirect(`${origin}${redirectPath}`)
     }
   }

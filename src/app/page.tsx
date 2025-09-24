@@ -5,231 +5,16 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, Users, Clock, CheckCircle, ArrowRight, Play, MapPin, Phone, Mail, Menu, X, Building, Award, Shield, Zap, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import { useCalendarBookings, useRooms, type Room } from '@/lib/api'
+import useAuthStore from '@/lib/authStore'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 
-// Interactive Calendar Component
-const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time: string; end_time: string; rooms?: { name: string }; status: string }> }) => {
-  const [selectedDate, setSelectedDate] = useState(new Date())
-  const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [bookedDates, setBookedDates] = useState<string[]>([])
-
-  useEffect(() => {
-    const dates = bookings.map(booking =>
-      new Date(booking.start_time).toDateString()
-    )
-    setBookedDates([...new Set(dates)])
-  }, [bookings])
-
-  const getBookedTimes = (date: Date) => {
-    return bookings.filter(booking => {
-      const bookingDate = new Date(booking.start_time)
-      return bookingDate.toDateString() === date.toDateString()
-    }).map(booking => ({
-      start: new Date(booking.start_time),
-      end: new Date(booking.end_time),
-      room: booking.rooms?.name,
-      status: booking.status
-    }))
-  }
-
-  const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear()
-    const month = date.getMonth()
-    const firstDay = new Date(year, month, 1)
-    const lastDay = new Date(year, month + 1, 0)
-    const startDate = new Date(firstDay)
-    startDate.setDate(startDate.getDate() - firstDay.getDay())
-
-    const days = []
-    const currentDate = new Date(startDate)
-
-    for (let i = 0; i < 42; i++) {
-      days.push(new Date(currentDate))
-      currentDate.setDate(currentDate.getDate() + 1)
-    }
-
-    return days
-  }
-
-  const isToday = (date: Date) => {
-    const today = new Date()
-    return date.toDateString() === today.toDateString()
-  }
-
-  const isBooked = (date: Date) => {
-    return bookedDates.includes(date.toDateString())
-  }
-
-  const isSameMonth = (date: Date) => {
-    return date.getMonth() === currentMonth.getMonth()
-  }
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('id-ID', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('id-ID', {
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
-
-  const nextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))
-  }
-
-  const prevMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))
-  }
-
-  const days = getDaysInMonth(currentMonth)
-  const monthNames = [
-    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-  ]
-
-  return (
-    <div className="bg-white/20 backdrop-blur-xl rounded-3xl p-6 border border-white/30 shadow-2xl">
-      {/* Calendar Header */}
-      <div className="flex items-center justify-between mb-6">
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={prevMonth}
-          className="p-2 rounded-full bg-white/30 hover:bg-white/40 transition-all"
-        >
-          <ChevronLeft size={20} className="text-gray-700" />
-        </motion.button>
-        
-        <h3 className="text-xl font-bold text-gray-800">
-          {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-        </h3>
-        
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={nextMonth}
-          className="p-2 rounded-full bg-white/30 hover:bg-white/40 transition-all"
-        >
-          <ChevronRight size={20} className="text-gray-700" />
-        </motion.button>
-      </div>
-
-      {/* Days of week */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
-        {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map(day => (
-          <div key={day} className="p-2 text-center text-sm font-medium text-gray-600">
-            {day}
-          </div>
-        ))}
-      </div>
-
-      {/* Calendar Days */}
-      <div className="grid grid-cols-7 gap-1 mb-6">
-        {days.map((day, index) => {
-          const isCurrentMonth = isSameMonth(day)
-          const isTodayDate = isToday(day)
-          const isBookedDate = isBooked(day)
-          const isSelected = selectedDate.toDateString() === day.toDateString()
-
-          return (
-            <motion.button
-              key={index}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedDate(day)}
-              className={`
-                relative p-2 text-sm rounded-lg transition-all duration-200
-                ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-700'}
-                ${isTodayDate ? 'bg-blue-500 text-white font-bold' : ''}
-                ${isSelected && !isTodayDate ? 'bg-purple-500 text-white' : ''}
-                ${isBookedDate && !isTodayDate && !isSelected ? 'bg-red-100 text-red-600' : ''}
-                ${!isTodayDate && !isSelected && !isBookedDate && isCurrentMonth ? 'hover:bg-white/40' : ''}
-              `}
-            >
-              {day.getDate()}
-              {isBookedDate && (
-                <div className="absolute top-1 right-1 w-2 h-2 bg-red-400 rounded-full"></div>
-              )}
-            </motion.button>
-          )
-        })}
-      </div>
-
-      {/* Selected Date Info */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        key={selectedDate.toDateString()}
-        className="bg-white/30 rounded-2xl p-4"
-      >
-        <h4 className="font-bold text-gray-800 mb-3">
-          📅 {formatDate(selectedDate)}
-        </h4>
-        
-        <div className="space-y-2 max-h-32 overflow-y-auto">
-          {getBookedTimes(selectedDate).length > 0 ? (
-            getBookedTimes(selectedDate).map((booking, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className={`p-2 rounded-lg text-sm ${
-                  booking.status === 'approved' 
-                    ? 'bg-green-100 text-green-800 border-l-4 border-green-400' 
-                    : 'bg-yellow-100 text-yellow-800 border-l-4 border-yellow-400'
-                }`}
-              >
-                <div className="font-medium">{booking.room}</div>
-                <div className="text-xs">
-                  🕐 {formatTime(booking.start)} - {formatTime(booking.end)}
-                </div>
-                <div className="text-xs capitalize">
-                  📋 {booking.status === 'approved' ? 'Disetujui' : 'Menunggu'}
-                </div>
-              </motion.div>
-            ))
-          ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-4 text-gray-600"
-            >
-              <div className="text-2xl mb-2">✨</div>
-              <div className="text-sm">Tidak ada booking untuk tanggal ini</div>
-              <div className="text-xs text-gray-500 mt-1">Hari yang sempurna untuk reservasi!</div>
-            </motion.div>
-          )}
-        </div>
-      </motion.div>
-
-      {/* Legend */}
-      <div className="mt-4 flex items-center justify-center gap-4 text-xs">
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-          <span className="text-gray-600">Hari ini</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-red-100 border border-red-400 rounded-full"></div>
-          <span className="text-gray-600">Ada booking</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-          <span className="text-gray-600">Dipilih</span>
-        </div>
-      </div>
-    </div>
-  )
-}
+import InteractiveCalendar from '@/app/InteractiveCalendar'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { supabase } from '@/lib/supabase'
 
 const HomePage = () => {
-  const [user, setUser] = useState(null)
+  const { user, fetchUser, isLoading: authLoading } = useAuthStore()
   const [loading, setLoading] = useState(true)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('home')
@@ -282,12 +67,10 @@ const HomePage = () => {
     })
   }
 
-  // Simulate auth check
+  // Check auth on mount
   useEffect(() => {
-    setTimeout(() => {
-      setLoading(false)
-    }, 1000)
-  }, [])
+    fetchUser().then(() => setLoading(false))
+  }, [fetchUser])
 
   // Handle scroll for navbar
   useEffect(() => {
@@ -311,7 +94,36 @@ const HomePage = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  if (loading) {
+  // Redirect authenticated users to appropriate dashboard
+  useEffect(() => {
+    const redirectUser = async () => {
+      if (user) {
+        try {
+          // Check if user is admin
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+          // Redirect based on role
+          if (profile?.role === 'admin') {
+            router.push('/admin')
+          } else {
+            router.push('/dashboard')
+          }
+        } catch (error) {
+          console.error('Error checking user role:', error)
+          // Default to user dashboard if role check fails
+          router.push('/dashboard')
+        }
+      }
+    }
+
+    redirectUser()
+  }, [user, router])
+
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
         {/* Animated background */}
@@ -391,18 +203,13 @@ const HomePage = () => {
     )
   }
 
-  if (user) {
-    // Authenticated user dashboard would go here
-    return <div>Dashboard content...</div>
-  }
-
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden">
       {/* Navigation */}
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-gray-100"
+        className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
@@ -427,8 +234,8 @@ const HomePage = () => {
                   whileHover={{ y: -2 }}
                   className={`relative font-medium transition-colors ${
                     activeSection === item.id
-                      ? 'text-blue-600'
-                      : 'text-gray-700 hover:text-blue-600'
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
                   }`}
                 >
                   {item.name}
@@ -442,8 +249,9 @@ const HomePage = () => {
               ))}
             </div>
 
-            {/* Auth Buttons */}
+            {/* Theme Toggle & Auth Buttons */}
             <div className="hidden md:flex items-center space-x-4">
+              <ThemeToggle />
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -479,7 +287,7 @@ const HomePage = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-white border-t border-gray-100"
+              className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800"
             >
               <div className="px-4 py-4 space-y-4">
                 {[
@@ -491,7 +299,7 @@ const HomePage = () => {
                   <a
                     key={item.id}
                     href={`#${item.id}`}
-                    className="block py-2 text-gray-700 hover:text-blue-600 transition-colors"
+                    className="block py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {item.name}
@@ -521,7 +329,7 @@ const HomePage = () => {
       <section ref={heroRef} id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background Animation */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"
+          className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900"
         >
           <div className="absolute inset-0 opacity-30">
             <motion.div
@@ -556,7 +364,7 @@ const HomePage = () => {
             >
               <motion.h1
                 variants={fadeInUp}
-                className="text-5xl lg:text-7xl font-bold text-gray-900 leading-tight"
+                className="text-5xl lg:text-7xl font-bold text-gray-900 dark:text-white leading-tight"
               >
                 Reservasi
                 <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
@@ -567,7 +375,7 @@ const HomePage = () => {
               
               <motion.p
                 variants={fadeInUp}
-                className="text-xl text-gray-600 mt-6 max-w-2xl"
+                className="text-xl text-gray-600 dark:text-gray-300 mt-6 max-w-2xl"
               >
                 Sistem reservasi ruangan modern untuk Perpustakaan Wilayah Aceh. 
                 Pesan ruangan dengan mudah, cepat, dan efisien untuk kebutuhan belajar dan berkumpul Anda.
@@ -599,7 +407,7 @@ const HomePage = () => {
 
               <motion.div
                 variants={fadeInUp}
-                className="mt-12 flex items-center justify-center lg:justify-start gap-8 text-gray-600"
+                className="mt-12 flex items-center justify-center lg:justify-start gap-8 text-gray-600 dark:text-gray-300"
               >
                 <div className="flex items-center gap-2">
                   <CheckCircle size={20} className="text-green-500" />
@@ -624,8 +432,6 @@ const HomePage = () => {
               className="relative"
             >
               <motion.div
-                variants={floatingAnimation}
-                animate="animate"
                 className="relative z-10"
               >
                 <InteractiveCalendar bookings={bookings} />
@@ -657,7 +463,7 @@ const HomePage = () => {
       <section
         ref={featuresRef}
         id="features"
-        className="py-20 bg-gray-50"
+        className="py-20 bg-gray-50 dark:bg-gray-800"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -666,10 +472,10 @@ const HomePage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
               Fitur <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Unggulan</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Nikmati pengalaman reservasi ruangan yang tak terlupakan dengan fitur-fitur canggih kami
             </p>
           </motion.div>
@@ -726,7 +532,7 @@ const HomePage = () => {
                   boxShadow: '0 25px 50px rgba(0,0,0,0.15)'
                 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all cursor-pointer group relative overflow-hidden"
+                className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all cursor-pointer group relative overflow-hidden"
               >
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -737,8 +543,8 @@ const HomePage = () => {
                 <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                   <feature.icon size={32} className="text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{feature.title}</h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -749,7 +555,7 @@ const HomePage = () => {
       <section
         ref={roomsRef}
         id="rooms"
-        className="py-20 bg-white"
+        className="py-20 bg-white dark:bg-gray-900"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -758,10 +564,10 @@ const HomePage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
               Pilihan <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Ruangan</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Berbagai pilihan ruangan dengan fasilitas lengkap untuk kebutuhan Anda
             </p>
           </motion.div>
@@ -779,7 +585,7 @@ const HomePage = () => {
                 dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                 dragElastic={0.1}
                 whileDrag={{ scale: 1.05, rotateY: 10 }}
-                className="bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all overflow-hidden group relative cursor-grab active:cursor-grabbing"
+                className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl hover:shadow-2xl transition-all overflow-hidden group relative cursor-grab active:cursor-grabbing"
               >
                 <div className={`h-48 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 relative overflow-hidden`}>
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all" />
@@ -792,11 +598,11 @@ const HomePage = () => {
                 </div>
 
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{room.name}</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{room.name}</h3>
                   {room.description && (
-                    <p className="text-gray-600 text-sm mb-4">{room.description}</p>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">{room.description}</p>
                   )}
-                  <div className="flex items-center gap-2 text-gray-600 mb-4">
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 mb-4">
                     <Users size={16} />
                     <span>{room.capacity} orang</span>
                   </div>
@@ -805,19 +611,11 @@ const HomePage = () => {
                     {room.facilities.map((facility: string, idx: number) => (
                       <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
                         <CheckCircle size={14} className="text-green-500" />
-                        <span>{facility}</span>
+                        <span className="text-gray-600 dark:text-gray-300">{facility}</span>
                       </div>
                     ))}
                   </div>
 
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => router.push(`/book/${room.id}`)}
-                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-2xl hover:shadow-lg transition-all"
-                  >
-                    Pesan Ruangan Ini
-                  </motion.button>
                 </div>
               </motion.div>
             ))}
@@ -826,7 +624,7 @@ const HomePage = () => {
       </section>
 
       {/* Contact Section */}
-      <section ref={contactRef} id="contact" className="py-20 bg-gray-50">
+      <section ref={contactRef} id="contact" className="py-20 bg-gray-50 dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -834,10 +632,10 @@ const HomePage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
               Hubungi <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Kami</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Ada pertanyaan? Tim kami siap membantu Anda 24/7
             </p>
           </motion.div>
@@ -870,13 +668,13 @@ const HomePage = () => {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -5 }}
-                className="bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all text-center"
+                className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all text-center"
               >
                 <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${contact.color} flex items-center justify-center mb-6 mx-auto`}>
                   <contact.icon size={32} className="text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">{contact.title}</h3>
-                <p className="text-gray-600">{contact.info}</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{contact.title}</h3>
+                <p className="text-gray-600 dark:text-gray-300">{contact.info}</p>
               </motion.div>
             ))}
           </div>

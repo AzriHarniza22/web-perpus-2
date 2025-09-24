@@ -59,8 +59,8 @@ export default async function HistoryPage() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-xl font-semibold">Perpustakaan Aceh</h1>
           <div className="flex items-center space-x-4">
-            <Link href="/" className="text-blue-600 hover:underline">
-              Back to Home
+            <Link href="/dashboard" className="text-blue-600 hover:underline">
+              Kembali ke Dashboard
             </Link>
             <form action="/auth/signout" method="post">
               <button type="submit" className="text-blue-600 hover:underline">

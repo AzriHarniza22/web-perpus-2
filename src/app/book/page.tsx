@@ -139,7 +139,7 @@ export default function BookRoomPage() {
 
         <div className="mt-8 text-center">
           <Button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/dashboard')}
             variant="outline"
           >
             Kembali ke Dashboard

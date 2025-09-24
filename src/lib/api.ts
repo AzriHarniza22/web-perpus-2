@@ -90,11 +90,16 @@ export const useBookings = () => {
   })
 }
 
-// Fetch all bookings for calendar display (approved and pending)
+// Fetch all bookings for calendar display (approved and pending, today and future only)
 export const useCalendarBookings = () => {
   return useQuery<BookingWithRelations[]>({
     queryKey: ['calendarBookings'],
     queryFn: async () => {
+      // Get start of today in local timezone
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const todayISOString = today.toISOString()
+
       const { data, error } = await supabase
         .from('bookings')
         .select(`
@@ -104,6 +109,7 @@ export const useCalendarBookings = () => {
           )
         `)
         .in('status', ['approved', 'pending'])
+        .gte('start_time', todayISOString)
         .order('start_time', { ascending: true })
 
       if (error) throw error
