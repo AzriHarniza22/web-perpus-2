@@ -3,42 +3,42 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { BarChart3, Building, CheckCircle, Home, Shield, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar, History, LogOut, User as UserIcon, BookOpen, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 
-interface AdminSidebarProps {
+interface UserSidebarProps {
   className?: string
   onToggle?: (collapsed: boolean) => void
 }
 
-export default function AdminSidebar({ className, onToggle }: AdminSidebarProps) {
+export default function UserSidebar({ className, onToggle }: UserSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isCollapsed, setIsCollapsed] = useState(false)
 
   const menuItems = [
     {
-      href: '/admin',
+      href: '/dashboard',
       label: 'Dashboard',
-      icon: Home,
-      active: pathname === '/admin'
+      icon: Sparkles,
+      active: pathname === '/dashboard'
     },
     {
-      href: '/admin/analytics',
-      label: 'Analytics',
-      icon: BarChart3,
-      active: pathname === '/admin/analytics'
+      href: '/book',
+      label: 'Pesan Ruangan',
+      icon: BookOpen,
+      active: pathname === '/book' || pathname.startsWith('/book/')
     },
     {
-      href: '/admin/rooms',
-      label: 'Ruangan',
-      icon: Building,
-      active: pathname === '/admin/rooms'
+      href: '/history',
+      label: 'Riwayat',
+      icon: History,
+      active: pathname === '/history'
     },
     {
-      href: '/admin/approvals',
-      label: 'Persetujuan',
-      icon: CheckCircle,
-      active: pathname === '/admin/approvals'
+      href: '/profile',
+      label: 'Profil',
+      icon: UserIcon,
+      active: pathname === '/profile'
     }
   ]
 
@@ -81,7 +81,7 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
           className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'}`}
         >
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Shield className="w-5 h-5 text-white" />
+            <Sparkles className="w-5 h-5 text-white" />
           </div>
           <AnimatePresence>
             {!isCollapsed && (
@@ -93,7 +93,7 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
                 className="overflow-hidden"
               >
                 <h2 className="text-sm font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
-                  Admin Panel
+                  User Panel
                 </h2>
                 <p className="text-xs text-gray-600 dark:text-gray-400">Perpustakaan Aceh</p>
               </motion.div>

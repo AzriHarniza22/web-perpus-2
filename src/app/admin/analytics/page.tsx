@@ -26,6 +26,7 @@ interface Profile {
 export default function AnalyticsPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const { user } = useAuthStore()
   const router = useRouter()
 
@@ -70,13 +71,15 @@ export default function AnalyticsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
       {/* Sidebar */}
-      <AdminSidebar />
+      <AdminSidebar onToggle={setSidebarCollapsed} />
 
       {/* Header */}
       <motion.header
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="ml-64 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800"
+        className={`bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
+          sidebarCollapsed ? 'ml-16' : 'ml-64'
+        }`}
       >
         <div className="px-6 py-4 flex justify-between items-center">
           <motion.div
@@ -107,7 +110,9 @@ export default function AnalyticsPage() {
         </div>
       </motion.header>
 
-      <main className="ml-64 p-6">
+      <main className={`p-6 transition-all duration-300 ${
+        sidebarCollapsed ? 'ml-16' : 'ml-64'
+      }`}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

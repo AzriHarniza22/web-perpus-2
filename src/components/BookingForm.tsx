@@ -9,9 +9,9 @@ import { useCreateBooking, type Room, type Booking } from '@/lib/api'
 import useAuthStore from '@/lib/authStore'
 import { format } from 'date-fns'
 import { motion } from 'framer-motion'
-import { CalendarIcon, Clock } from 'lucide-react'
+import { CalendarIcon, Clock, Sparkles, ArrowRight } from 'lucide-react'
 import { format as formatDate } from 'date-fns'
-import { Calendar } from '@/components/ui/calendar'
+import { Calendar as UICalendar } from '@/components/ui/calendar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -162,30 +162,44 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Date Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5" />
-              Pilih Tanggal
-            </CardTitle>
-            <CardDescription>
-              Pilih tanggal yang diinginkan untuk reservasi
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+            {/* Background Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+            <CardHeader className="relative z-10">
+              <CardTitle className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <CalendarIcon className="w-5 h-5 text-white" />
+                </div>
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Pilih Tanggal
+                </span>
+              </CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-300">
+                Pilih tanggal yang diinginkan untuk reservasi
+              </CardDescription>
+            </CardHeader>
+          <CardContent className="relative z-10">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="date">Tanggal Reservasi</Label>
-                <Calendar
+                <Label htmlFor="date" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Tanggal Reservasi
+                </Label>
+                <UICalendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={handleDateSelect}
-                  disabled={(date) => {
+                  disabled={(date: Date) => {
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
                     return date < today;
                   }}
-                  className="rounded-md border"
+                  className="rounded-md border shadow-sm"
                 />
                 {form.formState.errors.selectedDate && (
                   <p className="text-sm text-red-500 mt-1">{form.formState.errors.selectedDate.message}</p>
@@ -193,37 +207,67 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
               </div>
 
               {selectedDate && (
-                <div>
-                  <h4 className="font-medium mb-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3"
+                >
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center">
+                    <Clock className="w-4 h-4 mr-2 text-blue-600" />
                     Waktu yang sudah dipesan untuk {formatDate(selectedDate, 'dd MMMM yyyy')}:
                   </h4>
                   <div className="space-y-1">
                     {getBookedTimes(selectedDate).map((time, index) => (
-                      <p key={index} className="text-sm text-red-600">
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="flex items-center gap-2 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-md"
+                      >
+                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                         {format(time.start, 'HH:mm')} - {format(time.end, 'HH:mm')} (Sudah dipesan)
-                      </p>
+                      </motion.div>
                     ))}
                     {getBookedTimes(selectedDate).length === 0 && (
-                      <p className="text-sm text-green-600">
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-md"
+                      >
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         Tidak ada pemesanan untuk tanggal ini
-                      </p>
+                      </motion.div>
                     )}
                   </div>
-                </div>
+                </motion.div>
               )}
             </div>
           </CardContent>
         </Card>
+      </motion.div>
 
-        {/* Booking Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5" />
-              Detail Reservasi
+      {/* Booking Details */}
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+          {/* Background Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-pink-50/30 to-orange-50/50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-orange-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+          <CardHeader className="relative z-10">
+            <CardTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Detail Reservasi
+              </span>
             </CardTitle>
-            <CardDescription>
-              Isi detail reservasi
+            <CardDescription className="text-gray-600 dark:text-gray-300">
+              Isi detail reservasi Anda dengan lengkap
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -319,18 +363,31 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                className="relative z-10"
               >
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300"
                   disabled={createBookingMutation.isPending}
                 >
-                  {createBookingMutation.isPending ? 'Mengirim...' : 'Kirim Reservasi'}
+                  {createBookingMutation.isPending ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                    />
+                  ) : (
+                    <>
+                      <ArrowRight className="w-4 h-4 mr-2" />
+                      Kirim Reservasi
+                    </>
+                  )}
                 </Button>
               </motion.div>
             </form>
           </CardContent>
         </Card>
+        </motion.div>
       </div>
     </motion.div>
   )

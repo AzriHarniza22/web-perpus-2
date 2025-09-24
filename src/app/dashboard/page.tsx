@@ -8,10 +8,11 @@ import { supabase } from '@/lib/supabase'
 import { User } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Calendar, History, LogOut, User as UserIcon, BookOpen, TrendingUp, Clock, CheckCircle, Sparkles } from 'lucide-react'
 import { useBookings, useRooms } from '@/lib/api'
+import UserSidebar from '@/components/UserSidebar'
+import { PageHeader } from '@/components/ui/page-header'
 
 interface Room {
   id: string;
@@ -29,6 +30,7 @@ interface Room {
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [stats, setStats] = useState({
     totalBookings: 0,
     upcomingBookings: 0,
@@ -126,50 +128,21 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
-      {/* Header */}
-      <motion.header
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800"
-      >
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-          >
-            Dashboard
-          </motion.div>
-          <div className="flex items-center space-x-4">
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-gray-600 dark:text-gray-300 hidden md:block"
-            >
-              Selamat datang, {user.email?.split('@')[0]}
-            </motion.span>
-            <ThemeToggle />
-            <Button onClick={handleSignOut} variant="outline" size="sm">
-              <LogOut className="w-4 h-4 mr-2" />
-              Keluar
-            </Button>
-          </div>
-        </div>
-      </motion.header>
+      {/* Sidebar */}
+      <UserSidebar onToggle={setSidebarCollapsed} />
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Dashboard Pengguna
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            Kelola reservasi ruangan Anda dengan mudah
-          </p>
-        </motion.div>
+      {/* Header */}
+      <PageHeader
+        title="Dashboard"
+        description="Kelola reservasi ruangan Anda dengan mudah"
+        user={user}
+        onSignOut={handleSignOut}
+        sidebarCollapsed={sidebarCollapsed}
+      />
+
+      <main className={`px-6 py-8 transition-all duration-300 ${
+        sidebarCollapsed ? 'ml-16' : 'ml-64'
+      }`}>
 
         {/* Stats Cards */}
         <motion.div
@@ -190,17 +163,15 @@ export default function DashboardPage() {
               animate={{ scale: 1 }}
               transition={{ delay: 0.2 + index * 0.1, type: "spring", stiffness: 200 }}
             >
-              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all cursor-pointer group">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.label}</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-                    </div>
-                    <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                      <stat.icon className="w-6 h-6 text-white" />
+              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all cursor-pointer group h-32">
+                <CardContent className="p-6 h-full flex flex-col justify-center">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 flex-1">{stat.label}</p>
+                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0`}>
+                      <stat.icon className="w-5 h-5 text-white" />
                     </div>
                   </div>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -221,7 +192,8 @@ export default function DashboardPage() {
               description: 'Pilih dan pesan ruangan yang tersedia untuk kebutuhan Anda',
               href: '/book',
               buttonText: 'Mulai Booking',
-              color: 'from-blue-500 to-cyan-400'
+              color: 'from-blue-500 to-cyan-400',
+              variant: 'default' as const
             },
             {
               icon: History,
@@ -236,11 +208,10 @@ export default function DashboardPage() {
               icon: UserIcon,
               title: 'Kelola Profil',
               description: 'Update informasi profil dan preferensi Anda',
-              href: '#',
+              href: '/profile',
               buttonText: 'Kelola Profil',
               color: 'from-purple-500 to-pink-400',
-              variant: 'outline' as const,
-              disabled: true
+              variant: 'outline' as const
             }
           ].map((card, index) => (
             <motion.div
@@ -261,19 +232,12 @@ export default function DashboardPage() {
                   <CardDescription>{card.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {card.disabled ? (
-                    <Button variant={card.variant} className="w-full" disabled>
+                  <Link href={card.href}>
+                    <Button variant={card.variant} className="w-full">
                       <card.icon className="w-4 h-4 mr-2" />
                       {card.buttonText}
                     </Button>
-                  ) : (
-                    <Link href={card.href}>
-                      <Button variant={card.variant} className="w-full">
-                        <card.icon className="w-4 h-4 mr-2" />
-                        {card.buttonText}
-                      </Button>
-                    </Link>
-                  )}
+                  </Link>
                 </CardContent>
               </Card>
             </motion.div>
@@ -299,13 +263,9 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                  className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center mx-auto mb-4"
-                >
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
                   <BookOpen className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                </motion.div>
+                </div>
                 <p className="text-gray-500 dark:text-gray-400 mb-4">
                   Belum ada reservasi aktif
                 </p>

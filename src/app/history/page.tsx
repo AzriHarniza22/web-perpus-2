@@ -1,8 +1,13 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import { User } from '@supabase/supabase-js'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import UserSidebar from '@/components/UserSidebar'
+import { PageHeader } from '@/components/ui/page-header'
 
 interface BookingWithRoom {
   id: string
@@ -15,70 +20,72 @@ interface BookingWithRoom {
   rooms?: { name: string }
 }
 
-export default async function HistoryPage() {
-  const cookieStore = await cookies()
+export default function HistoryPage() {
+  const [bookings, setBookings] = useState<BookingWithRoom[]>([])
+  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const router = useRouter()
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options)
-          })
-        },
-      },
+  useEffect(() => {
+    const checkAuthAndFetchBookings = async () => {
+      // Check if user is authenticated
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      setUser(currentUser)
+
+      if (!currentUser) {
+        router.push('/login')
+        return
+      }
+
+      // Get user bookings
+      const { data: bookingsData } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          rooms:room_id (
+            name
+          )
+        `)
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false })
+
+      setBookings(bookingsData || [])
+      setLoading(false)
     }
-  )
 
-  const { data: { user } } = await supabase.auth.getUser()
+    checkAuthAndFetchBookings()
+  }, [router])
 
-  if (!user) {
-    redirect('/login')
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    )
   }
 
-  // Get user bookings
-  const { data: bookings } = await supabase
-    .from('bookings')
-    .select(`
-      *,
-      rooms:room_id (
-        name
-      )
-    `)
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
+  if (!user) {
+    return null // Will redirect
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-semibold">Perpustakaan Aceh</h1>
-          <div className="flex items-center space-x-4">
-            <Link href="/dashboard" className="text-blue-600 hover:underline">
-              Kembali ke Dashboard
-            </Link>
-            <form action="/auth/signout" method="post">
-              <button type="submit" className="text-blue-600 hover:underline">
-                Sign out
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Riwayat Reservasi
-          </h1>
-          <p className="text-gray-600">
-            Lihat semua reservasi yang telah Anda buat
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+      {/* Sidebar */}
+      <UserSidebar onToggle={setSidebarCollapsed} />
+
+      {/* Header */}
+      <PageHeader
+        title="Riwayat Reservasi"
+        description="Lihat semua reservasi yang telah Anda buat"
+        user={user}
+        sidebarCollapsed={sidebarCollapsed}
+      />
+
+      <main className={`py-8 transition-all duration-300 ${
+        sidebarCollapsed ? 'ml-16' : 'ml-64'
+      }`}>
+        <div className="max-w-6xl mx-auto px-4">
 
         <div className="space-y-4">
           {bookings && bookings.length > 0 ? (
@@ -142,6 +149,7 @@ export default async function HistoryPage() {
               </CardContent>
             </Card>
           )}
+        </div>
         </div>
       </main>
     </div>
