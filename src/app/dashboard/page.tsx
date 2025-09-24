@@ -10,8 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Calendar, History, LogOut, User as UserIcon, BookOpen, TrendingUp, Clock, CheckCircle, BarChart3, Sparkles } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { Calendar, History, LogOut, User as UserIcon, BookOpen, TrendingUp, Clock, CheckCircle, Sparkles } from 'lucide-react'
 import { useBookings, useRooms } from '@/lib/api'
 
 interface Room {
@@ -70,48 +69,6 @@ export default function DashboardPage() {
       })
     }
   }, [user, bookings])
-
-  // Generate real chart data from user's bookings
-  const bookingData = bookings
-    .filter(booking => user && booking.user_id === user.id)
-    .reduce((acc, booking) => {
-      const date = new Date(booking.created_at)
-      const dayName = date.toLocaleDateString('id-ID', { weekday: 'short' })
-      const existing = acc.find(item => item.name === dayName)
-      if (existing) {
-        existing.bookings += 1
-      } else {
-        acc.push({ name: dayName, bookings: 1 })
-      }
-      return acc
-    }, [] as { name: string; bookings: number }[])
-    .slice(0, 7) // Limit to 7 days
-
-  // Generate room usage data from user's bookings
-  const roomUsageData = bookings
-    .filter(booking => user && booking.user_id === user.id)
-    .reduce((acc, booking) => {
-      const room = rooms.find((r: Room) => r.id === booking.room_id)
-      if (room) {
-        const existing = acc.find(item => item.name === room.name)
-        if (existing) {
-          existing.value += 1
-        } else {
-          acc.push({
-            name: room.name,
-            value: 1,
-            color: acc.length === 0 ? '#3B82F6' :
-                   acc.length === 1 ? '#8B5CF6' :
-                   acc.length === 2 ? '#06B6D4' : '#10B981'
-          })
-        }
-      }
-      return acc
-    }, [] as { name: string; value: number; color: string }[])
-    .map(item => ({
-      ...item,
-      value: Math.round((item.value / Math.max(bookings.filter(b => user && b.user_id === user.id).length, 1)) * 100)
-    }))
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -250,85 +207,11 @@ export default function DashboardPage() {
           ))}
         </motion.div>
 
-        {/* Charts Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8"
-        >
-          <Card className="lg:col-span-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
-                Aktivitas Mingguan
-              </CardTitle>
-              <CardDescription>
-                Jumlah reservasi per hari dalam seminggu terakhir
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={bookingData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="bookings" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Penggunaan Ruangan</CardTitle>
-              <CardDescription>
-                Distribusi reservasi per ruangan
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={roomUsageData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {roomUsageData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-4 space-y-2">
-                {roomUsageData.map((item) => (
-                  <div key={item.name} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center">
-                      <div
-                        className="w-3 h-3 rounded-full mr-2"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      {item.name}
-                    </div>
-                    <span className="font-medium">{item.value}%</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
         {/* Action Cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.3 }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           {[
@@ -401,7 +284,7 @@ export default function DashboardPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.4 }}
           className="mt-12"
         >
           <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
