@@ -82,7 +82,7 @@ export default function Reports() {
   })
   const [selectedPeriod, setSelectedPeriod] = useState('3months')
   const [selectedChartView, setSelectedChartView] = useState('overview')
-  const [hoveredData, setHoveredData] = useState<any>(null)
+  const [hoveredData, setHoveredData] = useState<unknown>(null)
 
   // Calculate enhanced analytics
   const enhancedAnalytics = useMemo(() => {

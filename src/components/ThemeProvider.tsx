@@ -5,7 +5,7 @@ import { ReactNode } from 'react'
 
 interface ThemeProviderProps {
   children: ReactNode
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {

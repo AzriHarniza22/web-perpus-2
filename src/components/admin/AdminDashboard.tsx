@@ -10,8 +10,19 @@ import { Users, Building, Calendar, TrendingUp, Shield, LogOut, Sparkles } from 
 import { useBookings, useRooms } from '@/lib/api'
 import AdminSidebar from './AdminSidebar'
 
+interface Profile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  institution: string | null;
+  phone: string | null;
+  role: 'user' | 'admin';
+  created_at: string;
+  updated_at: string;
+}
+
 interface AdminDashboardProps {
-  profile: any
+  profile: Profile
 }
 
 export default function AdminDashboard({ profile }: AdminDashboardProps) {

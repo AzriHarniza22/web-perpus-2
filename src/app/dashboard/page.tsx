@@ -14,6 +14,19 @@ import { Calendar, History, LogOut, User as UserIcon, BookOpen, TrendingUp, Cloc
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { useBookings, useRooms } from '@/lib/api'
 
+interface Room {
+  id: string;
+  name: string;
+  description: string | null;
+  capacity: number;
+  facilities: string[] | null;
+  photos: string[] | null;
+  layout: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -78,7 +91,7 @@ export default function DashboardPage() {
   const roomUsageData = bookings
     .filter(booking => user && booking.user_id === user.id)
     .reduce((acc, booking) => {
-      const room = rooms.find((r: any) => r.id === booking.room_id)
+      const room = rooms.find((r: Room) => r.id === booking.room_id)
       if (room) {
         const existing = acc.find(item => item.name === room.name)
         if (existing) {

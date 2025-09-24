@@ -12,8 +12,19 @@ import { Building, LogOut } from 'lucide-react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import RoomManagement from '@/components/admin/RoomManagement'
 
+interface Profile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  institution: string | null;
+  phone: string | null;
+  role: 'user' | 'admin';
+  created_at: string;
+  updated_at: string;
+}
+
 export default function RoomsPage() {
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const { user } = useAuthStore()
   const router = useRouter()
