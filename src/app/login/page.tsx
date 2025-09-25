@@ -27,29 +27,40 @@ export default function LoginPage() {
   }, [fetchUser])
 
   useEffect(() => {
+    console.log(`Login page: useEffect user check, user=${user ? user.id : 'null'}`)
     if (user) {
       // Check if email is confirmed
       if (!user.email_confirmed_at) {
+        console.log('Login page: email not confirmed, redirecting to confirm')
         router.push(`/confirm?email=${encodeURIComponent(user.email ?? '')}`)
         return
       }
 
       const checkRoleAndRedirect = async () => {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single()
+        console.log('Login page: checking role for redirect')
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
 
-        // Redirect based on role
-        if (profile?.role === 'admin') {
-          router.push('/admin')
-        } else {
-          router.push('/dashboard')
+          // Redirect based on role
+          if (profile?.role === 'admin') {
+            console.log('Login page: redirecting to /admin')
+            router.push('/admin')
+          } else {
+            console.log('Login page: redirecting to /dashboard')
+            router.push('/dashboard')
+          }
+        } catch (error) {
+          console.error('Login page: error checking role:', error)
         }
       }
 
       checkRoleAndRedirect()
+    } else {
+      console.log('Login page: no user, staying on login')
     }
   }, [user, router, email])
 

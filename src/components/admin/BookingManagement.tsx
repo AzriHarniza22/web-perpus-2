@@ -1,6 +1,7 @@
 'use client'
 
 import { useBookings, useUpdateBookingStatus } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -66,7 +67,7 @@ export default function BookingManagement() {
                         asChild
                       >
                         <a
-                          href={booking.proposal_file}
+                          href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                         >

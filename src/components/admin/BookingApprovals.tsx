@@ -1,9 +1,11 @@
 'use client'
 
 import { useBookings, useUpdateBookingStatus } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { CheckCircle, XCircle, Clock, FileText, Users, Calendar, MapPin } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -121,7 +123,7 @@ export default function BookingApprovals() {
                           className="text-xs"
                         >
                           <a
-                            href={booking.proposal_file}
+                            href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
@@ -130,6 +132,50 @@ export default function BookingApprovals() {
                         </Button>
                       </div>
                     )}
+
+                    {/* View Details Popover */}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="text-xs">
+                          Lihat Detail
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-96">
+                        <div className="space-y-4">
+                          {booking.event_description && (
+                            <div>
+                              <h4 className="font-semibold text-sm mb-2">Deskripsi Kegiatan</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">{booking.event_description}</p>
+                            </div>
+                          )}
+                          {booking.notes && (
+                            <div>
+                              <h4 className="font-semibold text-sm mb-2">Catatan</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">{booking.notes}</p>
+                            </div>
+                          )}
+                          {booking.proposal_file && (
+                            <div>
+                              <h4 className="font-semibold text-sm mb-2">File Proposal</h4>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                                className="text-xs"
+                              >
+                                <a
+                                  href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  Lihat Proposal
+                                </a>
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </div>
 
                   {/* Action Buttons */}

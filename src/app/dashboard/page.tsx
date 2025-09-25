@@ -6,9 +6,11 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { User } from '@supabase/supabase-js'
+import useAuthStore from '@/lib/authStore'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Loading } from '@/components/ui/loading'
 import { Calendar, History, LogOut, User as UserIcon, BookOpen, TrendingUp, Clock, CheckCircle, Sparkles } from 'lucide-react'
 import { useBookings, useRooms } from '@/lib/api'
 import UserSidebar from '@/components/UserSidebar'
@@ -37,7 +39,9 @@ export default function DashboardPage() {
     completedBookings: 0,
     totalHours: 0
   })
+  const [upcomingBookingsList, setUpcomingBookingsList] = useState<any[]>([])
   const router = useRouter()
+  const { logout } = useAuthStore()
   const { data: bookings = [] } = useBookings()
   const { data: rooms = [] } = useRooms()
 
@@ -48,9 +52,10 @@ export default function DashboardPage() {
       const now = new Date()
 
       const totalBookings = userBookings.length
-      const upcomingBookings = userBookings.filter(booking =>
+      const upcomingBookingsFiltered = userBookings.filter(booking =>
         new Date(booking.start_time) > now && booking.status === 'approved'
-      ).length
+      )
+      const upcomingBookings = upcomingBookingsFiltered.length
       const completedBookings = userBookings.filter(booking =>
         booking.status === 'completed'
       ).length
@@ -69,6 +74,7 @@ export default function DashboardPage() {
         completedBookings,
         totalHours: Math.round(totalHours)
       })
+      setUpcomingBookingsList(upcomingBookingsFiltered)
     }
   }, [user, bookings])
 
@@ -87,38 +93,42 @@ export default function DashboardPage() {
   }, [router])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    console.log('Dashboard: handleSignOut called')
+    await logout()
+    console.log('Dashboard: logout completed, pushing to /')
     router.push('/')
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="mb-8">
-            <Skeleton className="h-8 w-64 mb-2" />
-            <Skeleton className="h-4 w-96" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {[...Array(4)].map((_, i) => (
-              <Card key={i} className="p-6">
-                <Skeleton className="h-4 w-24 mb-2" />
-                <Skeleton className="h-8 w-16" />
+      <Loading variant="skeleton">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+          <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="mb-8">
+              <Skeleton className="h-8 w-64 mb-2" />
+              <Skeleton className="h-4 w-96" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {[...Array(4)].map((_, i) => (
+                <Card key={i} className="p-6">
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-8 w-16" />
+                </Card>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card className="lg:col-span-2 p-6">
+                <Skeleton className="h-6 w-32 mb-4" />
+                <Skeleton className="h-64 w-full" />
               </Card>
-            ))}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2 p-6">
-              <Skeleton className="h-6 w-32 mb-4" />
-              <Skeleton className="h-64 w-full" />
-            </Card>
-            <Card className="p-6">
-              <Skeleton className="h-6 w-32 mb-4" />
-              <Skeleton className="h-64 w-full" />
-            </Card>
+              <Card className="p-6">
+                <Skeleton className="h-6 w-32 mb-4" />
+                <Skeleton className="h-64 w-full" />
+              </Card>
+            </div>
           </div>
         </div>
-      </div>
+      </Loading>
     )
   }
 
@@ -255,27 +265,63 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
-                Aktivitas Terbaru
+                Reservasi Mendatang
               </CardTitle>
               <CardDescription>
-                Reservasi dan aktivitas terbaru Anda
+                Reservasi yang telah disetujui dan akan datang
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              {upcomingBookingsList.length > 0 ? (
+                <div className="space-y-4">
+                  {upcomingBookingsList.slice(0, 3).map((booking) => (
+                    <div key={booking.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                          <BookOpen className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">{booking.rooms?.name}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {new Date(booking.start_time).toLocaleDateString('id-ID')} {' '}
+                            {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} - {' '}
+                            {new Date(booking.end_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-xs font-medium">
+                          Disetujui
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {upcomingBookingsList.length > 3 && (
+                    <div className="text-center pt-4">
+                      <Link href="/history">
+                        <Button variant="outline" size="sm">
+                          Lihat Semua Reservasi
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </div>
-                <p className="text-gray-500 dark:text-gray-400 mb-4">
-                  Belum ada reservasi aktif
-                </p>
-                <Link href="/book">
-                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Buat Reservasi Pertama Anda
-                  </Button>
-                </Link>
-              </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <BookOpen className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">
+                    Belum ada reservasi aktif
+                  </p>
+                  <Link href="/book">
+                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Buat Reservasi Pertama Anda
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>

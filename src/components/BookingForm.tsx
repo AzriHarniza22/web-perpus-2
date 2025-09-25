@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useCreateBooking, type Room, type Booking } from '@/lib/api'
 import useAuthStore from '@/lib/authStore'
+import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { motion } from 'framer-motion'
 import { CalendarIcon, Clock, Sparkles, ArrowRight } from 'lucide-react'
@@ -29,7 +30,16 @@ const bookingSchema = z.object({
   endHour: z.string().min(1, 'Please select end hour'),
   endMinute: z.string().min(1, 'Please select end minute'),
   eventDescription: z.string().min(1, 'Event description is required'),
+  guestCount: z.number().min(1, 'Please enter at least 1 guest').max(100, 'Maximum 100 guests'),
   notes: z.string().optional(),
+  proposalFile: z.instanceof(File).optional().refine((file) => {
+    if (!file) return true;
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    return allowedTypes.includes(file.type);
+  }, 'File must be a PDF or Word document').refine((file) => {
+    if (!file) return true;
+    return file.size <= 10 * 1024 * 1024; // 10MB
+  }, 'File size must be less than 10MB'),
 }).refine((data) => data.selectedDate !== undefined, {
   message: 'Please select a date',
   path: ['selectedDate'],
@@ -74,7 +84,9 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
       endHour: '10',
       endMinute: '00',
       eventDescription: '',
+      guestCount: 1,
       notes: '',
+      proposalFile: undefined,
     },
     mode: 'onChange',
   })
@@ -86,6 +98,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
   }
 
   const onSubmit = async (data: BookingFormData) => {
+    console.log(`BookingForm: onSubmit, user=${user ? user.id : 'null'}`)
     if (!user) {
       form.setError('root', { message: 'Not authenticated' })
       return
@@ -114,18 +127,36 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
       return
     }
 
+    const file = data.proposalFile;
+    let filePath: string | undefined = undefined;
+    if (file) {
+      const fileName = `user-${user.id}-${Date.now()}-${file.name}`;
+      console.log(`BookingForm: Uploading file ${fileName} for user ${user.id}`);
+      const { data: uploadData, error: uploadError } = await supabase.storage.from('proposals').upload(fileName, file);
+      if (uploadError) {
+        console.error(`BookingForm: Upload error for user ${user.id}:`, uploadError);
+        form.setError('root', { message: 'Failed to upload file: ' + uploadError.message });
+        return;
+      }
+      filePath = fileName;
+      console.log(`BookingForm: File uploaded successfully, path: ${filePath} for user ${user.id}`);
+    }
+
     const bookingData = {
       room_id: room.id,
       start_time: startDateTime.toISOString(),
       end_time: endDateTime.toISOString(),
       status: 'pending',
       event_description: data.eventDescription,
+      guest_count: data.guestCount,
       notes: data.notes || '',
+      proposal_file: filePath,
     }
 
     createBookingMutation.mutate(bookingData, {
       onSuccess: () => {
-        router.push('/?success=Booking submitted successfully')
+        console.log(`BookingForm: Booking success, redirecting to /dashboard, user=${user ? user.id : 'null'}`)
+        router.push('/dashboard?success=Booking submitted successfully')
       },
       onError: (err) => {
         form.setError('root', { message: err instanceof Error ? err.message : 'An error occurred' })
@@ -255,7 +286,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
       >
         <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
           {/* Background Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-pink-50/30 to-orange-50/50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-orange-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-pink-50/30 to-orange-50/50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-orange-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
           <CardHeader className="relative z-10">
             <CardTitle className="flex items-center gap-3">
@@ -346,12 +377,42 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
               </div>
 
               <div>
+                <Label htmlFor="guestCount">Perkiraan Jumlah Tamu</Label>
+                <Input
+                  id="guestCount"
+                  type="number"
+                  {...form.register('guestCount', { valueAsNumber: true })}
+                  placeholder="Masukkan jumlah tamu"
+                  className={cn(form.formState.errors.guestCount && "border-red-500")}
+                />
+                {form.formState.errors.guestCount && (
+                  <p className="text-sm text-red-500 mt-1">{form.formState.errors.guestCount.message}</p>
+                )}
+              </div>
+
+              <div>
                 <Label htmlFor="notes">Catatan Tambahan</Label>
                 <Textarea
                   id="notes"
                   {...form.register('notes')}
                   placeholder="Persyaratan khusus atau catatan lainnya"
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="proposalFile">Upload Proposal File (Optional)</Label>
+                <Input
+                  id="proposalFile"
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || undefined;
+                    form.setValue('proposalFile', file);
+                  }}
+                />
+                {form.formState.errors.proposalFile && (
+                  <p className="text-sm text-red-500 mt-1">{form.formState.errors.proposalFile.message}</p>
+                )}
               </div>
 
               {form.formState.errors.root && (

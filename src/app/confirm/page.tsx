@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Loading } from '@/components/ui/loading'
 
 function ConfirmPageContent() {
   const [email, setEmail] = useState('')
@@ -75,7 +76,7 @@ function ConfirmPageContent() {
             {message && <p className="text-green-600 text-sm">{message}</p>}
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Mengirim...' : 'Kirim Ulang Email Konfirmasi'}
+              {loading ? <Loading variant="inline" size="sm" /> : 'Kirim Ulang Email Konfirmasi'}
             </Button>
           </form>
           <div className="mt-4 text-center">
@@ -95,7 +96,7 @@ function ConfirmPageContent() {
 
 export default function ConfirmPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<Loading variant="inline" />}>
       <ConfirmPageContent />
     </Suspense>
   )

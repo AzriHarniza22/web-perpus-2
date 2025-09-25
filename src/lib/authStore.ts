@@ -17,6 +17,7 @@ const useAuthStore = create<AuthState>((set) => ({
   fetchUser: async () => {
     set({ isLoading: true })
     const { data: { user } } = await supabase.auth.getUser()
+    console.log(`AuthStore: fetchUser, user=${user ? user.id : 'null'}`)
     set({ user, isLoading: false })
   },
   register: async (email: string, password: string) => {
@@ -35,10 +36,13 @@ const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true })
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
+    console.log(`AuthStore: login success, user=${data.user ? data.user.id : 'null'}`)
     set({ user: data.user, isLoading: false })
   },
   logout: async () => {
+    console.log('AuthStore: logout called')
     await supabase.auth.signOut()
+    console.log('AuthStore: signOut completed, setting user to null')
     set({ user: null, isLoading: false })
   }
 }))

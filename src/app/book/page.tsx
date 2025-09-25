@@ -7,18 +7,11 @@ import { supabase } from '@/lib/supabase'
 import { User } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Loading } from '@/components/ui/loading'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import { Building, Users, CheckCircle, ArrowRight, Sparkles } from 'lucide-react'
-
-interface Room {
-  id: string
-  name: string
-  description: string
-  capacity: number
-  facilities: string[]
-  is_active: boolean
-}
+import { Room } from '@/lib/api'
 
 export default function BookRoomPage() {
   const [rooms, setRooms] = useState<Room[]>([])
@@ -67,11 +60,7 @@ export default function BookRoomPage() {
   }, [])
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Loading rooms...</div>
-      </div>
-    )
+    return <Loading variant="fullscreen" />
   }
 
   if (!user) {
@@ -124,14 +113,22 @@ export default function BookRoomPage() {
                   {/* Background Gradient */}
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                  {/* Header with Icon */}
+                  {/* Header with Image or Icon */}
                   <div className="h-32 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 relative overflow-hidden">
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300" />
                     <motion.div
                       whileHover={{ scale: 1.1 }}
                       className="absolute inset-0 flex items-center justify-center"
                     >
-                      <Building className="w-16 h-16 text-white/80" />
+                      {room.photos && room.photos.length > 0 ? (
+                        <img
+                          src={room.photos[0]}
+                          alt={room.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Building className="w-16 h-16 text-white/80" />
+                      )}
                     </motion.div>
                     {/* Floating elements */}
                     <motion.div

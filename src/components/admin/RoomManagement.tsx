@@ -7,17 +7,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useRooms, useUpsertRoom, useDeleteRoom, useToggleRoomActive, type Room } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 
 
 export default function RoomManagement() {
   const { data: rooms = [], isLoading } = useRooms()
   const [editingRoom, setEditingRoom] = useState<Room | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     capacity: '',
     facilities: '',
-    photos: '',
+    photos: [] as string[],
     layout: '',
   })
 
@@ -32,7 +34,7 @@ export default function RoomManagement() {
       description: formData.description || undefined,
       capacity: parseInt(formData.capacity),
       facilities: formData.facilities.split(',').map(f => f.trim()).filter(f => f),
-      photos: formData.photos.split(',').map(p => p.trim()).filter(p => p) || undefined,
+      photos: formData.photos || undefined,
       layout: formData.layout || undefined,
       ...(editingRoom && { id: editingRoom.id }),
     }
@@ -44,7 +46,7 @@ export default function RoomManagement() {
       description: '',
       capacity: '',
       facilities: '',
-      photos: '',
+      photos: [],
       layout: '',
     })
     if (editingRoom) {
@@ -59,7 +61,7 @@ export default function RoomManagement() {
       description: room.description || '',
       capacity: room.capacity.toString(),
       facilities: room.facilities.join(', '),
-      photos: room.photos?.join(', ') || '',
+      photos: room.photos || [],
       layout: room.layout || '',
     })
   }
@@ -72,6 +74,28 @@ export default function RoomManagement() {
 
   const toggleActive = (id: string, is_active: boolean) => {
     toggleRoomActiveMutation.mutate({ id, is_active })
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+
+    setUploading(true)
+    const newUrls: string[] = []
+
+    for (const file of Array.from(files)) {
+      const fileName = `${Date.now()}-${file.name}`
+      const { data, error } = await supabase.storage.from('room-images').upload(fileName, file)
+      if (error) {
+        console.error('Upload error:', error)
+        continue
+      }
+      const { data: urlData } = supabase.storage.from('room-images').getPublicUrl(fileName)
+      newUrls.push(urlData.publicUrl)
+    }
+
+    setFormData(prev => ({ ...prev, photos: [...prev.photos, ...newUrls] }))
+    setUploading(false)
   }
 
   if (isLoading) {
@@ -125,12 +149,21 @@ export default function RoomManagement() {
             />
           </div>
           <div>
-            <Label htmlFor="photos">Photo URLs (comma-separated)</Label>
-            <Input
+            <Label htmlFor="photos">Room Photos</Label>
+            <input
               id="photos"
-              value={formData.photos}
-              onChange={(e) => setFormData(prev => ({ ...prev, photos: e.target.value }))}
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFileUpload}
+              disabled={uploading}
             />
+            {uploading && <p>Uploading...</p>}
+            <div className="flex flex-wrap gap-2 mt-2">
+              {formData.photos.map((url, index) => (
+                <img key={index} src={url} alt={`Room photo ${index + 1}`} className="w-20 h-20 object-cover" />
+              ))}
+            </div>
           </div>
           <div>
             <Label htmlFor="layout">Layout Description</Label>
@@ -154,7 +187,7 @@ export default function RoomManagement() {
                   description: '',
                   capacity: '',
                   facilities: '',
-                  photos: '',
+                  photos: [],
                   layout: '',
                 })
               }}

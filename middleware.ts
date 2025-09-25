@@ -35,6 +35,8 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  console.log(`Middleware: Path=${request.nextUrl.pathname}, User=${user ? user.id : 'null'}`)
+
   if (
     !user &&
     request.nextUrl.pathname !== '/' &&
@@ -44,6 +46,7 @@ export async function middleware(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/confirm')
   ) {
     // no user, potentially respond by redirecting the user to the login page
+    console.log(`Middleware: Redirecting to /login from ${request.nextUrl.pathname}`)
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)

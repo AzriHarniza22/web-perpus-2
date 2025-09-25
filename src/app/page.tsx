@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import InteractiveCalendar from '@/app/InteractiveCalendar'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { supabase } from '@/lib/supabase'
+import { Loading } from '@/components/ui/loading'
 
 const HomePage = () => {
   const { user, fetchUser, isLoading: authLoading } = useAuthStore()
@@ -95,112 +96,42 @@ const HomePage = () => {
   }, [])
 
   // Redirect authenticated users to appropriate dashboard
-  useEffect(() => {
-    const redirectUser = async () => {
-      if (user) {
-        try {
-          // Check if user is admin
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single()
+   useEffect(() => {
+     const redirectUser = async () => {
+       console.log(`Landing page: redirectUser called, user=${user ? user.id : 'null'}`)
+       if (user) {
+         try {
+           // Check if user is admin
+           const { data: profile } = await supabase
+             .from('profiles')
+             .select('role')
+             .eq('id', user.id)
+             .single()
 
-          // Redirect based on role
-          if (profile?.role === 'admin') {
-            router.push('/admin')
-          } else {
-            router.push('/dashboard')
-          }
-        } catch (error) {
-          console.error('Error checking user role:', error)
-          // Default to user dashboard if role check fails
-          router.push('/dashboard')
-        }
-      }
-    }
+           // Redirect based on role
+           if (profile?.role === 'admin') {
+             console.log('Landing page: redirecting to /admin')
+             router.push('/admin')
+           } else {
+             console.log('Landing page: redirecting to /dashboard')
+             router.push('/dashboard')
+           }
+         } catch (error) {
+           console.error('Error checking user role:', error)
+           // Default to user dashboard if role check fails
+           console.log('Landing page: role check failed, redirecting to /dashboard')
+           router.push('/dashboard')
+         }
+       } else {
+         console.log('Landing page: no user, staying on landing page')
+       }
+     }
 
-    redirectUser()
-  }, [user, router])
+     redirectUser()
+   }, [user, router])
 
   if (loading || authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
-        {/* Animated background */}
-        <div className="absolute inset-0">
-          <motion.div
-            animate={{
-              backgroundPosition: ['0% 0%', '100% 100%'],
-              scale: [1, 1.1, 1]
-            }}
-            transition={{ duration: 8, repeat: Infinity }}
-            className="absolute inset-0 bg-gradient-to-br from-blue-400/20 via-purple-400/20 to-pink-400/20"
-          />
-        </div>
-
-        <div className="relative z-10 text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.5, type: "spring" }}
-            className="mb-8"
-          >
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"
-            />
-            <motion.div
-              animate={{ rotate: -360 }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto absolute top-2 left-1/2 -translate-x-1/2"
-            />
-          </motion.div>
-
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-2xl font-bold text-gray-800 mb-2"
-          >
-            Memuat Perpustakaan Aceh
-          </motion.h2>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="text-gray-600"
-          >
-            Menyiapkan pengalaman terbaik untuk Anda...
-          </motion.p>
-
-          {/* Loading dots */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 }}
-            className="flex justify-center gap-2 mt-6"
-          >
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.5, 1, 0.5]
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  delay: i * 0.2
-                }}
-                className="w-3 h-3 bg-blue-500 rounded-full"
-              />
-            ))}
-          </motion.div>
-        </div>
-      </div>
-    )
+    return <Loading variant="fullscreen" message="Memuat Perpustakaan Aceh" />
   }
 
   return (

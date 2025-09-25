@@ -61,6 +61,37 @@ export interface Notification {
   created_at: string
 }
 
+export interface UserActivityBooking {
+  user_id: string
+  created_at: string
+}
+
+export interface ProfileActivity {
+  created_at: string
+}
+
+export interface PeakHoursBooking {
+  start_time: string
+}
+
+export interface CancellationBooking {
+  status: string
+  created_at: string
+}
+
+export interface RoomUtilizationRoom {
+  id: string
+  name: string
+  capacity: number
+}
+
+export interface RoomUtilizationBooking {
+  room_id: string
+  start_time: string
+  end_time: string
+  status: string
+}
+
 // Fetch all bookings with profiles and rooms
 export const useBookings = () => {
   return useQuery<BookingWithRelations[]>({
@@ -160,7 +191,7 @@ export const useCreateBooking = () => {
   const { user } = useAuthStore()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (bookingData: Omit<Booking, 'id' | 'created_at' | 'user_id'> & { proposalFile?: File }) => {
+    mutationFn: async (bookingData: Omit<Booking, 'id' | 'created_at' | 'user_id'>) => {
       if (!user) throw new Error('Not authenticated')
 
       // Ensure profile exists
@@ -184,37 +215,23 @@ export const useCreateBooking = () => {
         if (profileError) throw profileError
       }
 
-      let proposalFileUrl: string | null = null
-      if (bookingData.proposalFile) {
-        const fileExt = bookingData.proposalFile.name.split('.').pop()
-        const fileName = `${user.id}_${Date.now()}.${fileExt}`
-        const { error: uploadError } = await supabase.storage
-          .from('proposals')
-          .upload(fileName, bookingData.proposalFile, {
-            cacheControl: '3600',
-            upsert: false,
-          })
-
-        if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`)
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('proposals')
-          .getPublicUrl(fileName)
-
-        proposalFileUrl = publicUrl
+      const insertData = {
+        ...bookingData,
+        user_id: user.id,
       }
+      console.log(`useCreateBooking: Inserting booking data for user ${user.id}:`, insertData)
 
       const { data, error } = await supabase
         .from('bookings')
-        .insert({
-          ...bookingData,
-          user_id: user.id,
-          proposal_file: proposalFileUrl,
-        })
+        .insert(insertData)
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error(`useCreateBooking: Insert error for user ${user.id}:`, error)
+        throw error
+      }
+      console.log(`useCreateBooking: Booking inserted successfully for user ${user.id}, id: ${data.id}`)
 
       await sendBookingConfirmation(data.id)
       return data
@@ -307,13 +324,19 @@ export const useToggleRoomActive = () => {
 }
 
 // Fetch booking stats for reports
-export const useBookingStats = () => {
+export const useBookingStats = (dateRange?: { start: string; end: string }) => {
   return useQuery({
-    queryKey: ['bookingStats'],
+    queryKey: ['bookingStats', dateRange],
     queryFn: async () => {
-      const { data: bookingStats } = await supabase
+      let query = supabase
         .from('bookings')
         .select('status, created_at, room_id, start_time, end_time')
+
+      if (dateRange) {
+        query = query.gte('created_at', dateRange.start).lte('created_at', dateRange.end)
+      }
+
+      const { data: bookingStats } = await query
 
       if (!bookingStats) return null
 
@@ -401,6 +424,222 @@ export const useBookingStats = () => {
         monthlyStats,
         statusTrends,
       }
+    },
+  })
+}
+
+// Fetch user activity trends
+export const useUserActivityTrends = (dateRange?: { start: string; end: string }) => {
+  return useQuery({
+    queryKey: ['userActivityTrends', dateRange],
+    queryFn: async () => {
+      // Fetch bookings within date range
+      let bookingQuery = supabase
+        .from('bookings')
+        .select('user_id, created_at')
+
+      if (dateRange) {
+        bookingQuery = bookingQuery.gte('created_at', dateRange.start).lte('created_at', dateRange.end)
+      }
+
+      const { data: bookings } = await bookingQuery
+
+      // Fetch profiles (registrations) within date range
+      let profileQuery = supabase
+        .from('profiles')
+        .select('created_at')
+
+      if (dateRange) {
+        profileQuery = profileQuery.gte('created_at', dateRange.start).lte('created_at', dateRange.end)
+      }
+
+      const { data: profiles } = await profileQuery
+
+      if (!bookings || !profiles) return []
+
+      const typedBookings = bookings as UserActivityBooking[]
+      const typedProfiles = profiles as ProfileActivity[]
+
+      // Group by date
+      const activityMap: { [date: string]: { activeUsers: Set<string>, bookings: number, newRegistrations: number } } = {}
+
+      // Process bookings
+      typedBookings.forEach(booking => {
+        const date = new Date(booking.created_at).toISOString().split('T')[0]
+        if (!activityMap[date]) {
+          activityMap[date] = { activeUsers: new Set(), bookings: 0, newRegistrations: 0 }
+        }
+        activityMap[date].activeUsers.add(booking.user_id)
+        activityMap[date].bookings++
+      })
+
+      // Process registrations
+      typedProfiles.forEach(profile => {
+        const date = new Date(profile.created_at).toISOString().split('T')[0]
+        if (!activityMap[date]) {
+          activityMap[date] = { activeUsers: new Set(), bookings: 0, newRegistrations: 0 }
+        }
+        activityMap[date].newRegistrations++
+      })
+
+      // Convert to array
+      const trends = Object.entries(activityMap).map(([date, data]) => ({
+        date,
+        activeUsers: data.activeUsers.size,
+        bookings: data.bookings,
+        newRegistrations: data.newRegistrations
+      })).sort((a, b) => a.date.localeCompare(b.date))
+
+      return trends
+    },
+  })
+}
+
+// Fetch peak hours heatmap data
+export const usePeakHoursData = (dateRange?: { start: string; end: string }) => {
+  return useQuery({
+    queryKey: ['peakHoursData', dateRange],
+    queryFn: async () => {
+      let query = supabase
+        .from('bookings')
+        .select('start_time')
+
+      if (dateRange) {
+        query = query.gte('start_time', dateRange.start).lte('start_time', dateRange.end)
+      }
+
+      const { data: bookings } = await query
+
+      if (!bookings) return []
+
+      const typedBookings = bookings as PeakHoursBooking[]
+
+      // Group by day of week and hour
+      const heatmap: { [day: number]: { [hour: number]: number } } = {}
+
+      typedBookings.forEach(booking => {
+        const date = new Date(booking.start_time)
+        const day = date.getDay() // 0 = Sunday, 1 = Monday, etc.
+        const hour = date.getHours()
+
+        if (!heatmap[day]) heatmap[day] = {}
+        heatmap[day][hour] = (heatmap[day][hour] || 0) + 1
+      })
+
+      // Convert to array format for heatmap
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      const data = days.map((dayName, dayIndex) => ({
+        day: dayName,
+        hours: Array.from({ length: 24 }, (_, hour) => ({
+          hour,
+          count: heatmap[dayIndex]?.[hour] || 0
+        }))
+      }))
+
+      return data
+    },
+  })
+}
+
+// Fetch cancellation trends over time
+export const useCancellationTrends = (dateRange?: { start: string; end: string }) => {
+  return useQuery({
+    queryKey: ['cancellationTrends', dateRange],
+    queryFn: async () => {
+      let query = supabase
+        .from('bookings')
+        .select('status, created_at')
+
+      if (dateRange) {
+        query = query.gte('created_at', dateRange.start).lte('created_at', dateRange.end)
+      }
+
+      const { data: bookings } = await query
+
+      if (!bookings) return []
+
+      const typedBookings = bookings as CancellationBooking[]
+
+      // Group by month
+      const trendsMap: { [month: string]: { cancellations: number, totalBookings: number } } = {}
+
+      typedBookings.forEach(booking => {
+        const date = new Date(booking.created_at)
+        const month = date.toLocaleString('id-ID', { month: 'long', year: 'numeric' })
+
+        if (!trendsMap[month]) {
+          trendsMap[month] = { cancellations: 0, totalBookings: 0 }
+        }
+        trendsMap[month].totalBookings++
+        if (booking.status === 'cancelled') {
+          trendsMap[month].cancellations++
+        }
+      })
+
+      const trends = Object.entries(trendsMap).map(([month, data]) => ({
+        month,
+        cancellations: data.cancellations,
+        totalBookings: data.totalBookings,
+        cancellationRate: data.totalBookings > 0 ? (data.cancellations / data.totalBookings) * 100 : 0
+      })).sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
+
+      return trends
+    },
+  })
+}
+
+// Fetch room utilization gauges
+export const useRoomUtilization = (dateRange?: { start: string; end: string }) => {
+  return useQuery({
+    queryKey: ['roomUtilization', dateRange],
+    queryFn: async () => {
+      // Fetch rooms
+      const { data: rooms } = await supabase
+        .from('rooms')
+        .select('id, name, capacity')
+
+      // Fetch bookings within date range
+      let bookingQuery = supabase
+        .from('bookings')
+        .select('room_id, start_time, end_time, status')
+
+      if (dateRange) {
+        bookingQuery = bookingQuery.gte('start_time', dateRange.start).lte('end_time', dateRange.end)
+      }
+
+      const { data: bookings } = await bookingQuery
+
+      if (!rooms || !bookings) return []
+
+      const typedRooms = rooms as RoomUtilizationRoom[]
+      const typedBookings = bookings as RoomUtilizationBooking[]
+
+      // Calculate utilization for each room
+      const utilization = typedRooms.map(room => {
+        const roomBookings = typedBookings.filter(b => b.room_id === room.id && b.status === 'approved')
+        const totalBookedHours = roomBookings.reduce((sum: number, booking) => {
+          const start = new Date(booking.start_time)
+          const end = new Date(booking.end_time)
+          const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+          return sum + hours
+        }, 0)
+
+        // Calculate total available hours in the period
+        const startDate = dateRange ? new Date(dateRange.start) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // last 30 days if no range
+        const endDate = dateRange ? new Date(dateRange.end) : new Date()
+        const totalHours = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)
+
+        const utilizationPercentage = totalHours > 0 ? (totalBookedHours / totalHours) * 100 : 0
+
+        return {
+          roomId: room.id,
+          roomName: room.name,
+          capacity: room.capacity,
+          utilizationPercentage: Math.min(utilizationPercentage, 100) // Cap at 100%
+        }
+      })
+
+      return utilization
     },
   })
 }

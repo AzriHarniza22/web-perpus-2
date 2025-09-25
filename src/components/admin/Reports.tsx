@@ -5,9 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useBookingStats, useBookings, useNotificationStats } from '@/lib/api'
-import { Download, FileText, BarChart3, Users, Clock, TrendingUp, FileImage } from 'lucide-react'
+import { Download, FileText, BarChart3, Users, Clock, TrendingUp, FileImage, FileSpreadsheet } from 'lucide-react'
 import { format, subMonths, isWithinInterval } from 'date-fns'
 import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
+import * as XLSX from 'xlsx'
 import {
   BarChart,
   Bar,
@@ -406,8 +408,27 @@ export default function Reports() {
     document.body.removeChild(link)
   }
 
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     if (!enhancedAnalytics) return
+
+    // Helper function to capture chart as image
+    const captureChart = async (chartId: string): Promise<string | null> => {
+      try {
+        const element = document.getElementById(chartId)
+        if (!element) return null
+
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff'
+        })
+        return canvas.toDataURL('image/png')
+      } catch (error) {
+        console.error(`Failed to capture chart ${chartId}:`, error)
+        return null
+      }
+    }
 
     const pdf = new jsPDF()
     const pageWidth = pdf.internal.pageSize.width
@@ -479,7 +500,11 @@ export default function Reports() {
     yPosition = addText('4. Facilities Analytics', 30, yPosition)
     yPosition = addText('5. Time Analytics', 30, yPosition)
     yPosition = addText('6. Room Utilization', 30, yPosition)
-    yPosition = addText('7. Notification Statistics', 30, yPosition)
+    yPosition = addText('7. Monthly Trends', 30, yPosition)
+    yPosition = addText('8. User Activity Chart', 30, yPosition)
+    yPosition = addText('9. Peak Hours Heatmap', 30, yPosition)
+    yPosition = addText('10. Booking Status Chart', 30, yPosition)
+    yPosition = addText('11. Notification Statistics', 30, yPosition)
     yPosition += 15
 
     // Executive Summary
@@ -645,8 +670,108 @@ export default function Reports() {
     })
     yPosition += 10
 
+    // Add Room Utilization Chart
+    checkNewPage(120)
+    yPosition = addText('Room Utilization Chart:', 30, yPosition)
+    yPosition += 5
+    const roomChartImage = await captureChart('room-utilization-chart')
+    if (roomChartImage) {
+      pdf.addImage(roomChartImage, 'PNG', 20, yPosition, 170, 80)
+      yPosition += 90
+    }
+
+    // Monthly Trends
+    addSectionHeader('MONTHLY TRENDS', '7')
+
+    pdf.setFontSize(11)
+    pdf.setFont('helvetica', 'normal')
+    yPosition = addText('Monthly booking trends over the selected period:', 30, yPosition)
+    yPosition += 10
+
+    // Add Monthly Trends Chart
+    checkNewPage(120)
+    const monthlyChartImage = await captureChart('monthly-trends-chart')
+    if (monthlyChartImage) {
+      pdf.addImage(monthlyChartImage, 'PNG', 20, yPosition, 170, 80)
+      yPosition += 90
+    }
+
+    // User Activity Chart
+    addSectionHeader('USER ACTIVITY CHART', '8')
+
+    pdf.setFontSize(11)
+    pdf.setFont('helvetica', 'normal')
+    yPosition = addText('Top users activity visualization:', 30, yPosition)
+    yPosition += 10
+
+    // Add User Activity Chart
+    checkNewPage(120)
+    const userChartImage = await captureChart('top-users-chart')
+    if (userChartImage) {
+      pdf.addImage(userChartImage, 'PNG', 20, yPosition, 170, 100)
+      yPosition += 110
+    }
+
+    // Peak Hours Heatmap
+    addSectionHeader('PEAK HOURS HEATMAP', '9')
+
+    pdf.setFontSize(11)
+    pdf.setFont('helvetica', 'normal')
+    yPosition = addText('Peak hours visualization (heatmap style):', 30, yPosition)
+    yPosition += 10
+
+    // Create a simple heatmap representation
+    checkNewPage(100)
+    const hours = Array.from({ length: 24 }, (_, i) => i)
+    const maxBookings = Math.max(...enhancedAnalytics.timeAnalytics.peakHours.map(h => h.count))
+
+    hours.forEach((hour, index) => {
+      const hourData = enhancedAnalytics.timeAnalytics.peakHours.find(h => h.hour === hour)
+      const count = hourData ? hourData.count : 0
+      const intensity = maxBookings > 0 ? (count / maxBookings) * 255 : 0
+
+      // Draw heatmap cell
+      const cellWidth = 7
+      const cellHeight = 8
+      const x = 30 + (index % 12) * cellWidth
+      const y = yPosition + Math.floor(index / 12) * cellHeight
+
+      // Color based on intensity (red to green)
+      const red = Math.round(intensity)
+      const green = Math.round(255 - intensity)
+      const blue = 100
+
+      pdf.setFillColor(red, green, blue)
+      pdf.rect(x, y, cellWidth - 1, cellHeight - 1, 'F')
+
+      // Label
+      if (index < 12) {
+        pdf.setFontSize(6)
+        pdf.setTextColor(0, 0, 0)
+        pdf.text(hour.toString(), x + cellWidth / 2, y + cellHeight + 3, { align: 'center' })
+      }
+    })
+
+    yPosition += 60
+
+    // Booking Status Chart
+    addSectionHeader('BOOKING STATUS CHART', '10')
+
+    pdf.setFontSize(11)
+    pdf.setFont('helvetica', 'normal')
+    yPosition = addText('Booking status distribution visualization:', 30, yPosition)
+    yPosition += 10
+
+    // Add Booking Status Chart
+    checkNewPage(120)
+    const statusChartImage = await captureChart('booking-status-chart')
+    if (statusChartImage) {
+      pdf.addImage(statusChartImage, 'PNG', 20, yPosition, 170, 80)
+      yPosition += 90
+    }
+
     // Notification Statistics
-    addSectionHeader('NOTIFICATION STATISTICS', '7')
+    addSectionHeader('NOTIFICATION STATISTICS', '11')
 
     pdf.setFontSize(11)
     pdf.setFont('helvetica', 'normal')
@@ -666,6 +791,161 @@ export default function Reports() {
 
     // Save the PDF
     pdf.save(`laporan-analytics-${format(new Date(), 'yyyy-MM-dd')}.pdf`)
+  }
+
+  const exportToExcel = () => {
+    if (!stats || !enhancedAnalytics) return
+
+    const workbook = XLSX.utils.book_new()
+
+    // Summary Statistics Sheet
+    const summaryData = [
+      ['Laporan Analytics Perpustakaan Aceh'],
+      ['Periode:', format(dateRange.from || new Date(), 'dd/MM/yyyy'), 'sampai', format(dateRange.to || new Date(), 'dd/MM/yyyy')],
+      [''],
+      ['=== STATISTIK UMUM ==='],
+      ['Total Reservasi', stats?.totalBookings || 0],
+      ['Disetujui', stats?.approvedBookings || 0],
+      ['Menunggu', stats?.pendingBookings || 0],
+      ['Ditolak', stats?.rejectedBookings || 0],
+      ['Dibatalkan', stats?.cancelledBookings || 0],
+      ['Selesai', stats?.completedBookings || 0],
+      ['Tingkat Persetujuan (%)', stats?.totalBookings ? Math.round((stats.approvedBookings / stats.totalBookings) * 100) : 0],
+      [''],
+      ['=== USER ANALYTICS ==='],
+      ['Total Users', enhancedAnalytics.userAnalytics.totalUsers],
+      ['Active Users', enhancedAnalytics.userAnalytics.activeUsers],
+      [''],
+      ['=== TIME ANALYTICS ==='],
+      ['Average Duration (hours)', enhancedAnalytics.timeAnalytics.averageDuration.toFixed(2)],
+      [''],
+      ['=== NOTIFICATION STATISTICS ==='],
+      ['Total Notifications', notificationStats?.totalNotifications || 0],
+      ['Sent', notificationStats?.sentNotifications || 0],
+      ['Failed', notificationStats?.failedNotifications || 0],
+      ['Pending', notificationStats?.pendingNotifications || 0],
+      ['Email Notifications', notificationStats?.emailNotifications || 0],
+      ['WhatsApp Notifications', notificationStats?.whatsappNotifications || 0]
+    ]
+
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData)
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary')
+
+    // User Analytics Sheet
+    const userData = [
+      ['User Analytics'],
+      [''],
+      ['Top Users'],
+      ['Nama', 'Email', 'Institusi', 'Total Booking', 'Disetujui'],
+      ...enhancedAnalytics.userAnalytics.topUsers.map(user => [
+        user.name,
+        user.email,
+        user.institution || 'Unknown',
+        user.bookingCount,
+        user.approvedCount
+      ])
+    ]
+
+    const userSheet = XLSX.utils.aoa_to_sheet(userData)
+    XLSX.utils.book_append_sheet(workbook, userSheet, 'User Analytics')
+
+    // Institution Analytics Sheet
+    const institutionData = [
+      ['Institution Analytics'],
+      [''],
+      ['Institusi', 'Total Booking', 'Jumlah User'],
+      ...enhancedAnalytics.institutionAnalytics.map(inst => [
+        inst.institution,
+        inst.bookingCount,
+        inst.userCount
+      ])
+    ]
+
+    const institutionSheet = XLSX.utils.aoa_to_sheet(institutionData)
+    XLSX.utils.book_append_sheet(workbook, institutionSheet, 'Institution Analytics')
+
+    // Facilities Analytics Sheet
+    const facilitiesData = [
+      ['Facilities Analytics'],
+      [''],
+      ['Fasilitas', 'Jumlah Penggunaan'],
+      ...enhancedAnalytics.facilitiesAnalytics.map(fac => [
+        fac.facility,
+        fac.usageCount
+      ])
+    ]
+
+    const facilitiesSheet = XLSX.utils.aoa_to_sheet(facilitiesData)
+    XLSX.utils.book_append_sheet(workbook, facilitiesSheet, 'Facilities Analytics')
+
+    // Time Analytics Sheet
+    const timeData = [
+      ['Time Analytics'],
+      [''],
+      ['Peak Hours'],
+      ['Jam', 'Jumlah Booking'],
+      ...enhancedAnalytics.timeAnalytics.peakHours.map(h => [h.hour, h.count]),
+      [''],
+      ['Peak Days'],
+      ['Hari', 'Jumlah Booking'],
+      ...enhancedAnalytics.timeAnalytics.peakDays.map(d => [d.day, d.count])
+    ]
+
+    const timeSheet = XLSX.utils.aoa_to_sheet(timeData)
+    XLSX.utils.book_append_sheet(workbook, timeSheet, 'Time Analytics')
+
+    // Room Utilization Sheet
+    const roomData = [
+      ['Room Utilization'],
+      [''],
+      ['Room Name', 'Total Bookings', 'Capacity', 'Utilization Rate (%)', 'Average Duration (hours)'],
+      ...enhancedAnalytics.roomUtilization.map(room => [
+        room.roomName,
+        room.totalBookings,
+        room.totalCapacity,
+        parseFloat(room.utilizationRate.toFixed(2)),
+        parseFloat(room.averageDuration.toFixed(2))
+      ])
+    ]
+
+    const roomSheet = XLSX.utils.aoa_to_sheet(roomData)
+    XLSX.utils.book_append_sheet(workbook, roomSheet, 'Room Utilization')
+
+    // Monthly Trends Sheet
+    const monthlyData = [
+      ['Monthly Trends'],
+      [''],
+      ['Month', 'Bookings'],
+      ...stats.monthlyStats.map(month => [month.month, month.count])
+    ]
+
+    const monthlySheet = XLSX.utils.aoa_to_sheet(monthlyData)
+    XLSX.utils.book_append_sheet(workbook, monthlySheet, 'Monthly Trends')
+
+    // Detailed Bookings Sheet
+    const bookingData = [
+      ['Detailed Booking List'],
+      [''],
+      ['ID', 'User', 'Email', 'Institution', 'Room', 'Start Time', 'End Time', 'Status', 'Event Description', 'Notes'],
+      ...enhancedAnalytics.filteredBookings.map(booking => [
+        booking.id,
+        booking.profiles?.full_name || 'Unknown',
+        booking.profiles?.email || 'Unknown',
+        booking.profiles?.institution || 'Unknown',
+        booking.rooms?.name || 'Unknown',
+        format(new Date(booking.start_time), 'dd/MM/yyyy HH:mm'),
+        format(new Date(booking.end_time), 'dd/MM/yyyy HH:mm'),
+        booking.status,
+        booking.event_description || '',
+        booking.notes || ''
+      ])
+    ]
+
+    const bookingSheet = XLSX.utils.aoa_to_sheet(bookingData)
+    XLSX.utils.book_append_sheet(workbook, bookingSheet, 'Detailed Bookings')
+
+    // Save the Excel file
+    XLSX.writeFile(workbook, `laporan-analytics-${format(new Date(), 'yyyy-MM-dd')}.xlsx`)
   }
 
   if (statsLoading || bookingsLoading || notificationLoading) {
@@ -708,6 +988,10 @@ export default function Reports() {
               <Button onClick={exportToPDF} variant="outline" className="flex items-center gap-2">
                 <FileImage className="h-4 w-4" />
                 Export PDF
+              </Button>
+              <Button onClick={exportToExcel} variant="outline" className="flex items-center gap-2">
+                <FileSpreadsheet className="h-4 w-4" />
+                Export Excel
               </Button>
             </div>
           </div>
@@ -766,9 +1050,9 @@ export default function Reports() {
                 </div>
                 <Clock className="h-8 w-8 text-orange-600" />
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
 
         {/* Booking Status Chart */}
         <Card>
@@ -777,47 +1061,20 @@ export default function Reports() {
             <CardDescription>Distribusi status booking dalam periode ini</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={basicStatsChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <div id="booking-status-chart">
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={basicStatsChartData}>
+                <CartesianGrid stroke="#e5e7eb" />
                 <XAxis dataKey="name" stroke="#6b7280" />
                 <YAxis stroke="#6b7280" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#f9fafb',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
                 <Legend />
-                <Bar
-                  dataKey="approved"
-                  stackId="a"
-                  fill="#10b981"
-                  name="Disetujui"
-                  animationBegin={0}
-                  animationDuration={1000}
-                />
-                <Bar
-                  dataKey="pending"
-                  stackId="a"
-                  fill="#f59e0b"
-                  name="Menunggu"
-                  animationBegin={200}
-                  animationDuration={1000}
-                />
-                <Bar
-                  dataKey="rejected"
-                  stackId="a"
-                  fill="#ef4444"
-                  name="Ditolak"
-                  animationBegin={400}
-                  animationDuration={1000}
-                />
-              </BarChart>
+                <Bar dataKey="approved" fill="#10b981" name="Approved" />
+                <Bar dataKey="pending" fill="#f59e0b" name="Pending" />
+                <Bar dataKey="rejected" fill="#ef4444" name="Rejected" />
+                </BarChart>
             </ResponsiveContainer>
-          </CardContent>
+          </div>
+        </CardContent>
         </Card>
       </div>
 
@@ -832,11 +1089,13 @@ export default function Reports() {
             {/* Top Users Bar Chart */}
             <div>
               <h4 className="font-semibold mb-3">Top Pengguna Teraktif</h4>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={userAnalyticsChartData} layout="horizontal">
+              <div id="top-users-chart">
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={userAnalyticsChartData} layout="horizontal">
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis type="number" stroke="#6b7280" />
                   <YAxis dataKey="name" type="category" width={80} stroke="#6b7280" />
+                  <Legend />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#f9fafb',
@@ -844,23 +1103,24 @@ export default function Reports() {
                       borderRadius: '8px',
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                     }}
-                  />
+                   />
                   <Bar
                     dataKey="bookings"
                     fill="#3b82f6"
                     name="Total Booking"
                     animationBegin={0}
                     animationDuration={1200}
-                  />
+                   />
                   <Bar
                     dataKey="approved"
                     fill="#10b981"
                     name="Disetujui"
                     animationBegin={300}
                     animationDuration={1200}
-                  />
-                </BarChart>
+                   />
+                  </BarChart>
               </ResponsiveContainer>
+            </div>
             </div>
 
             {/* Time Analytics Charts */}
@@ -871,24 +1131,26 @@ export default function Reports() {
                   <p className="text-sm font-medium mb-2">Jam Sibuk</p>
                   <ResponsiveContainer width="100%" height={120}>
                     <AreaChart data={timeAnalyticsChartData.peakHours}>
-                      <XAxis dataKey="hour" stroke="#6b7280" />
-                      <YAxis stroke="#6b7280" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#f9fafb',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                        }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="bookings"
-                        stroke="#f59e0b"
-                        fill="#fef3c7"
-                        animationBegin={0}
-                        animationDuration={1500}
-                      />
+                    <XAxis dataKey="hour" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" />
+                    <Legend />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#f9fafb',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      }}
+                     />
+                    <Area
+                      type="monotone"
+                      dataKey="bookings"
+                      stroke="#f59e0b"
+                      fill="#fef3c7"
+                      name="Bookings"
+                      animationBegin={0}
+                      animationDuration={1500}
+                     />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -897,22 +1159,24 @@ export default function Reports() {
                   <p className="text-sm font-medium mb-2">Hari Sibuk</p>
                   <ResponsiveContainer width="100%" height={120}>
                     <BarChart data={timeAnalyticsChartData.peakDays}>
-                      <XAxis dataKey="day" stroke="#6b7280" />
-                      <YAxis stroke="#6b7280" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#f9fafb',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                        }}
-                      />
-                      <Bar
-                        dataKey="bookings"
-                        fill="#8b5cf6"
-                        animationBegin={0}
-                        animationDuration={1500}
-                      />
+                    <XAxis dataKey="day" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" />
+                    <Legend />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#f9fafb',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      }}
+                     />
+                    <Bar
+                      dataKey="bookings"
+                      fill="#8b5cf6"
+                      name="Bookings"
+                      animationBegin={0}
+                      animationDuration={1500}
+                     />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -930,7 +1194,7 @@ export default function Reports() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {enhancedAnalytics.institutionAnalytics.slice(0, 8).map((inst, index) => (
+            {enhancedAnalytics!.institutionAnalytics.slice(0, 8).map((inst, index) => (
               <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                 <div>
                   <p className="font-medium">{inst.institution}</p>
@@ -954,7 +1218,7 @@ export default function Reports() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {enhancedAnalytics.facilitiesAnalytics.slice(0, 9).map((fac, index) => (
+            {enhancedAnalytics!.facilitiesAnalytics.slice(0, 9).map((fac, index) => (
               <div key={index} className="border rounded-lg p-3 text-center">
                 <h5 className="font-medium text-sm">{fac.facility}</h5>
                 <p className="text-lg font-bold text-green-600">{fac.usageCount}</p>
@@ -1008,8 +1272,9 @@ export default function Reports() {
           <CardDescription>Tingkat penggunaan ruangan</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={roomUtilizationChartData}>
+          <div id="room-utilization-chart">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={roomUtilizationChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="name" stroke="#6b7280" />
               <YAxis stroke="#6b7280" />
@@ -1044,8 +1309,9 @@ export default function Reports() {
               />
             </BarChart>
           </ResponsiveContainer>
+          </div>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {enhancedAnalytics.roomUtilization.map((room, index) => (
+            {enhancedAnalytics!.roomUtilization.map((room, index) => (
               <div key={index} className="border rounded-lg p-3 text-center">
                 <h5 className="font-medium text-sm">{room.roomName}</h5>
                 <p className="text-xs text-gray-600">{room.totalBookings} bookings</p>
@@ -1063,8 +1329,9 @@ export default function Reports() {
           <CardDescription>Tren bulanan reservasi</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={monthlyTrendsChartData}>
+          <div id="monthly-trends-chart">
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={monthlyTrendsChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="month" stroke="#6b7280" />
               <YAxis stroke="#6b7280" />
@@ -1082,15 +1349,17 @@ export default function Reports() {
                 dataKey="bookings"
                 stroke="#3b82f6"
                 strokeWidth={3}
+                name="Bookings"
                 dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
                 activeDot={{ r: 8, stroke: '#3b82f6', strokeWidth: 2, fill: '#fff' }}
                 animationBegin={0}
                 animationDuration={2000}
-              />
+               />
             </LineChart>
           </ResponsiveContainer>
+          </div>
           <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-            {stats.monthlyStats.slice(0, 6).map((month, index) => (
+            {stats!.monthlyStats.slice(0, 6).map((month, index) => (
               <div key={index} className="text-center p-2 border rounded">
                 <p className="text-xs font-medium">{month.month}</p>
                 <p className="text-lg font-bold text-blue-600">{month.count}</p>
@@ -1108,7 +1377,7 @@ export default function Reports() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={stats.statusTrends}>
+            <LineChart data={stats?.statusTrends || []}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="month" stroke="#6b7280" />
               <YAxis stroke="#6b7280" />

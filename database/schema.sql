@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   event_description TEXT,
   proposal_file TEXT, -- File URL if uploaded
   notes TEXT,
+  letter TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   -- Ensure no overlapping bookings for the same room
