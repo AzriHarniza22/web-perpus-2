@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from './supabase'
 import useAuthStore from './authStore'
-import { sendBookingConfirmation, sendBookingStatusUpdate } from './notifications'
 
 export interface Room {
   id: string
@@ -172,13 +171,21 @@ export const useUpdateBookingStatus = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status })
-        .eq('id', id)
+      const response = await fetch(`/api/bookings/${id}/status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+      })
 
-      if (error) throw error
-      await sendBookingStatusUpdate(id, status)
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to update booking status')
+      }
+
+      const result = await response.json()
+      return result.booking
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] })
@@ -188,53 +195,29 @@ export const useUpdateBookingStatus = () => {
 
 // Create booking
 export const useCreateBooking = () => {
-  const { user } = useAuthStore()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (bookingData: Omit<Booking, 'id' | 'created_at' | 'user_id'>) => {
-      if (!user) throw new Error('Not authenticated')
+      console.log('Booking data:', bookingData)
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData),
+      })
 
-      // Ensure profile exists
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .single()
+      console.log('Response status:', response.status)
+      const responseText = await response.text()
+      console.log('Response text:', responseText)
 
-      if (!profile) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: user.id,
-            email: user.email!,
-            full_name: user.user_metadata?.full_name || '',
-            institution: user.user_metadata?.institution || '',
-            phone: user.user_metadata?.phone || '',
-          })
-
-        if (profileError) throw profileError
+      if (!response.ok) {
+        const error = JSON.parse(responseText)
+        throw new Error(error.error || 'Failed to create booking')
       }
 
-      const insertData = {
-        ...bookingData,
-        user_id: user.id,
-      }
-      console.log(`useCreateBooking: Inserting booking data for user ${user.id}:`, insertData)
-
-      const { data, error } = await supabase
-        .from('bookings')
-        .insert(insertData)
-        .select()
-        .single()
-
-      if (error) {
-        console.error(`useCreateBooking: Insert error for user ${user.id}:`, error)
-        throw error
-      }
-      console.log(`useCreateBooking: Booking inserted successfully for user ${user.id}, id: ${data.id}`)
-
-      await sendBookingConfirmation(data.id)
-      return data
+      const result = JSON.parse(responseText)
+      return result.booking
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] })

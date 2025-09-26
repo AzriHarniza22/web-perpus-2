@@ -9,6 +9,7 @@ import BookingForm from '../../../components/BookingForm'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import { Loading } from '@/components/ui/loading'
+import useAuthStore from '@/lib/authStore'
 
 import { Room, Booking } from '@/lib/api'
 
@@ -27,6 +28,7 @@ export default function BookRoomPage() {
   const [initialScale, setInitialScale] = useState(1)
   const imageRef = useRef<HTMLImageElement>(null)
   const router = useRouter()
+  const { fetchUser } = useAuthStore()
 
   const getDistance = (touch1: Touch, touch2: Touch) => {
     return Math.sqrt(
@@ -40,6 +42,10 @@ export default function BookRoomPage() {
       // Check if user is authenticated
       const { data: { user: currentUser } } = await supabase.auth.getUser()
       setUser(currentUser)
+
+      if (currentUser) {
+        await fetchUser()
+      }
 
       if (!currentUser) {
         router.push('/login')
@@ -95,7 +101,7 @@ export default function BookRoomPage() {
     if (roomId) {
       checkAuthAndFetchData()
     }
-  }, [roomId, router])
+  }, [roomId, router, fetchUser])
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {

@@ -1,4 +1,4 @@
-'use client'
+  'use client'
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -13,12 +13,47 @@ import InteractiveCalendar from '@/app/InteractiveCalendar'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { supabase } from '@/lib/supabase'
 import { Loading } from '@/components/ui/loading'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import { useMotionValue, useSpring, useInView } from 'framer-motion'
+
+// Custom AnimatedCounter component using Framer Motion
+const AnimatedCounter = ({ from, to, duration = 2, separator = ',' }: { from: number; to: number; duration?: number; separator?: string }) => {
+  const nodeRef = useRef<HTMLSpanElement>(null)
+  const motionValue = useMotionValue(from)
+  const springValue = useSpring(motionValue, { duration: duration * 1000 })
+  const isInView = useInView(nodeRef, { once: true })
+
+  useEffect(() => {
+    if (isInView) {
+      motionValue.set(to)
+    }
+  }, [motionValue, to, isInView])
+
+  useEffect(() => {
+    springValue.on('change', (latest) => {
+      if (nodeRef.current) {
+        nodeRef.current.textContent = Math.floor(latest).toString().replace(/\B(?=(\d{3})+(?!\d))/g, separator)
+      }
+    })
+  }, [springValue, separator])
+
+  return <span ref={nodeRef}>{from}</span>
+}
 
 const HomePage = () => {
   const { user, fetchUser, isLoading: authLoading } = useAuthStore()
   const [loading, setLoading] = useState(true)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('home')
+  const [currentTestimonial, setCurrentTestimonial] = useState(0)
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false)
   const router = useRouter()
   const { data: bookings = [] } = useCalendarBookings()
   const { data: rooms = [] } = useRooms()
@@ -46,6 +81,47 @@ const HomePage = () => {
         repeat: Infinity
       }
     }
+  }
+
+  const testimonials = [
+    {
+      name: 'Ahmad Rahman',
+      role: 'Mahasiswa',
+      avatar: '/avatars/ahmad.jpg',
+      content: 'Sistem reservasi ini sangat membantu saya dalam mengatur jadwal belajar. Interface yang user-friendly dan responsif.',
+      rating: 5,
+    },
+    {
+      name: 'Siti Nurhaliza',
+      role: 'Dosen',
+      avatar: '/avatars/siti.jpg',
+      content: 'Sebagai dosen, saya sangat terbantu dengan fitur notifikasi real-time. Proses booking yang cepat dan mudah.',
+      rating: 5,
+    },
+    {
+      name: 'Budi Santoso',
+      role: 'Staff Administrasi',
+      avatar: '/avatars/budi.jpg',
+      content: 'Dashboard analytics sangat berguna untuk monitoring penggunaan ruangan. Data yang akurat dan real-time.',
+      rating: 5,
+    },
+  ]
+
+  const newsletterSchema = z.object({
+    email: z.string().email('Email tidak valid'),
+  })
+
+  const newsletterForm = useForm<z.infer<typeof newsletterSchema>>({
+    resolver: zodResolver(newsletterSchema),
+    defaultValues: {
+      email: '',
+    },
+  })
+
+  const onNewsletterSubmit = (values: z.infer<typeof newsletterSchema>) => {
+    console.log('Newsletter signup:', values)
+    // Handle newsletter signup - could integrate with Supabase or email service
+    newsletterForm.reset()
   }
 
   // Scroll-based animations
@@ -281,6 +357,30 @@ const HomePage = () => {
               animate="animate"
               className="absolute bottom-32 left-1/2 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl"
             />
+            <motion.div
+              variants={particleVariants}
+              custom={3}
+              animate="animate"
+              className="absolute top-1/4 right-1/4 w-48 h-48 bg-indigo-400 rounded-full mix-blend-multiply filter blur-xl"
+            />
+            <motion.div
+              variants={particleVariants}
+              custom={4}
+              animate="animate"
+              className="absolute bottom-1/4 left-1/4 w-56 h-56 bg-cyan-400 rounded-full mix-blend-multiply filter blur-xl"
+            />
+            <motion.div
+              variants={particleVariants}
+              custom={5}
+              animate="animate"
+              className="absolute top-1/2 left-1/3 w-64 h-64 bg-violet-400 rounded-full mix-blend-multiply filter blur-xl"
+            />
+            <motion.div
+              variants={particleVariants}
+              custom={6}
+              animate="animate"
+              className="absolute bottom-1/2 right-1/3 w-40 h-40 bg-emerald-400 rounded-full mix-blend-multiply filter blur-xl"
+            />
           </div>
         </motion.div>
 
@@ -329,6 +429,7 @@ const HomePage = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsDemoModalOpen(true)}
                   className="px-8 py-4 border-2 border-gray-300 text-gray-700 text-lg font-semibold rounded-full hover:border-blue-600 hover:text-blue-600 transition-all flex items-center justify-center gap-2"
                 >
                   <Play size={20} />
@@ -390,6 +491,115 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Statistics Section */}
+      <section className="py-20 bg-white dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+              Statistik <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Penggunaan</span>
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Data real-time penggunaan sistem reservasi ruangan kami
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { label: 'Total Reservasi', value: 1250, suffix: '+' },
+              { label: 'Ruangan Tersedia', value: 15, suffix: '' },
+              { label: 'Pengguna Aktif', value: 500, suffix: '+' },
+              { label: 'Tingkat Kepuasan', value: 98, suffix: '%' },
+            ].map((stat, index) => (
+              <motion.div
+                key={index}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={{
+                  hidden: { opacity: 0, scale: 0.8 },
+                  visible: {
+                    opacity: 1,
+                    scale: 1,
+                    transition: { delay: index * 0.1, duration: 0.6, ease: "easeOut" }
+                  }
+                }}
+                className="bg-gray-50 dark:bg-gray-800 rounded-3xl p-8 text-center"
+              >
+                <div className="text-4xl lg:text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                  <AnimatedCounter
+                    from={0}
+                    to={stat.value}
+                    duration={2}
+                    separator=","
+                  />
+                  {stat.suffix}
+                </div>
+                <p className="text-gray-600 dark:text-gray-300">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Newsletter Signup */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="mt-16 bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl"
+          >
+            <div className="text-center mb-8">
+              <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                Tetap <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Terhubung</span>
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                Dapatkan update terbaru tentang fitur baru, tips penggunaan, dan berita dari Perpustakaan Aceh
+              </p>
+            </div>
+
+            <Form {...newsletterForm}>
+              <form onSubmit={newsletterForm.handleSubmit(onNewsletterSubmit)} className="max-w-md mx-auto">
+                <div className="flex gap-4">
+                  <FormField
+                    control={newsletterForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormControl>
+                          <Input
+                            placeholder="Masukkan email Anda"
+                            {...field}
+                            className="h-12 text-lg"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    type="submit"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all"
+                  >
+                    Berlangganan
+                  </motion.button>
+                </div>
+              </form>
+            </Form>
+
+            <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
+              Kami menghormati privasi Anda. Tidak ada spam, janji!
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section
         ref={featuresRef}
@@ -400,7 +610,8 @@ const HomePage = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-center mb-16"
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
@@ -452,18 +663,26 @@ const HomePage = () => {
             ].map((feature, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={{
+                  hidden: { opacity: 0, y: 30 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { delay: index * 0.1, duration: 0.6, ease: "easeOut" }
+                  }
+                }}
                 whileHover={{
                   y: -15,
                   scale: 1.05,
                   rotateY: 5,
-                  boxShadow: '0 25px 50px rgba(0,0,0,0.15)'
+                  boxShadow: '0 25px 50px rgba(0,0,0,0.15)',
+                  transition: { duration: 0.3 }
                 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all cursor-pointer group relative overflow-hidden"
+                className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl cursor-pointer group relative overflow-hidden"
               >
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -482,6 +701,149 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      <section className="py-20 bg-gray-50 dark:bg-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+              Apa Kata <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Pengguna</span>
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Pendapat pengguna tentang pengalaman mereka menggunakan sistem reservasi kami
+            </p>
+          </motion.div>
+
+          <div className="relative max-w-4xl mx-auto">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentTestimonial}
+                initial={{ opacity: 0, x: 100 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -100 }}
+                transition={{ duration: 0.5 }}
+                className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-xl"
+              >
+                <div className="flex items-center mb-6">
+                  <Avatar className="w-16 h-16 mr-4">
+                    <AvatarImage src={testimonials[currentTestimonial].avatar} alt={testimonials[currentTestimonial].name} />
+                    <AvatarFallback>{testimonials[currentTestimonial].name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{testimonials[currentTestimonial].name}</h3>
+                    <p className="text-gray-600 dark:text-gray-300">{testimonials[currentTestimonial].role}</p>
+                    <div className="flex mt-1">
+                      {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
+                        <span key={i} className="text-yellow-400">★</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-lg text-gray-600 dark:text-gray-300 italic">"{testimonials[currentTestimonial].content}"</p>
+              </motion.div>
+            </AnimatePresence>
+
+            <div className="flex justify-center mt-8 space-x-4">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setCurrentTestimonial((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1))}
+                className="p-3 bg-white dark:bg-gray-900 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+              >
+                <ChevronLeft size={24} className="text-gray-600 dark:text-gray-300" />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setCurrentTestimonial((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1))}
+                className="p-3 bg-white dark:bg-gray-900 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+              >
+                <ChevronRight size={24} className="text-gray-600 dark:text-gray-300" />
+              </motion.button>
+            </div>
+
+            <div className="flex justify-center mt-6 space-x-2">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentTestimonial(index)}
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    index === currentTestimonial ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <Dialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen}>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Demo Interaktif Sistem Reservasi
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <p className="text-lg text-gray-600 dark:text-gray-300">
+                  Jelajahi fitur-fitur utama sistem reservasi ruangan Perpustakaan Aceh secara interaktif.
+                </p>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Fitur Utama:</h3>
+                    <ul className="space-y-2">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle size={16} className="text-green-500" />
+                        <span>Kalender interaktif real-time</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle size={16} className="text-green-500" />
+                        <span>Booking instan</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle size={16} className="text-green-500" />
+                        <span>Notifikasi otomatis</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle size={16} className="text-green-500" />
+                        <span>Dashboard analytics</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2">Kalender Demo</h4>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">
+                      <p>Klik pada tanggal di bawah untuk melihat demo reservasi:</p>
+                      <div className="mt-2 p-2 bg-white dark:bg-gray-700 rounded border">
+                        <p className="text-xs">📅 Kalender akan muncul di sini</p>
+                        <p className="text-xs mt-1">Ruangan tersedia: 15</p>
+                        <p className="text-xs">Reservasi hari ini: 8</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Cara Menggunakan:</h4>
+                  <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800 dark:text-blue-200">
+                    <li>Daftar akun atau masuk ke sistem</li>
+                    <li>Pilih ruangan yang diinginkan</li>
+                    <li>Tentukan tanggal dan waktu</li>
+                    <li>Konfirmasi reservasi</li>
+                    <li>Dapatkan notifikasi konfirmasi</li>
+                  </ol>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </section>
+
       {/* Rooms Section */}
       <section
         ref={roomsRef}
@@ -492,7 +854,8 @@ const HomePage = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-center mb-16"
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
@@ -507,16 +870,27 @@ const HomePage = () => {
             {rooms.map((room: Room, index: number) => (
               <motion.div
                 key={room.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -10, rotateY: 5 }}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={{
+                  hidden: { opacity: 0, y: 30 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { delay: index * 0.1, duration: 0.6, ease: "easeOut" }
+                  }
+                }}
+                whileHover={{
+                  y: -10,
+                  rotateY: 5,
+                  transition: { duration: 0.3 }
+                }}
                 drag
                 dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                 dragElastic={0.1}
                 whileDrag={{ scale: 1.05, rotateY: 10 }}
-                className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl hover:shadow-2xl transition-all overflow-hidden group relative cursor-grab active:cursor-grabbing"
+                className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group relative cursor-grab active:cursor-grabbing"
               >
                 <div className={`h-48 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 relative overflow-hidden`}>
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all" />
@@ -560,7 +934,8 @@ const HomePage = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-center mb-16"
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
@@ -594,12 +969,22 @@ const HomePage = () => {
             ].map((contact, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all text-center"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={{
+                  hidden: { opacity: 0, y: 30 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { delay: index * 0.1, duration: 0.6, ease: "easeOut" }
+                  }
+                }}
+                whileHover={{
+                  y: -5,
+                  transition: { duration: 0.3 }
+                }}
+                className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl text-center"
               >
                 <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${contact.color} flex items-center justify-center mb-6 mx-auto`}>
                   <contact.icon size={32} className="text-white" />

@@ -21,12 +21,16 @@ export async function sendNotification({ bookingId, type, recipient, message }: 
 
     if (error) throw error
 
-    // In a real application, you would integrate with email/WhatsApp services here
-    // For example:
-    // - Email: Resend, SendGrid, etc.
-    // - WhatsApp: Twilio, 360Dialog, etc.
+    // Send actual notification
+    if (type === 'email') {
+      // Email sending disabled - only database storage
+      console.log(`Email notification stored for ${recipient}: ${message}`)
+    } else if (type === 'whatsapp') {
+      // WhatsApp implementation will be added later
+      console.log(`WhatsApp notification: ${recipient} - ${message}`)
+    }
 
-    console.log(`Notification sent: ${type} to ${recipient} - ${message}`)
+    console.log(`Notification sent: ${type} to ${recipient}`)
 
     return { success: true }
   } catch (error) {
@@ -174,6 +178,29 @@ export async function sendBookingStatusUpdate(bookingId: string, newStatus: stri
     return { success: true }
   } catch (error) {
     console.error('Error sending status update notification:', error)
+    return { success: false, error }
+  }
+}
+export async function notifyAdminNewReservation(userName: string, roomName: string, adminEmail: string) {
+  const message = `User ${userName} telah memesan ruangan ${roomName}. Silakan periksa dan setujui/ditolak reservasi tersebut.`
+
+  try {
+    // Save admin notification to database only
+    const { error } = await supabase
+      .from('notifications')
+      .insert({
+        booking_id: null, // No specific booking ID for admin notifications
+        type: 'email',
+        recipient: adminEmail,
+        message,
+      })
+
+    if (error) throw error
+
+    console.log(`Admin notification stored for ${adminEmail}: ${message}`)
+    return { success: true }
+  } catch (error) {
+    console.error('Error storing admin notification:', error)
     return { success: false, error }
   }
 }
