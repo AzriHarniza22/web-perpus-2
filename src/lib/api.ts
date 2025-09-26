@@ -92,11 +92,31 @@ export interface RoomUtilizationBooking {
 }
 
 // Fetch all bookings with profiles and rooms
-export const useBookings = () => {
+export const useBookings = (filters?: {
+  status?: string[]
+  dateRange?: { start: string; end: string }
+  roomIds?: string[]
+  search?: string
+  page?: number
+  limit?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}) => {
+  const {
+    status,
+    dateRange,
+    roomIds,
+    search,
+    page = 1,
+    limit = 50,
+    sortBy = 'created_at',
+    sortOrder = 'desc'
+  } = filters || {}
+
   return useQuery<BookingWithRelations[]>({
-    queryKey: ['bookings'],
+    queryKey: ['bookings', filters],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('bookings')
         .select(`
           *,
@@ -111,8 +131,40 @@ export const useBookings = () => {
             capacity,
             facilities
           )
-        `)
-        .order('created_at', { ascending: false })
+        `, { count: 'exact' })
+
+      // Apply status filter
+      if (status && status.length > 0) {
+        query = query.in('status', status)
+      }
+
+      // Apply date range filter (on created_at)
+      if (dateRange) {
+        query = query
+          .gte('created_at', dateRange.start)
+          .lte('created_at', dateRange.end)
+      }
+
+      // Apply room filter
+      if (roomIds && roomIds.length > 0) {
+        query = query.in('room_id', roomIds)
+      }
+
+      // Apply search filter
+      if (search && search.trim()) {
+        const searchTerm = search.trim()
+        query = query.or(`event_description.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`)
+      }
+
+      // Apply sorting
+      query = query.order(sortBy, { ascending: sortOrder === 'asc' })
+
+      // Apply pagination
+      const from = (page - 1) * limit
+      const to = from + limit - 1
+      query = query.range(from, to)
+
+      const { data, error } = await query
 
       if (error) throw error
       return data || []

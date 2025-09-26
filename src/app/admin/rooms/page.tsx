@@ -29,11 +29,17 @@ export default function RoomsPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const { user } = useAuthStore()
+  const { user, isLoading: authLoading, fetchUser } = useAuthStore()
   const router = useRouter()
 
   useEffect(() => {
+    fetchUser()
+  }, [fetchUser])
+
+  useEffect(() => {
     const checkAuth = async () => {
+      if (authLoading) return // Wait for auth to load
+
       if (!user) {
         router.push('/login')
         return
@@ -56,7 +62,7 @@ export default function RoomsPage() {
     }
 
     checkAuth()
-  }, [user, router])
+  }, [user, authLoading, router])
 
   if (loading) {
     return (

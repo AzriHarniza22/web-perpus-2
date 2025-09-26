@@ -4,6 +4,10 @@ import { Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+
+const MotionSun = motion(Sun)
+const MotionMoon = motion(Moon)
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
@@ -25,8 +29,20 @@ export function ThemeToggle() {
       className="relative h-9 w-9 rounded-full"
       aria-label="Toggle theme"
     >
-      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <MotionSun
+        className="h-4 w-4"
+        animate={{
+          rotate: theme === 'light' ? 0 : -90,
+          scale: theme === 'light' ? 1 : 0
+        }}
+      />
+      <MotionMoon
+        className="absolute h-4 w-4"
+        animate={{
+          rotate: theme === 'dark' ? 0 : 90,
+          scale: theme === 'dark' ? 1 : 0
+        }}
+      />
       <span className="sr-only">Toggle theme</span>
     </Button>
   )

@@ -23,6 +23,12 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
       active: pathname === '/admin'
     },
     {
+      href: '/admin/reservations',
+      label: 'Reservations',
+      icon: FileText,
+      active: pathname === '/admin/reservations'
+    },
+    {
       href: '/admin/analytics',
       label: 'Analytics & Reports',
       icon: BarChart3,

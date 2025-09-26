@@ -6,13 +6,10 @@ import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import useAuthStore from '@/lib/authStore'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CheckCircle, Clock } from 'lucide-react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
-import BookingApprovals from '@/components/admin/BookingApprovals'
+import BookingManagement from '@/components/admin/BookingManagement'
 
 interface Profile {
   id: string;
@@ -25,7 +22,7 @@ interface Profile {
   updated_at: string;
 }
 
-export default function ApprovalsPage() {
+export default function ReservationsPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -113,42 +110,16 @@ export default function ApprovalsPage() {
               <Skeleton className="h-5 w-96" />
             </motion.div>
 
-            {/* Booking Approvals Card */}
+            {/* Content skeleton */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Clock className="w-5 h-5 mr-2 text-yellow-600" />
-                    <Skeleton className="h-6 w-48" />
-                  </CardTitle>
-                  <CardDescription>
-                    <Skeleton className="h-4 w-64" />
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {[...Array(5)].map((_, i) => (
-                      <div key={i} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <Skeleton className="h-5 w-32 mb-1" />
-                            <Skeleton className="h-4 w-48" />
-                          </div>
-                          <Skeleton className="h-6 w-16 rounded-full" />
-                        </div>
-                        <div className="flex space-x-2">
-                          <Skeleton className="h-8 w-20" />
-                          <Skeleton className="h-8 w-20" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="space-y-6">
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-96 w-full" />
+              </div>
             </motion.div>
           </main>
         </div>
@@ -179,9 +150,9 @@ export default function ApprovalsPage() {
             animate={{ opacity: 1 }}
           >
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Persetujuan Reservasi
+              Reservations Management
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Kelola permintaan reservasi</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">View, filter, and manage all room reservations</p>
           </motion.div>
           <div className="flex items-center space-x-4">
             <motion.span
@@ -189,50 +160,17 @@ export default function ApprovalsPage() {
               animate={{ opacity: 1 }}
               className="text-gray-600 dark:text-gray-300 hidden md:block"
             >
-              Selamat datang, {profile?.full_name}
+              Welcome, {profile?.full_name}
             </motion.span>
             <ThemeToggle />
           </div>
         </div>
       </motion.header>
 
-      <main className={`p-6 transition-all duration-300 ${
+      <main className={`transition-all duration-300 ${
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Persetujuan Reservasi
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            Kelola permintaan reservasi - setujui atau tolak booking yang menunggu approval
-          </p>
-        </motion.div>
-
-        {/* Booking Approvals Component */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Clock className="w-5 h-5 mr-2 text-yellow-600" />
-                Reservasi Menunggu Persetujuan
-              </CardTitle>
-              <CardDescription>
-                Tinjau dan kelola permintaan reservasi yang belum diputuskan
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <BookingApprovals />
-            </CardContent>
-          </Card>
-        </motion.div>
+        <BookingManagement />
       </main>
     </div>
   )
