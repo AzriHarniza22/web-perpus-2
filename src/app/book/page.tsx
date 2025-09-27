@@ -159,12 +159,12 @@ export default function BookRoomPage() {
                   </CardHeader>
 
                   <CardContent className="relative z-10 flex flex-col flex-grow">
-                    <div className="mb-6 flex flex-col" style={{ minHeight: '120px' }}>
-                      <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center flex-shrink-0">
+                    <div className="mb-6 min-h-[100px]">
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                         <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
                         Fasilitas
                       </h4>
-                      <div className="flex flex-wrap gap-2 flex-1 min-h-0">
+                      <div className="flex flex-wrap gap-2">
                         {room.facilities.map((facility, idx) => (
                           <motion.div
                             key={idx}

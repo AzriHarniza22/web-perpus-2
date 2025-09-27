@@ -220,13 +220,7 @@ export default function RoomsPage() {
           transition={{ delay: 0.1 }}
         >
           <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Daftar Ruangan</CardTitle>
-              <CardDescription>
-                Kelola semua ruangan yang tersedia untuk reservasi
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <RoomManagement />
             </CardContent>
           </Card>
