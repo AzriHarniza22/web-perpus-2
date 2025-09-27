@@ -46,8 +46,8 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   letter TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-  -- Ensure no overlapping bookings for the same room
-  CONSTRAINT no_overlap EXCLUDE USING gist (room_id WITH =, tstzrange(start_time, end_time) WITH &&)
+  -- Ensure no overlapping approved bookings for the same room
+  CONSTRAINT no_overlap EXCLUDE USING gist (room_id WITH =, tstzrange(start_time, end_time) WITH &&) WHERE (status = 'approved')
 );
 
 -- Notifications table

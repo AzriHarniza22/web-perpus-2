@@ -23,6 +23,19 @@ const FullscreenLoading: React.FC<{ message?: string; showDots?: boolean }> = ({
     ? {}
     : { backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] };
 
+  const particleVariants = {
+    animate: (i: number) => ({
+      y: [0, -20, 0],
+      x: [0, Math.sin(i) * 10, 0],
+      rotate: [0, 360],
+      transition: {
+        duration: 4 + i * 0.5,
+        repeat: Infinity,
+        delay: i * 0.2
+      }
+    })
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, backgroundPosition: '0% 50%' }}
@@ -33,47 +46,94 @@ const FullscreenLoading: React.FC<{ message?: string; showDots?: boolean }> = ({
         backgroundPosition: { duration: 20, repeat: Infinity, ease: 'linear' },
       }}
       style={{ backgroundSize: '400% 400%' }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 overflow-hidden"
     >
-      <div className="text-center">
-        <div className="relative mb-4">
+      {/* Floating Particles */}
+      <div className="absolute inset-0 opacity-30">
+        <motion.div
+          variants={particleVariants}
+          custom={0}
+          animate="animate"
+          className="absolute top-20 left-10 w-32 h-32 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl"
+        />
+        <motion.div
+          variants={particleVariants}
+          custom={1}
+          animate="animate"
+          className="absolute top-40 right-10 w-24 h-24 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl"
+        />
+        <motion.div
+          variants={particleVariants}
+          custom={2}
+          animate="animate"
+          className="absolute bottom-32 left-1/2 w-28 h-28 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl"
+        />
+        <motion.div
+          variants={particleVariants}
+          custom={3}
+          animate="animate"
+          className="absolute top-1/4 right-1/4 w-20 h-20 bg-indigo-400 rounded-full mix-blend-multiply filter blur-xl"
+        />
+        <motion.div
+          variants={particleVariants}
+          custom={4}
+          animate="animate"
+          className="absolute bottom-1/4 left-1/4 w-16 h-16 bg-cyan-400 rounded-full mix-blend-multiply filter blur-xl"
+        />
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-[200px]">
+        <div className="relative">
+          {/* Enhanced Spinner with Gradient */}
           <motion.div
             animate={reducedMotion ? {} : { rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-            className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full"
-          />
+            className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1"
+          >
+            <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 flex items-center justify-center">
+              <motion.div
+                animate={reducedMotion ? {} : { rotate: -360 }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                className="w-16 h-16 border-4 border-transparent border-t-blue-500 border-r-purple-500 rounded-full"
+              />
+            </div>
+          </motion.div>
+
+          {/* Pulsing Ring */}
           <motion.div
-            animate={reducedMotion ? {} : { rotate: -360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-            className="absolute inset-0 w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full"
+            animate={reducedMotion ? {} : { scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute inset-0 rounded-full border-2 border-blue-400/50"
           />
         </div>
+
         {message && (
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-lg font-medium text-gray-800 dark:text-white mb-2"
+            className="text-lg font-medium text-gray-800 dark:text-white mt-6 text-center"
           >
             {message}
           </motion.p>
         )}
+
         {showDots && (
-          <div className="flex justify-center space-x-1">
+          <div className="flex justify-center space-x-2 mt-4">
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
                 animate={
                   reducedMotion
                     ? {}
-                    : { scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }
+                    : { scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }
                 }
                 transition={{
                   duration: 1.5,
                   repeat: Infinity,
                   delay: i * 0.2,
                 }}
-                className="w-2 h-2 bg-blue-500 rounded-full"
+                className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full shadow-lg"
               />
             ))}
           </div>

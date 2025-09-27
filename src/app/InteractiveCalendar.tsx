@@ -20,7 +20,7 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
   const getBookedTimes = (date: Date) => {
     return bookings.filter(booking => {
       const bookingDate = new Date(booking.start_time)
-      return bookingDate.toDateString() === date.toDateString()
+      return bookingDate.toDateString() === date.toDateString() && booking.status !== 'rejected'
     }).map(booking => ({
       start: new Date(booking.start_time),
       end: new Date(booking.end_time),
@@ -53,8 +53,17 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
     return date.toDateString() === today.toDateString()
   }
 
+  const getDateStatus = (date: Date) => {
+    const bookingsOnDate = bookings.filter(booking =>
+      new Date(booking.start_time).toDateString() === date.toDateString()
+    )
+    if (bookingsOnDate.some(b => b.status === 'approved')) return 'approved'
+    if (bookingsOnDate.some(b => b.status === 'pending')) return 'pending'
+    return null
+  }
+
   const isBooked = (date: Date) => {
-    return bookedDates.includes(date.toDateString())
+    return getDateStatus(date) !== null
   }
 
   const isSameMonth = (date: Date) => {
@@ -132,7 +141,7 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
         {days.map((day, index) => {
           const isCurrentMonth = isSameMonth(day)
           const isTodayDate = isToday(day)
-          const isBookedDate = isBooked(day)
+          const dateStatus = getDateStatus(day)
           const isSelected = selectedDate.toDateString() === day.toDateString()
 
           return (
@@ -146,13 +155,14 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
                 ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-700'}
                 ${isTodayDate ? 'bg-blue-500 text-white font-bold' : ''}
                 ${isSelected && !isTodayDate ? 'bg-purple-500 text-white' : ''}
-                ${isBookedDate && !isTodayDate && !isSelected ? 'bg-red-100 text-red-600' : ''}
-                ${!isTodayDate && !isSelected && !isBookedDate && isCurrentMonth ? 'hover:bg-white/40' : ''}
+                ${dateStatus === 'approved' && !isTodayDate && !isSelected ? 'bg-red-100 text-red-600' : ''}
+                ${dateStatus === 'pending' && !isTodayDate && !isSelected ? 'bg-yellow-100 text-yellow-600' : ''}
+                ${!isTodayDate && !isSelected && !dateStatus && isCurrentMonth ? 'hover:bg-white/40' : ''}
               `}
             >
               {day.getDate()}
-              {isBookedDate && (
-                <div className="absolute top-1 right-1 w-2 h-2 bg-red-400 rounded-full"></div>
+              {dateStatus && (
+                <div className={`absolute top-1 right-1 w-2 h-2 rounded-full ${dateStatus === 'approved' ? 'bg-red-400' : 'bg-yellow-400'}`}></div>
               )}
             </motion.button>
           )
@@ -180,7 +190,7 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
                 transition={{ delay: index * 0.1 }}
                 className={`p-2 rounded-lg text-sm ${
                   booking.status === 'approved'
-                    ? 'bg-green-100 text-green-800 border-l-4 border-green-400'
+                    ? 'bg-red-100 text-red-800 border-l-4 border-red-400'
                     : 'bg-yellow-100 text-yellow-800 border-l-4 border-yellow-400'
                 }`}
               >
@@ -215,7 +225,11 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 bg-red-100 border border-red-400 rounded-full"></div>
-          <span className="text-gray-600">Ada booking</span>
+          <span className="text-gray-600">Disetujui</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 bg-yellow-100 border border-yellow-400 rounded-full"></div>
+          <span className="text-gray-600">Menunggu</span>
         </div>
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 bg-purple-500 rounded-full"></div>

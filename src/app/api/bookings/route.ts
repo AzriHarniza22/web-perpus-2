@@ -46,6 +46,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    // Validate time range
+    const start = new Date(start_time)
+    const end = new Date(end_time)
+    if (start >= end) {
+      return NextResponse.json({ error: 'Invalid time range: start time must be before end time' }, { status: 400 })
+    }
+
+    // Check for conflicting approved bookings
+    const { data: conflicts, error: conflictError } = await supabase
+      .from('bookings')
+      .select('id, status, start_time, end_time')
+      .eq('room_id', room_id)
+      .eq('status', 'approved')
+      .lt('start_time', end_time)
+      .gt('end_time', start_time)
+
+    if (conflictError) {
+      console.error('Conflict check error:', conflictError)
+      return NextResponse.json({ error: 'Failed to check for conflicts' }, { status: 500 })
+    }
+
+    if (conflicts && conflicts.length > 0) {
+      return NextResponse.json({
+        error: 'Time slot is already booked',
+        conflicts: conflicts.map(c => ({
+          id: c.id,
+          status: c.status,
+          start_time: c.start_time,
+          end_time: c.end_time
+        }))
+      }, { status: 409 })
+    }
+
     // Ensure profile exists
     const { data: profile } = await supabase
       .from('profiles')

@@ -109,7 +109,7 @@ export default function BookRoomPage() {
                 whileHover={{ y: -10, scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group relative overflow-hidden">
+                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col h-full">
                   {/* Background Gradient */}
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -143,7 +143,7 @@ export default function BookRoomPage() {
 
                   <CardHeader className="relative z-10">
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                      <div className="flex-1 min-h-[60px]">
                         <CardTitle className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                           {room.name}
                         </CardTitle>
@@ -158,13 +158,13 @@ export default function BookRoomPage() {
                     </div>
                   </CardHeader>
 
-                  <CardContent className="relative z-10">
-                    <div className="mb-6">
-                      <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                  <CardContent className="relative z-10 flex flex-col flex-grow">
+                    <div className="mb-6 flex flex-col" style={{ minHeight: '120px' }}>
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center flex-shrink-0">
                         <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
                         Fasilitas
                       </h4>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 flex-1 min-h-0">
                         {room.facilities.map((facility, idx) => (
                           <motion.div
                             key={idx}
@@ -183,6 +183,7 @@ export default function BookRoomPage() {
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      className="mt-auto"
                     >
                       <Button
                         onClick={() => router.push(`/book/${room.id}`)}

@@ -74,6 +74,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
 
   // Local state for immediate UI updates
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const [pendingOverlapWarning, setPendingOverlapWarning] = useState(false)
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
@@ -111,8 +112,9 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
     const startDateTime = dayjs(`${selectedDateStr} ${startTimeStr}`).toDate()
     const endDateTime = dayjs(`${selectedDateStr} ${endTimeStr}`).toDate()
 
-    // Check for conflicts
-    const conflict = existingBookings.some(booking => {
+    // Check for approved conflicts
+    const approvedConflict = existingBookings.some(booking => {
+      if (booking.status !== 'approved') return false
       const bookingStart = new Date(booking.start_time)
       const bookingEnd = new Date(booking.end_time)
       return (
@@ -122,10 +124,24 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
       )
     })
 
-    if (conflict) {
-      form.setError('root', { message: 'This time slot is already booked' })
+    if (approvedConflict) {
+      form.setError('root', { message: 'This time slot is already approved' })
       return
     }
+
+    // Check for pending overlaps
+    const pendingOverlap = existingBookings.some(booking => {
+      if (booking.status !== 'pending') return false
+      const bookingStart = new Date(booking.start_time)
+      const bookingEnd = new Date(booking.end_time)
+      return (
+        (startDateTime >= bookingStart && startDateTime < bookingEnd) ||
+        (endDateTime > bookingStart && endDateTime <= bookingEnd) ||
+        (startDateTime <= bookingStart && endDateTime >= bookingEnd)
+      )
+    })
+
+    setPendingOverlapWarning(pendingOverlap)
 
     const file = data.proposalFile;
     let filePath: string | undefined = undefined;
@@ -168,11 +184,12 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
     return existingBookings
       .filter(booking => {
         const bookingDate = new Date(booking.start_time)
-        return bookingDate.toDateString() === date.toDateString()
+        return bookingDate.toDateString() === date.toDateString() && booking.status !== 'rejected'
       })
       .map(booking => ({
         start: new Date(booking.start_time),
         end: new Date(booking.end_time),
+        status: booking.status,
       }))
   }
 
@@ -254,10 +271,18 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="flex items-center gap-2 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-md"
+                        className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md ${
+                          time.status === 'approved'
+                            ? 'text-red-600 bg-red-50 dark:bg-red-900/20'
+                            : 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
+                        }`}
                       >
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                        {format(time.start, 'HH:mm')} - {format(time.end, 'HH:mm')} (Sudah dipesan)
+                        <div className={`w-2 h-2 rounded-full ${
+                          time.status === 'approved' ? 'bg-red-500' : 'bg-yellow-500'
+                        }`}></div>
+                        {format(time.start, 'HH:mm')} - {format(time.end, 'HH:mm')} ({
+                          time.status === 'approved' ? 'Sudah disetujui' : 'Menunggu persetujuan'
+                        })
                       </motion.div>
                     ))}
                     {getBookedTimes(selectedDate).length === 0 && (
@@ -418,6 +443,14 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
               {form.formState.errors.root && (
                 <Alert variant="destructive">
                   <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
+                </Alert>
+              )}
+
+              {pendingOverlapWarning && (
+                <Alert>
+                  <AlertDescription>
+                    ⚠️ This time slot overlaps with a pending reservation. Your booking will still be submitted but may be rejected if the other reservation is approved first.
+                  </AlertDescription>
                 </Alert>
               )}
 
