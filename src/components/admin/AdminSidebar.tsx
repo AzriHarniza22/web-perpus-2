@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { BarChart3, Building, CheckCircle, Home, Shield, ChevronLeft, ChevronRight, FileText, MapPin } from 'lucide-react'
+import { BarChart3, Building, CheckCircle, Home, Shield, ChevronLeft, ChevronRight, FileText } from 'lucide-react'
 
 interface AdminSidebarProps {
   className?: string
@@ -39,18 +39,6 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
       label: 'Ruangan',
       icon: Building,
       active: pathname === '/admin/rooms'
-    },
-    {
-      href: '/admin/tours',
-      label: 'Tour Management',
-      icon: MapPin,
-      active: pathname === '/admin/tours'
-    },
-    {
-      href: '/admin/tour-approvals',
-      label: 'Tour Approvals',
-      icon: CheckCircle,
-      active: pathname === '/admin/tour-approvals'
     },
     {
       href: '/admin/approvals',
