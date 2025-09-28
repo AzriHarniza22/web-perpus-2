@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   full_name TEXT,
   institution TEXT,
   phone TEXT,
+  profile_photo TEXT,
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
@@ -96,6 +97,10 @@ DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
 CREATE POLICY "Authenticated users can view profiles" ON public.profiles FOR SELECT USING (
   auth.uid() IS NOT NULL
 );
+-- Allow anon to check if email exists
+CREATE POLICY "Anon can check email exists" ON public.profiles FOR SELECT USING (
+  auth.uid() IS NULL
+) WITH CHECK (false);
 
 -- Rooms: Everyone can read active rooms, admins can manage
 DROP POLICY IF EXISTS "Anyone can view active rooms" ON public.rooms;

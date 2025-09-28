@@ -13,7 +13,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Loading } from '@/components/ui/loading'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
-import { User as UserIcon, Mail, Building, Phone, Edit, Save, X, CheckCircle, AlertCircle } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { User as UserIcon, Mail, Building, Phone, Edit, Save, X, CheckCircle, AlertCircle, Camera, Upload } from 'lucide-react'
+import useAuthStore from '@/lib/authStore'
 
 interface Profile {
   id: string
@@ -21,14 +23,13 @@ interface Profile {
   full_name: string | null
   institution: string | null
   phone: string | null
+  profile_photo: string | null
   created_at: string
   updated_at: string
 }
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { user, profile, isLoading, fetchProfile, updateProfile } = useAuthStore()
   const [saving, setSaving] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -37,71 +38,26 @@ export default function ProfilePage() {
     institution: '',
     phone: ''
   })
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null)
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    const checkAuthAndFetchProfile = async () => {
-      // Check if user is authenticated
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      setUser(currentUser)
-
-      if (!currentUser) {
-        router.push('/login')
-        return
-      }
-
-      // Fetch user profile
-      const { data: profileData, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', currentUser.id)
-        .single()
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error)
-      }
-
-      if (profileData) {
-        setProfile(profileData)
-        setFormData({
-          full_name: profileData.full_name || '',
-          institution: profileData.institution || '',
-          phone: profileData.phone || ''
-        })
-      } else {
-        // Create profile if it doesn't exist
-        const newProfile = {
-          id: currentUser.id,
-          email: currentUser.email || '',
-          full_name: currentUser.user_metadata?.full_name || '',
-          institution: currentUser.user_metadata?.institution || '',
-          phone: currentUser.user_metadata?.phone || ''
-        }
-
-        const { data: createdProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert(newProfile)
-          .select()
-          .single()
-
-        if (createError) {
-          console.error('Error creating profile:', createError)
-        } else {
-          setProfile(createdProfile)
-          setFormData({
-            full_name: createdProfile.full_name || '',
-            institution: createdProfile.institution || '',
-            phone: createdProfile.phone || ''
-          })
-        }
-      }
-
-      setLoading(false)
+    if (!isLoading && !user) {
+      router.push('/login')
+      return
     }
 
-    checkAuthAndFetchProfile()
-  }, [router])
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        institution: profile.institution || '',
+        phone: profile.phone || ''
+      })
+      setProfilePhotoPreview(profile.profile_photo)
+    }
+  }, [user, profile, isLoading, router])
 
   const handleSave = async () => {
     if (!user) return
@@ -110,25 +66,50 @@ export default function ProfilePage() {
     setMessage(null)
 
     try {
+      let profilePhotoUrl = profile?.profile_photo || null
+
+      // Upload new profile photo if selected
+      if (profilePhoto) {
+        const fileExt = profilePhoto.name.split('.').pop()
+        const fileName = `${user.id}_${Date.now()}.${fileExt}`
+        const filePath = `profile-photos/${fileName}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, profilePhoto)
+
+        if (uploadError) throw uploadError
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath)
+
+        profilePhotoUrl = publicUrl
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
           full_name: formData.full_name,
           institution: formData.institution,
           phone: formData.phone,
+          profile_photo: profilePhotoUrl,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id)
 
       if (error) throw error
 
-      setProfile(prev => prev ? {
-        ...prev,
+      updateProfile({
         full_name: formData.full_name,
         institution: formData.institution,
         phone: formData.phone,
+        profile_photo: profilePhotoUrl,
         updated_at: new Date().toISOString()
-      } : null)
+      })
+
+      setProfilePhotoPreview(profilePhotoUrl)
+      setProfilePhoto(null)
 
       setMessage({ type: 'success', text: 'Profil berhasil diperbarui!' })
       setIsEditing(false)
@@ -151,11 +132,25 @@ export default function ProfilePage() {
         phone: profile.phone || ''
       })
     }
+    setProfilePhoto(null)
+    setProfilePhotoPreview(profile?.profile_photo || null)
     setIsEditing(false)
     setMessage(null)
   }
 
-  if (loading) {
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setProfilePhoto(file)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setProfilePhotoPreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  if (isLoading) {
     return (
       <Loading variant="skeleton">
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
@@ -236,6 +231,34 @@ export default function ProfilePage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Profile Photo */}
+                <div className="flex flex-col items-center space-y-4">
+                  <Avatar className="w-24 h-24">
+                    <AvatarImage src={profilePhotoPreview || undefined} alt="Profile" />
+                    <AvatarFallback className="text-2xl">
+                      {profile?.full_name ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : user?.email?.[0].toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  {isEditing && (
+                    <div className="relative">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        className="hidden"
+                        id="profile-photo"
+                      />
+                      <Label
+                        htmlFor="profile-photo"
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                      >
+                        <Camera className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm text-blue-700 dark:text-blue-300">Ubah Foto Profil</span>
+                      </Label>
+                    </div>
+                  )}
+                </div>
+
                 {/* Message */}
                 {message && (
                   <motion.div

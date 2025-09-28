@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useBookings, useUpdateBookingStatus } from '@/lib/api'
+import { useTourBookings, useUpdateTourBookingStatus } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -11,15 +11,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { CheckCircle, XCircle, Clock, FileText, Users, Calendar, MapPin, Eye, File } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-export default function BookingApprovals() {
-  const { data: bookings = [], isLoading } = useBookings()
-  const updateBookingStatusMutation = useUpdateBookingStatus()
-
-  // Filter only pending bookings
-  const pendingBookings = bookings.filter(booking => booking.status === 'pending')
+export default function TourBookingApprovals() {
+  const { data: tourBookings = [], isLoading } = useTourBookings({ status: ['pending'] })
+  const updateTourBookingStatusMutation = useUpdateTourBookingStatus()
 
   const updateBookingStatus = (id: string, status: string) => {
-    updateBookingStatusMutation.mutate({ id, status })
+    updateTourBookingStatusMutation.mutate({ id, status })
   }
 
   const formatDateTime = (dateString: string) => {
@@ -60,7 +57,7 @@ export default function BookingApprovals() {
   return (
     <div className="space-y-6">
       <AnimatePresence>
-        {pendingBookings.map((booking, index) => (
+        {tourBookings.map((booking, index) => (
           <motion.div
             key={booking.id}
             initial={{ opacity: 0, y: 20 }}
@@ -68,21 +65,21 @@ export default function BookingApprovals() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/50 backdrop-blur-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50">
+            <Card className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/50 backdrop-blur-sm hover:shadow-xl hover:shadow-green-500/10 transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50">
               <CardContent className="py-0 px-4">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                   <div className="flex-1 space-y-3">
-                    {/* Header with Room and Status */}
+                    {/* Header with Tour and Status */}
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
-                        <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mr-2">
-                          <MapPin className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                        <div className="w-6 h-6 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mr-2">
+                          <MapPin className="w-3 h-3 text-green-600 dark:text-green-400" />
                         </div>
-                        {booking.rooms?.name}
+                        {booking.tours?.name}
                       </h3>
                       <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-xs">
                         <Clock className="w-3 h-3 mr-1" />
-                        Menunggu
+                        Pending
                       </Badge>
                     </div>
 
@@ -104,18 +101,30 @@ export default function BookingApprovals() {
                        </div>
                      </div>
 
-                    {/* Date and Time */}
-                    <div className="flex items-center space-x-2">
-                      <div className="w-7 h-7 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
-                        <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                    {/* Date and Time & Participants */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-7 h-7 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
+                          <Calendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white text-sm">
+                            {formatDateTime(booking.start_time)}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            Duration: {booking.tours?.duration} minutes
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white text-sm">
-                          {formatDateTime(booking.start_time)}
-                        </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          sampai {formatDateTime(booking.end_time)}
-                        </p>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-7 h-7 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center">
+                          <Users className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-gray-900 dark:text-white text-sm">
+                            {booking.participant_count} participants
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -127,22 +136,22 @@ export default function BookingApprovals() {
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                           <Button variant="outline" size="sm" className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all">
                             <Eye className="w-4 h-4 mr-2 text-blue-600" />
-                            Lihat Detail
+                            View Details
                           </Button>
                         </motion.div>
                       </DialogTrigger>
-                      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader className="space-y-3">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
                               <MapPin className="w-5 h-5 text-white" />
                             </div>
                             <div>
                               <DialogTitle className="text-xl font-bold">
-                                Detail Reservasi
+                                Tour Booking Details
                               </DialogTitle>
                               <DialogDescription className="text-sm">
-                                {booking.rooms?.name} - Informasi lengkap permintaan reservasi
+                                {booking.tours?.name} - Complete booking information
                               </DialogDescription>
                             </div>
                           </div>
@@ -152,14 +161,15 @@ export default function BookingApprovals() {
                             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
                               <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
                                 <MapPin className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
-                                Ruangan
+                                Tour
                               </h4>
-                              <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{booking.rooms?.name}</p>
+                              <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{booking.tours?.name}</p>
+                              <p className="text-gray-600 dark:text-gray-400 text-xs mt-1">Duration: {booking.tours?.duration} minutes</p>
                             </div>
                             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
                               <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
                                 <Users className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
-                                Pemohon
+                                Requester
                               </h4>
                               <div className="flex items-center space-x-3">
                                 <Avatar className="w-8 h-8">
@@ -177,44 +187,24 @@ export default function BookingApprovals() {
                             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
                               <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
                                 <Calendar className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
-                                Waktu Mulai
+                                Start Time
                               </h4>
                               <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{formatDateTime(booking.start_time)}</p>
                             </div>
                             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
                               <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
-                                <Clock className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
-                                Waktu Selesai
+                                <Users className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
+                                Participants
                               </h4>
-                              <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{formatDateTime(booking.end_time)}</p>
+                              <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{booking.participant_count} participants</p>
                             </div>
                           </div>
-
-                          {booking.event_description && (
-                            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                              <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
-                                <FileText className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
-                                Deskripsi Kegiatan
-                              </h4>
-                              <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{booking.event_description}</p>
-                            </div>
-                          )}
-
-                          {booking.notes && (
-                            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                              <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
-                                <FileText className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
-                                Catatan Tambahan
-                              </h4>
-                              <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{booking.notes}</p>
-                            </div>
-                          )}
 
                           {booking.proposal_file && (
                             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                               <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
                                 <File className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
-                                File Proposal
+                                Proposal File
                               </h4>
                               <Button
                                 variant="outline"
@@ -227,7 +217,7 @@ export default function BookingApprovals() {
                                   rel="noopener noreferrer"
                                 >
                                   <File className="w-4 h-4 mr-2" />
-                                  Buka File Proposal
+                                  View Proposal
                                 </a>
                               </Button>
                             </div>
@@ -250,7 +240,7 @@ export default function BookingApprovals() {
                             rel="noopener noreferrer"
                           >
                             <File className="w-4 h-4 mr-2 text-purple-600" />
-                            Lihat Proposal
+                            View Proposal
                           </a>
                         </Button>
                       </motion.div>
@@ -262,10 +252,10 @@ export default function BookingApprovals() {
                           onClick={() => updateBookingStatus(booking.id, 'approved')}
                           size="sm"
                           className="bg-green-600 hover:bg-green-700 text-white font-medium shadow-md hover:shadow-green-500/25 transition-all"
-                          disabled={updateBookingStatusMutation.isPending}
+                          disabled={updateTourBookingStatusMutation.isPending}
                         >
                           <CheckCircle className="w-3 h-3 mr-1" />
-                          Setujui
+                          Approve
                         </Button>
                       </motion.div>
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
@@ -273,10 +263,10 @@ export default function BookingApprovals() {
                           onClick={() => updateBookingStatus(booking.id, 'rejected')}
                           variant="destructive"
                           size="sm"
-                          disabled={updateBookingStatusMutation.isPending}
+                          disabled={updateTourBookingStatusMutation.isPending}
                         >
                           <XCircle className="w-3 h-3 mr-1" />
-                          Tolak
+                          Reject
                         </Button>
                       </motion.div>
                     </div>
@@ -288,7 +278,7 @@ export default function BookingApprovals() {
         ))}
       </AnimatePresence>
 
-      {pendingBookings.length === 0 && (
+      {tourBookings.length === 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -298,10 +288,10 @@ export default function BookingApprovals() {
             <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            Semua Reservasi Sudah Diputuskan
+            All Tour Bookings Reviewed
           </h3>
           <p className="text-gray-600 dark:text-gray-400">
-            Tidak ada permintaan reservasi yang menunggu persetujuan saat ini.
+            No pending tour booking requests at this time.
           </p>
         </motion.div>
       )}

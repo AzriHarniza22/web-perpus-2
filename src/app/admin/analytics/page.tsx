@@ -8,10 +8,10 @@ import useAuthStore from '@/lib/authStore'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useBookingStats, useUserActivityTrends, usePeakHoursData, useCancellationTrends, useRoomUtilization, useRooms, useBookings, useNotificationStats } from '@/lib/api'
+import { useBookingStats, useUserActivityTrends, usePeakHoursData, useCancellationTrends, useRoomUtilization, useRooms, useBookings, useNotificationStats, useTours, useTourBookings } from '@/lib/api'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
-import { TrendingUp, Users, BarChart3, LogOut, Filter, CalendarIcon, X, Download, FileText, FileImage, FileSpreadsheet, Clock } from 'lucide-react'
+import { TrendingUp, Users, BarChart3, LogOut, Filter, CalendarIcon, X, Download, FileText, FileImage, FileSpreadsheet, Clock, MapPin } from 'lucide-react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import { Calendar } from '@/components/ui/calendar'
 import { DateRange } from 'react-day-picker'
@@ -267,6 +267,8 @@ function AnalyticsContent() {
 
   const { data: rooms } = useRooms()
   const { data: bookings } = useBookings()
+  const { data: tours } = useTours()
+  const { data: tourBookings } = useTourBookings()
   const { data: notificationStats } = useNotificationStats()
 
   const dateRangeParam = dateRange?.from && dateRange?.to ? {
@@ -431,6 +433,12 @@ function AnalyticsContent() {
       ['Dibatalkan', stats.cancelledBookings],
       ['Selesai', stats.completedBookings],
       [''],
+      ['=== TOUR STATISTICS ==='],
+      ['Total Tours', tours?.length || 0],
+      ['Total Tour Bookings', tourBookings?.length || 0],
+      ['Approved Tour Bookings', tourBookings?.filter(tb => tb.status === 'approved').length || 0],
+      ['Pending Tour Bookings', tourBookings?.filter(tb => tb.status === 'pending').length || 0],
+      [''],
       ['=== USER ANALYTICS ==='],
       ['Total Users', enhancedAnalytics.userAnalytics.totalUsers],
       ['Active Users', enhancedAnalytics.userAnalytics.activeUsers],
@@ -494,6 +502,20 @@ function AnalyticsContent() {
         booking.status,
         booking.event_description || '',
         booking.notes || ''
+      ]),
+      [''],
+      ['=== TOUR BOOKING LIST ==='],
+      ['ID', 'User', 'Email', 'Institution', 'Tour', 'Start Time', 'End Time', 'Status', 'Participant Count'],
+      ...(tourBookings || []).map(booking => [
+        booking.id,
+        booking.profiles?.full_name || 'Unknown',
+        booking.profiles?.email || 'Unknown',
+        booking.profiles?.institution || 'Unknown',
+        booking.tours?.name || 'Unknown',
+        format(new Date(booking.start_time), 'dd/MM/yyyy HH:mm'),
+        format(new Date(booking.end_time), 'dd/MM/yyyy HH:mm'),
+        booking.status,
+        booking.participant_count
       ]),
       [''],
       ['=== NOTIFICATION STATISTICS ==='],
@@ -572,7 +594,9 @@ function AnalyticsContent() {
       `Total Pengguna Aktif: ${enhancedAnalytics.userAnalytics.totalUsers}`,
       `Rata-rata Durasi Booking: ${enhancedAnalytics.timeAnalytics.averageDuration.toFixed(1)} jam`,
       `Institusi Terdaftar: ${enhancedAnalytics.institutionAnalytics.length}`,
-      `Fasilitas Tersedia: ${enhancedAnalytics.facilitiesAnalytics.length}`
+      `Fasilitas Tersedia: ${enhancedAnalytics.facilitiesAnalytics.length}`,
+      `Total Tours: ${tours?.length || 0}`,
+      `Total Tour Bookings: ${tourBookings?.length || 0}`
     ]
 
     summaryItems.forEach(item => {
@@ -706,6 +730,8 @@ function AnalyticsContent() {
       ['Total Pengguna Aktif', enhancedAnalytics.userAnalytics.totalUsers],
       ['Rata-rata Durasi Booking', `${enhancedAnalytics.timeAnalytics.averageDuration.toFixed(1)} jam`],
       ['Institusi Terdaftar', enhancedAnalytics.institutionAnalytics.length],
+      ['Total Tours', tours?.length || 0],
+      ['Total Tour Bookings', tourBookings?.length || 0],
       [''],
       ['=== STATISTIK DETAIL ==='],
       ['Status', 'Jumlah', 'Persentase'],
@@ -851,6 +877,27 @@ function AnalyticsContent() {
 
     const bookingSheet = XLSX.utils.aoa_to_sheet(bookingData)
     XLSX.utils.book_append_sheet(workbook, bookingSheet, 'Data Booking')
+
+    // Tour Bookings Sheet
+    const tourBookingData = [
+      ['DATA TOUR BOOKING'],
+      [''],
+      ['ID', 'Pengguna', 'Email', 'Institusi', 'Tour', 'Waktu Mulai', 'Waktu Selesai', 'Status', 'Jumlah Peserta'],
+      ...(tourBookings || []).map(booking => [
+        booking.id,
+        booking.profiles?.full_name || 'Unknown',
+        booking.profiles?.email || 'Unknown',
+        booking.profiles?.institution || 'Unknown',
+        booking.tours?.name || 'Unknown',
+        format(new Date(booking.start_time), 'dd/MM/yyyy HH:mm'),
+        format(new Date(booking.end_time), 'dd/MM/yyyy HH:mm'),
+        booking.status,
+        booking.participant_count
+      ])
+    ]
+
+    const tourBookingSheet = XLSX.utils.aoa_to_sheet(tourBookingData)
+    XLSX.utils.book_append_sheet(workbook, tourBookingSheet, 'Data Tour Booking')
 
     XLSX.writeFile(workbook, `laporan-analytics-lengkap-${format(new Date(), 'yyyy-MM-dd')}.xlsx`)
   }
@@ -1128,7 +1175,9 @@ function AnalyticsContent() {
           { label: 'Total Reservasi', value: stats.totalBookings, icon: FileText, color: 'from-blue-500 to-cyan-400' },
           { label: 'Disetujui', value: stats.approvedBookings, icon: Users, color: 'from-green-500 to-emerald-400' },
           { label: 'Menunggu', value: stats.pendingBookings, icon: TrendingUp, color: 'from-yellow-500 to-orange-400' },
-          { label: 'Ditolak', value: stats.rejectedBookings, icon: BarChart3, color: 'from-red-500 to-pink-400' }
+          { label: 'Ditolak', value: stats.rejectedBookings, icon: BarChart3, color: 'from-red-500 to-pink-400' },
+          { label: 'Total Tours', value: tours?.length || 0, icon: MapPin, color: 'from-green-500 to-teal-400' },
+          { label: 'Tour Bookings', value: tourBookings?.length || 0, icon: Users, color: 'from-purple-500 to-indigo-400' }
         ].map((stat, index) => (
           <motion.div
             key={stat.label}

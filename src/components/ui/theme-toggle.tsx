@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
-const MotionSun = motion(Sun)
-const MotionMoon = motion(Moon)
+const MotionSun = motion.create(Sun)
+const MotionMoon = motion.create(Moon)
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()

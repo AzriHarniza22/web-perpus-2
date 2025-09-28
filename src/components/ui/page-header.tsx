@@ -4,7 +4,9 @@ import { motion } from 'framer-motion'
 import { User } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogOut } from 'lucide-react'
+import useAuthStore from '@/lib/authStore'
 
 interface PageHeaderProps {
   title: string
@@ -21,6 +23,8 @@ export function PageHeader({
   onSignOut,
   sidebarCollapsed = false
 }: PageHeaderProps) {
+  const { profile } = useAuthStore()
+
   return (
     <motion.header
       initial={{ y: -100 }}
@@ -46,13 +50,21 @@ export function PageHeader({
         </motion.div>
         <div className="flex items-center space-x-4">
           {user && (
-            <motion.span
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-gray-600 dark:text-gray-300 hidden md:block"
+              className="flex items-center space-x-3 hidden md:flex"
             >
-              Selamat datang, {user.email?.split('@')[0]}
-            </motion.span>
+              <Avatar className="w-8 h-8">
+                <AvatarImage src={profile?.profile_photo || undefined} alt="Profile" />
+                <AvatarFallback className="text-sm">
+                  {user.email?.[0].toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-gray-600 dark:text-gray-300">
+                Selamat datang, {user.email?.split('@')[0]}
+              </span>
+            </motion.div>
           )}
           <ThemeToggle />
           {onSignOut && (

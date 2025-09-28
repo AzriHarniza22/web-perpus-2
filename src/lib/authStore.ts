@@ -2,23 +2,57 @@ import { create } from 'zustand'
 import { supabase } from './supabase'
 import type { User } from '@supabase/supabase-js'
 
+interface Profile {
+  id: string
+  email: string
+  full_name: string | null
+  institution: string | null
+  phone: string | null
+  profile_photo: string | null
+  created_at: string
+  updated_at: string
+}
+
 interface AuthState {
   user: User | null
+  profile: Profile | null
   isLoading: boolean
   fetchUser: () => Promise<void>
+  fetchProfile: () => Promise<void>
   register: (email: string, password: string) => Promise<void>
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
+  updateProfile: (updates: Partial<Profile>) => void
 }
 
-const useAuthStore = create<AuthState>((set) => ({
+const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
+  profile: null,
   isLoading: true,
   fetchUser: async () => {
     set({ isLoading: true })
     const { data: { user } } = await supabase.auth.getUser()
     console.log(`AuthStore: fetchUser, user=${user ? user.id : 'null'}`)
     set({ user, isLoading: false })
+    if (user) {
+      await get().fetchProfile()
+    }
+  },
+  fetchProfile: async () => {
+    const { user } = get()
+    if (!user) return
+
+    const { data: profileData, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error fetching profile:', error)
+    } else if (profileData) {
+      set({ profile: profileData })
+    }
   },
   register: async (email: string, password: string) => {
     set({ isLoading: true })
@@ -34,16 +68,29 @@ const useAuthStore = create<AuthState>((set) => ({
   },
   login: async (email: string, password: string) => {
     set({ isLoading: true })
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw error
-    console.log(`AuthStore: login success, user=${data.user ? data.user.id : 'null'}`)
-    set({ user: data.user, isLoading: false })
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) throw error
+      console.log(`AuthStore: login success, user=${data.user ? data.user.id : 'null'}`)
+      set({ user: data.user, isLoading: false })
+      if (data.user) {
+        await get().fetchProfile()
+      }
+    } catch (error) {
+      set({ isLoading: false })
+      throw error
+    }
   },
   logout: async () => {
     console.log('AuthStore: logout called')
     await supabase.auth.signOut()
     console.log('AuthStore: signOut completed, setting user to null')
-    set({ user: null, isLoading: false })
+    set({ user: null, profile: null, isLoading: false })
+  },
+  updateProfile: (updates: Partial<Profile>) => {
+    set((state) => ({
+      profile: state.profile ? { ...state.profile, ...updates } : null
+    }))
   }
 }))
 
