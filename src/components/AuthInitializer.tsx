@@ -1,14 +1,10 @@
 'use client'
 
-import { useEffect } from 'react'
-import useAuthStore from '@/lib/authStore'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function AuthInitializer() {
-  const { fetchUser } = useAuthStore()
-
-  useEffect(() => {
-    fetchUser()
-  }, [fetchUser])
+  // useAuth hook will automatically call fetchUser on mount
+  useAuth()
 
   return null
 }

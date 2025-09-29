@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
-import { User } from '@supabase/supabase-js'
-import useAuthStore from '@/lib/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -30,8 +29,7 @@ interface Room {
 }
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { user, isLoading, logout, isAuthenticated } = useAuth()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [stats, setStats] = useState({
     totalBookings: 0,
@@ -41,13 +39,12 @@ export default function DashboardPage() {
   })
   const [upcomingBookingsList, setUpcomingBookingsList] = useState<any[]>([])
   const router = useRouter()
-  const { logout } = useAuthStore()
   const { data: bookings = [] } = useBookings()
   const { data: rooms = [] } = useRooms()
 
   // Calculate real stats from user's bookings
   useEffect(() => {
-    if (user && bookings.length > 0) {
+    if (isAuthenticated && user && bookings.length > 0) {
       const userBookings = bookings.filter(booking => booking.user_id === user.id)
       const now = new Date()
 
@@ -76,21 +73,14 @@ export default function DashboardPage() {
       })
       setUpcomingBookingsList(upcomingBookingsFiltered)
     }
-  }, [user, bookings])
+  }, [isAuthenticated, user, bookings])
 
+  // Redirect if not authenticated
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      setUser(currentUser)
-      setLoading(false)
-
-      if (!currentUser) {
-        router.push('/login')
-      }
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login')
     }
-
-    checkAuth()
-  }, [router])
+  }, [isLoading, isAuthenticated, router])
 
   const handleSignOut = async () => {
     console.log('Dashboard: handleSignOut called')
@@ -99,7 +89,7 @@ export default function DashboardPage() {
     router.push('/')
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Loading variant="skeleton">
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
@@ -132,7 +122,7 @@ export default function DashboardPage() {
     )
   }
 
-  if (!user) {
+  if (!isAuthenticated || !user) {
     return null // Will redirect
   }
 

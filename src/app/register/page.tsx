@@ -75,7 +75,7 @@ export default function RegisterPage() {
 
       if (result.success) {
         console.log('✅ Registration successful')
-        router.push('/?message=Registration successful')
+        router.push(`/confirm?email=${encodeURIComponent(formData.email)}`)
       } else {
         const error = handleError(new Error(result.details || 'Registration failed'))
         setError(error.message)

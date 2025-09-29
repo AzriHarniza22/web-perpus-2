@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
-import useAuthStore from '@/lib/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -31,12 +31,8 @@ export default function LoginPage() {
   const [validationErrors, setValidationErrors] = useState<{field: string, message: string}[]>([])
   const [isEmailNotConfirmed, setIsEmailNotConfirmed] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
-  const { login, isLoading, user, fetchUser } = useAuthStore()
+  const { login, isLoading, user } = useAuth()
   const router = useRouter()
-
-  useEffect(() => {
-    fetchUser()
-  }, [fetchUser])
 
   useEffect(() => {
     console.log('Login page: user state changed', { hasUser: !!user, userId: user?.id })
@@ -115,6 +111,10 @@ export default function LoginPage() {
         setIsEmailNotConfirmed(true)
         setError('Email belum dikonfirmasi. Silakan periksa email Anda atau kirim ulang email konfirmasi.')
         console.warn('Login failed: email not confirmed', { email: formData.email })
+        // Auto redirect to confirm page after 3 seconds
+        setTimeout(() => {
+          router.push(`/confirm?email=${encodeURIComponent(formData.email)}`)
+        }, 3000)
       } else {
         setError(errorMessage)
         console.error('❌ Login failed', { error: errorMessage, email: formData.email })

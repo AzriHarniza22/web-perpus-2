@@ -11,6 +11,7 @@ interface Profile {
   profile_photo: string | null
   created_at: string
   updated_at: string
+  role?: string
 }
 
 interface AuthState {
