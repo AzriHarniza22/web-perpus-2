@@ -56,6 +56,8 @@ const useAuthStore = create<AuthState>((set, get) => ({
   },
   register: async (email: string, password: string) => {
     set({ isLoading: true })
+    console.log('🔐 AuthStore: Starting registration for:', email)
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -63,7 +65,18 @@ const useAuthStore = create<AuthState>((set, get) => ({
         emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`
       }
     })
-    if (error) throw error
+
+    if (error) {
+      console.error('❌ AuthStore: Registration failed:', error)
+      throw error
+    }
+
+    console.log('✅ AuthStore: Registration successful, user:', {
+      id: data.user?.id,
+      email: data.user?.email,
+      emailConfirmed: data.user?.email_confirmed_at ? 'confirmed' : 'pending'
+    })
+
     set({ user: data.user, isLoading: false })
   },
   login: async (email: string, password: string) => {

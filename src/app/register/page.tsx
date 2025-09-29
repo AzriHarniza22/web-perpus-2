@@ -12,9 +12,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Eye, EyeOff, Mail, Lock, User, Building, Phone, ArrowRight, ArrowLeft, Sparkles, AlertCircle, CheckCircle } from 'lucide-react'
+import { validateRegistrationData, sanitizeRegistrationData } from '@/lib/validation'
+import { handleError } from '@/lib/errors'
+import { RegistrationData } from '@/lib/types'
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegistrationData>({
     email: '',
     password: '',
     fullName: '',
@@ -23,47 +26,65 @@ export default function RegisterPage() {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [validationErrors, setValidationErrors] = useState<{field: string, message: string}[]>([])
   const [isRegistering, setIsRegistering] = useState(false)
-  const { register } = useAuthStore()
   const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }))
+
+    // Clear validation errors when user starts typing
+    if (validationErrors.some(err => err.field === name)) {
+      setValidationErrors(prev => prev.filter(err => err.field !== name))
+    }
   }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setValidationErrors([])
     setIsRegistering(true)
 
     try {
-      await register(formData.email, formData.password)
+      console.log('🔄 Starting registration for:', formData.email)
 
-      // Insert profile since register only does signUp
-      const currentUser = useAuthStore.getState().user
-      if (currentUser) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: currentUser.id,
-            email: formData.email,
-            full_name: formData.fullName,
-            institution: formData.institution,
-            phone: formData.phone,
-          })
+      // 1. Validate form data
+      const validationErrors = validateRegistrationData(formData)
+      if (validationErrors.length > 0) {
+        setValidationErrors(validationErrors)
+        return
+      }
 
-        if (profileError) throw profileError
+      // 2. Sanitize input data
+      const sanitizedData = sanitizeRegistrationData(formData)
 
+      // 3. Submit to API
+      const response = await fetch('/api/register-fixed', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(sanitizedData),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        console.log('✅ Registration successful')
         router.push('/?message=Registration successful')
       } else {
-        // Email confirmation required
-        router.push(`/confirm?email=${encodeURIComponent(formData.email)}`)
+        const error = handleError(new Error(result.details || 'Registration failed'))
+        setError(error.message)
+        // Error already handled above
       }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
+      const appError = handleError(error)
+      setError(appError.message)
+      // Error already handled above
     } finally {
       setIsRegistering(false)
     }

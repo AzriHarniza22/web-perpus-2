@@ -12,13 +12,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft, Sparkles, AlertCircle } from 'lucide-react'
+import { isValidEmail } from '@/lib/validation'
+import { handleError } from '@/lib/errors'
+import { User } from '@/lib/types'
+
+interface LoginFormData {
+  email: string
+  password: string
+}
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [formData, setFormData] = useState<LoginFormData>({
+    email: '',
+    password: '',
+  })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [validationErrors, setValidationErrors] = useState<{field: string, message: string}[]>([])
   const [isEmailNotConfirmed, setIsEmailNotConfirmed] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const { login, isLoading, user, fetchUser } = useAuthStore()
   const router = useRouter()
 
@@ -27,17 +39,21 @@ export default function LoginPage() {
   }, [fetchUser])
 
   useEffect(() => {
-    console.log(`Login page: useEffect user check, user=${user ? user.id : 'null'}`)
+    console.log('Login page: user state changed', { hasUser: !!user, userId: user?.id })
+
     if (user) {
       // Check if email is confirmed
       if (!user.email_confirmed_at) {
-        console.log('Login page: email not confirmed, redirecting to confirm')
+        console.log('Login page: email not confirmed, redirecting to confirm', { email: user.email })
+        setIsRedirecting(true)
         router.push(`/confirm?email=${encodeURIComponent(user.email ?? '')}`)
         return
       }
 
       const checkRoleAndRedirect = async () => {
-        console.log('Login page: checking role for redirect')
+        console.log('Login page: checking user role for redirect', { userId: user.id })
+        setIsRedirecting(true)
+
         try {
           const { data: profile } = await supabase
             .from('profiles')
@@ -46,44 +62,70 @@ export default function LoginPage() {
             .single()
 
           // Redirect based on role
-          if (profile?.role === 'admin') {
-            console.log('Login page: redirecting to /admin')
-            router.push('/admin')
-          } else {
-            console.log('Login page: redirecting to /dashboard')
-            router.push('/dashboard')
-          }
+          const redirectPath = profile?.role === 'admin' ? '/admin' : '/dashboard'
+          console.log('Login page: redirecting based on role', { role: profile?.role, redirectPath })
+
+          router.push(redirectPath)
         } catch (error) {
-          console.error('Login page: error checking role:', error)
+          console.error('Login page: error checking role', { error, userId: user.id })
+          // Fallback redirect
+          router.push('/dashboard')
         }
       }
 
       checkRoleAndRedirect()
     } else {
       console.log('Login page: no user, staying on login')
+      setIsRedirecting(false)
     }
-  }, [user, router, email])
+  }, [user, router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setValidationErrors([])
+    setIsEmailNotConfirmed(false)
 
     try {
-      await login(email, password)
+      console.log('🔐 Login attempt', { email: formData.email })
+
+      // Basic validation
+      if (!formData.email || !formData.password) {
+        const errors = []
+        if (!formData.email) errors.push({ field: 'email', message: 'Email is required' })
+        if (!formData.password) errors.push({ field: 'password', message: 'Password is required' })
+        setValidationErrors(errors)
+        return
+      }
+
+      if (!isValidEmail(formData.email)) {
+        setValidationErrors([{ field: 'email', message: 'Please enter a valid email address' }])
+        return
+      }
+
+      await login(formData.email, formData.password)
+
+      console.log('✅ Login successful', { email: formData.email })
+
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred'
-      if (errorMessage.includes('Email not confirmed')) {
+      const appError = handleError(error)
+      const errorMessage = appError.message
+
+      if (errorMessage.includes('Email not confirmed') || errorMessage.includes('email_not_confirmed')) {
         setIsEmailNotConfirmed(true)
         setError('Email belum dikonfirmasi. Silakan periksa email Anda atau kirim ulang email konfirmasi.')
+        console.warn('Login failed: email not confirmed', { email: formData.email })
       } else {
-        setIsEmailNotConfirmed(false)
         setError(errorMessage)
+        console.error('❌ Login failed', { error: errorMessage, email: formData.email })
       }
     }
   }
 
   const handleGoogleLogin = async () => {
     try {
+      console.log('🔐 Google login attempt')
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -92,8 +134,12 @@ export default function LoginPage() {
       })
 
       if (error) throw error
+
+      console.log('✅ Google login initiated successfully')
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
+      const appError = handleError(error)
+      setError(appError.message)
+      console.error('❌ Google login failed', { error: appError.message })
     }
   }
 
@@ -166,11 +212,11 @@ export default function LoginPage() {
                     id="email"
                     type="email"
                     placeholder="nama@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                     className="pl-10 h-11"
                     required
-                    aria-describedby={error ? "email-error" : undefined}
+                    aria-describedby={validationErrors.some(err => err.field === 'email') ? "email-error" : undefined}
                   />
                 </div>
               </div>
@@ -185,11 +231,11 @@ export default function LoginPage() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Masukkan password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={formData.password}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                     className="pl-10 pr-10 h-11"
                     required
-                    aria-describedby={error ? "password-error" : undefined}
+                    aria-describedby={validationErrors.some(err => err.field === 'password') ? "password-error" : undefined}
                   />
                   <button
                     type="button"
@@ -203,6 +249,21 @@ export default function LoginPage() {
               </div>
 
               <AnimatePresence>
+                {validationErrors.map((validationError) => (
+                  <motion.div
+                    key={validationError.field}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg"
+                    role="alert"
+                    aria-live="polite"
+                  >
+                    <AlertCircle className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300">{validationError.message}</p>
+                  </motion.div>
+                ))}
+
                 {error && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -228,7 +289,7 @@ export default function LoginPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => router.push(`/confirm?email=${encodeURIComponent(email)}`)}
+                    onClick={() => router.push(`/confirm?email=${encodeURIComponent(formData.email)}`)}
                     className="text-sm w-full"
                   >
                     Kirim Ulang Email Konfirmasi
@@ -243,14 +304,26 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   className="w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium"
-                  disabled={isLoading}
+                  disabled={isLoading || isRedirecting}
                 >
                   {isLoading ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                    />
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                      />
+                      Memproses...
+                    </>
+                  ) : isRedirecting ? (
+                    <>
+                      <motion.div
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 0.6, repeat: Infinity }}
+                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                      />
+                      Mengalihkan...
+                    </>
                   ) : (
                     <>
                       Masuk

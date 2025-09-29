@@ -37,6 +37,15 @@ export async function middleware(request: NextRequest) {
 
   console.log(`Middleware: Path=${request.nextUrl.pathname}, User=${user ? user.id : 'null'}`)
 
+  // Additional debugging for auth callback
+  if (request.nextUrl.pathname.startsWith('/auth/callback')) {
+    console.log('Middleware: Auth callback request details:', {
+      hasCode: !!new URL(request.url).searchParams.get('code'),
+      cookies: request.cookies.getAll().map(c => ({ name: c.name, hasValue: !!c.value })),
+      userAgent: request.headers.get('user-agent')
+    })
+  }
+
   if (
     !user &&
     request.nextUrl.pathname !== '/' &&
