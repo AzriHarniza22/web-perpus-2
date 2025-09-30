@@ -225,24 +225,17 @@ export default function UnifiedBookingManagement() {
         const isTour = getBookingTypeLabel(booking) === 'Tour'
 
         if (isTour) {
-          // For tour bookings, show tour information
-          const tourInfo = (booking as any).tours
+          // For tour bookings, show tour information from event description
+          const tourName = booking.event_description?.replace('Tour: ', '').split(' - ')[0] || 'Tour Booking'
           return (
             <div>
               <div className="font-medium flex items-center">
                 <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
-                {tourInfo?.name || 'Tour Booking'}
+                {tourName}
               </div>
-              {tourInfo?.guide_name && (
-                <div className="text-sm text-muted-foreground">
-                  Guide: {tourInfo.guide_name}
-                </div>
-              )}
-              {tourInfo?.meeting_point && (
-                <div className="text-sm text-muted-foreground">
-                  Meeting Point: {tourInfo.meeting_point}
-                </div>
-              )}
+              <div className="text-sm text-muted-foreground">
+                Tour Booking
+              </div>
             </div>
           )
         } else {

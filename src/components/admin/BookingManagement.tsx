@@ -166,21 +166,14 @@ export default function BookingManagement() {
       header: bookingType === 'tour' ? 'Tour' : 'Room',
       render: (booking: BookingWithRelations) => {
         if (bookingType === 'tour') {
-          // For tour bookings, show tour information
-          const tourInfo = (booking as any).tours
+          // For tour bookings, show tour information from event description
+          const tourName = booking.event_description?.replace('Tour: ', '').split(' - ')[0] || 'Tour Booking'
           return (
             <div>
-              <div className="font-medium">{tourInfo?.name || 'Unknown Tour'}</div>
-              {tourInfo?.guide_name && (
-                <div className="text-sm text-muted-foreground">
-                  Guide: {tourInfo.guide_name}
-                </div>
-              )}
-              {tourInfo?.meeting_point && (
-                <div className="text-sm text-muted-foreground">
-                  Meeting Point: {tourInfo.meeting_point}
-                </div>
-              )}
+              <div className="font-medium">{tourName}</div>
+              <div className="text-sm text-muted-foreground">
+                Tour Booking
+              </div>
             </div>
           )
         } else {

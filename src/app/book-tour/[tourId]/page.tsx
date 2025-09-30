@@ -35,7 +35,7 @@ interface TourSchedule {
   availableSlots: number
 }
 
-interface Booking extends BookingType {}
+// Using BookingType directly instead of empty interface
 
 // Library Tour data - fixed tour information as required
 const libraryTour: Tour = {

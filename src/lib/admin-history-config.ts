@@ -6,9 +6,9 @@ import TourManagement from '@/components/admin/TourManagement'
 export interface HistoryTabConfig {
   id: string
   label: string
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
   description: string
-  component: React.ComponentType<any>
+  component: React.ComponentType<Record<string, never>>
   gradient: string
   headerGradient: string
   features?: string[]

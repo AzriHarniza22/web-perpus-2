@@ -746,7 +746,7 @@ const HomePage = () => {
                     </div>
                   </div>
                 </div>
-                <p className="text-lg text-gray-600 dark:text-gray-300 italic">"{testimonials[currentTestimonial].content}"</p>
+                <p className="text-lg text-gray-600 dark:text-gray-300 italic">&ldquo;{testimonials[currentTestimonial].content}&rdquo;</p>
               </motion.div>
             </AnimatePresence>
 

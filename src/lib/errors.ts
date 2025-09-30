@@ -1,9 +1,9 @@
 export class AppError extends Error {
   public code: string
   public statusCode: number
-  public details?: any
+  public details?: Record<string, unknown>
 
-  constructor(message: string, code: string, statusCode: number = 500, details?: any) {
+  constructor(message: string, code: string, statusCode: number = 500, details?: Record<string, unknown>) {
     super(message)
     this.name = 'AppError'
     this.code = code

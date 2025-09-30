@@ -1,9 +1,10 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { createServerClient } from '@supabase/ssr'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { DatabaseError, AuthenticationError } from './errors'
 import { config, validateConfig } from './config'
+import { Profile } from './types'
 
 // Validate configuration on module load
 const configValidation = validateConfig()
@@ -63,7 +64,7 @@ export const getSupabaseAdmin = () => {
 // Database operation helpers
 export const dbHelpers = {
   // Safe profile operations
-  async getProfile(supabase: any, userId: string) {
+  async getProfile(supabase: SupabaseClient, userId: string) {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -81,7 +82,7 @@ export const dbHelpers = {
     }
   },
 
-  async createProfile(supabase: any, profileData: any) {
+  async createProfile(supabase: SupabaseClient, profileData: Omit<Profile, 'id' | 'created_at' | 'updated_at'>) {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -99,7 +100,7 @@ export const dbHelpers = {
     }
   },
 
-  async updateProfile(supabase: any, userId: string, updates: any) {
+  async updateProfile(supabase: SupabaseClient, userId: string, updates: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>) {
     try {
       const { data, error } = await supabase
         .from('profiles')

@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton'
 import { Loading } from '@/components/ui/loading'
 import { Calendar, History, LogOut, User as UserIcon, BookOpen, TrendingUp, Clock, CheckCircle, Sparkles } from 'lucide-react'
-import { useBookings, useRooms } from '@/lib/api'
+import { useBookings, useRooms, BookingWithRelations } from '@/lib/api'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 
@@ -37,7 +37,7 @@ export default function DashboardPage() {
     completedBookings: 0,
     totalHours: 0
   })
-  const [upcomingBookingsList, setUpcomingBookingsList] = useState<any[]>([])
+  const [upcomingBookingsList, setUpcomingBookingsList] = useState<BookingWithRelations[]>([])
   const router = useRouter()
   const { data: bookings = [] } = useBookings()
   const { data: rooms = [] } = useRooms()

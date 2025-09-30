@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { CheckCircle, XCircle, Clock, FileText, Users, Calendar, MapPin, Eye, File, Sparkles, Building, Grid3X3 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { BookingWithRelations } from '@/lib/api'
 
 // Visual distinction system configuration
 const bookingTypeConfigs = {
@@ -44,25 +45,26 @@ export default function BookingApprovals() {
   const updateBookingStatusMutation = useUpdateBookingStatus()
 
   // Helper function to determine booking type based on data
-  const getBookingType = (booking: any) => {
-    if (booking.tours?.name || booking.event_description?.includes('Tour') || booking.is_tour) {
+  const getBookingType = (booking: BookingWithRelations) => {
+    if (booking.event_description?.includes('Tour') || booking.rooms?.name?.includes('Tour')) {
       return 'tour'
     }
     return 'room'
   }
 
   // Helper function to get tour information from booking
-  const getTourInfo = (booking: any) => {
+  const getTourInfo = (booking: BookingWithRelations) => {
     // For tour bookings, we can extract tour info from the booking data
     // This removes the dependency on mock data
+    const tourName = booking.event_description?.replace('Tour: ', '').split(' - ')[0] || 'Tour Khusus'
     return {
-      name: booking.tours?.name || booking.event_description?.replace('Tour: ', '').split(' - ')[0] || 'Tour Khusus',
-      duration: booking.tours?.duration || 60,
-      maxParticipants: booking.tours?.max_participants || booking.guest_count || 10,
-      meetingPoint: booking.tours?.meeting_point || 'Lokasi Tour',
-      guideName: booking.tours?.guide_name || 'Guide Tour',
-      guideContact: booking.tours?.guide_contact || 'guide@library.edu',
-      description: booking.tours?.description || booking.event_description || 'Deskripsi tour tidak tersedia'
+      name: tourName,
+      duration: 60, // Default duration
+      maxParticipants: booking.guest_count || 10,
+      meetingPoint: 'Lokasi Tour',
+      guideName: 'Guide Tour',
+      guideContact: 'guide@library.edu',
+      description: booking.event_description || 'Deskripsi tour tidak tersedia'
     }
   }
 

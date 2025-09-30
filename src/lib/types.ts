@@ -19,13 +19,13 @@ export interface RegistrationData {
   phone: string
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   message?: string
   data?: T
   error?: string
   details?: string
-  debug?: any
+  debug?: Record<string, unknown>
 }
 
 export interface AuthState {
@@ -89,10 +89,12 @@ export interface RegistrationResponse {
   profile: Profile
 }
 
+import type { Session } from '@supabase/supabase-js'
+
 export interface LoginResponse {
   success: boolean
   user: User
-  session: any
+  session: Session
 }
 
 // Form validation types

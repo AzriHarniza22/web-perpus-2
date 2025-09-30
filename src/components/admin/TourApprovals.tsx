@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useBookings, useUpdateBookingStatus } from '@/lib/api'
+import { useBookings, useUpdateBookingStatus, BookingWithRelations } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -69,7 +69,7 @@ export default function TourApprovals() {
     })
   }
 
-  const getTourInfo = (booking: any) => {
+  const getTourInfo = (booking: BookingWithRelations) => {
     // Extract tour name from event description or use a default
     const tourName = booking.event_description?.replace('Tour: ', '').split(' - ')[0] || 'Unknown Tour'
     return mockTours.find(tour => tour.name === tourName) || mockTours[0]

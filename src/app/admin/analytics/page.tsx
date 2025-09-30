@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useBookingStats, useUserActivityTrends, usePeakHoursData, useCancellationTrends, useRoomUtilization, useRooms, useBookings, useNotificationStats } from '@/lib/api'
+import { useBookingStats, useUserActivityTrends, usePeakHoursData, useCancellationTrends, useRoomUtilization, useRooms, useBookings, useNotificationStats, Room } from '@/lib/api'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TrendingUp, Users, BarChart3, LogOut, Filter, CalendarIcon, X, Download, FileText, FileImage, FileSpreadsheet, Clock } from 'lucide-react'
@@ -309,7 +309,7 @@ function AnalyticsContent() {
       totalUsers: userStats.size,
       activeUsers: Array.from(userStats.values()).filter(u => u.bookings.length > 0).length,
       topUsers: Array.from(userStats.values())
-        .map((user: any) => ({
+        .map((user) => ({
           name: user.name,
           email: user.email,
           institution: user.institution,
@@ -321,7 +321,7 @@ function AnalyticsContent() {
     }
 
     const institutionStats = new Map<string, InstitutionAnalytics>()
-    Array.from(userStats.values()).forEach((user: any) => {
+    Array.from(userStats.values()).forEach((user) => {
       const institution = user.institution || 'Unknown'
       if (!institutionStats.has(institution)) {
         institutionStats.set(institution, {
@@ -1078,7 +1078,7 @@ function AnalyticsContent() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Semua Ruangan</SelectItem>
-                    {rooms?.map((room: any) => (
+                    {rooms?.map((room: Room) => (
                       <SelectItem key={room.id} value={room.id}>
                         {room.name}
                       </SelectItem>
@@ -1107,7 +1107,7 @@ function AnalyticsContent() {
                 )}
                 {selectedRooms.length > 0 && (
                   <Badge variant="secondary" className="flex items-center gap-1">
-                    Ruangan: {rooms?.find((r: any) => r.id === selectedRooms[0])?.name || 'Dipilih'}
+                    Ruangan: {rooms?.find((r: Room) => r.id === selectedRooms[0])?.name || 'Dipilih'}
                   </Badge>
                 )}
               </div>

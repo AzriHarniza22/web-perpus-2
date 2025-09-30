@@ -1,4 +1,11 @@
 import nodemailer from 'nodemailer';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+interface BookingNotificationDetails {
+  userName: string;
+  roomName: string;
+  time: string;
+}
 
 if (!process.env.EMAIL_HOST || !process.env.EMAIL_PORT || !process.env.EMAIL_SECURE || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
   console.error('Missing environment variables: EMAIL_HOST, EMAIL_PORT, EMAIL_SECURE, EMAIL_USER, and/or EMAIL_PASS');
@@ -33,7 +40,7 @@ export async function sendEmail(to: string, subject: string, html?: string, text
     throw error;
   }
 }
-export async function sendApprovalNotification(toEmail: string, bookingDetails: any) {
+export async function sendApprovalNotification(toEmail: string, bookingDetails: BookingNotificationDetails) {
   const subject = 'Booking Approved';
   console.log('Sending approval notification to: ' + toEmail + ', subject: ' + subject);
   const html = `
@@ -50,7 +57,7 @@ export async function sendApprovalNotification(toEmail: string, bookingDetails: 
   await sendEmail(toEmail, subject, html);
 }
 
-export async function sendRejectionNotification(toEmail: string, bookingDetails: any) {
+export async function sendRejectionNotification(toEmail: string, bookingDetails: BookingNotificationDetails) {
   const subject = 'Booking Rejected';
   console.log('Sending rejection notification to: ' + toEmail + ', subject: ' + subject);
   const html = `
@@ -67,7 +74,7 @@ export async function sendRejectionNotification(toEmail: string, bookingDetails:
   await sendEmail(toEmail, subject, html);
 }
 
-export async function sendNewBookingNotificationToAdmin(supabase: any, bookingDetails: any) {
+export async function sendNewBookingNotificationToAdmin(supabase: SupabaseClient, bookingDetails: BookingNotificationDetails) {
   const { data: admins, error } = await supabase
     .from('profiles')
     .select('email')
