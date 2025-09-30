@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useBookingStats, useUserActivityTrends, usePeakHoursData, useCancellationTrends, useRoomUtilization, useRooms, useBookings, useNotificationStats, Room } from '@/lib/api'
+import { useBookingStats, useUserActivityTrends, usePeakHoursData, useCancellationTrends, useRoomUtilization, useRooms, useBookings, useNotificationStats, Room, Booking } from '@/lib/api'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TrendingUp, Users, BarChart3, LogOut, Filter, CalendarIcon, X, Download, FileText, FileImage, FileSpreadsheet, Clock } from 'lucide-react'
@@ -314,7 +314,7 @@ function AnalyticsContent() {
           email: user.email,
           institution: user.institution,
           bookingCount: user.bookings.length,
-          approvedCount: user.bookings.filter((b: any) => b.status === 'approved').length
+          approvedCount: user.bookings.filter((b: Booking) => b.status === 'approved').length
         }))
         .sort((a, b) => b.bookingCount - a.bookingCount)
         .slice(0, 10)
