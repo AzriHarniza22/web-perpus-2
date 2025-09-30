@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNewBookingNotificationToAdmin } from '@/lib/email'
+import { ensureLibraryTourRoom } from '@/lib/roomUtils'
 
 // Fixed tour information
 const TOUR_CONFIG = {
@@ -29,16 +30,21 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    // Get the Library Tour room ID
-    const { data: room, error: roomError } = await supabase
-      .from('rooms')
-      .select('id')
-      .eq('name', TOUR_CONFIG.room_name)
-      .single()
+    // Get the Library Tour room ID (with auto-creation if missing)
+    const roomResult = await ensureLibraryTourRoom()
 
-    if (roomError || !room) {
-      console.error('Library Tour room not found:', roomError)
-      return NextResponse.json({ error: 'Library Tour room not found' }, { status: 500 })
+    if (!roomResult.success || !roomResult.roomId) {
+      console.error('Library Tour room lookup failed:', roomResult.error)
+      return NextResponse.json({
+        error: roomResult.error || 'Library Tour room not found and could not be created'
+      }, { status: 500 })
+    }
+
+    // Log if room was created or if using fallback
+    if (roomResult.wasCreated) {
+      console.log('Library Tour room was created during booking')
+    } else if (roomResult.error) {
+      console.log('Using fallback room for booking:', roomResult.error)
     }
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -77,7 +83,7 @@ export async function POST(request: NextRequest) {
     const { data: conflicts, error: conflictError } = await supabase
       .from('bookings')
       .select('id, status, start_time, end_time')
-      .eq('room_id', room.id)
+      .eq('room_id', roomResult.roomId)
       .eq('status', 'approved')
       .lt('start_time', end_time)
       .gt('end_time', start_time)
@@ -130,7 +136,7 @@ export async function POST(request: NextRequest) {
     // Insert tour booking
     const insertData = {
       user_id: user.id,
-      room_id: room.id,
+      room_id: roomResult.roomId,
       start_time,
       end_time,
       event_description: eventDescription,
@@ -138,11 +144,8 @@ export async function POST(request: NextRequest) {
       proposal_file,
       notes: notes || 'Tour booking with Library Staff guide',
       status: 'pending',
-      // Tour-specific fields
-      is_tour: true,
-      tour_name: TOUR_CONFIG.tour_name,
-      tour_guide: TOUR_CONFIG.tour_guide,
-      tour_meeting_point: TOUR_CONFIG.tour_meeting_point
+      // Tour-specific fields based on actual database schema
+      is_tour: true
     }
 
     const { data: booking, error: insertError } = await supabase

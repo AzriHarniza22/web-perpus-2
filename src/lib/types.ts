@@ -74,6 +74,11 @@ export interface Booking {
   letter: string | null
   created_at: string
   updated_at: string
+  // Tour-specific fields (added by tour schema update)
+  participant_count?: number | null
+  tour_meeting_point?: string | null
+  tour_guide?: string | null
+  tour_duration_minutes?: number | null
 }
 
 // API response types

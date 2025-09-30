@@ -11,16 +11,26 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
   const [bookedDates, setBookedDates] = useState<string[]>([])
 
   useEffect(() => {
-    const dates = bookings.map(booking =>
-      new Date(booking.start_time).toDateString()
-    )
+    const now = new Date()
+    const dates = bookings
+      .filter(booking => {
+        const bookingDate = new Date(booking.start_time)
+        // Only include future bookings or active bookings
+        return bookingDate >= now || booking.status === 'pending' || booking.status === 'approved'
+      })
+      .map(booking => new Date(booking.start_time).toDateString())
     setBookedDates([...new Set(dates)])
   }, [bookings])
 
   const getBookedTimes = (date: Date) => {
+    const now = new Date()
+
     return bookings.filter(booking => {
       const bookingDate = new Date(booking.start_time)
-      return bookingDate.toDateString() === date.toDateString() && booking.status !== 'rejected'
+      // Only show future bookings or active bookings
+      return bookingDate.toDateString() === date.toDateString() &&
+             booking.status !== 'rejected' &&
+             (bookingDate >= now || booking.status === 'pending' || booking.status === 'approved')
     }).map(booking => ({
       start: new Date(booking.start_time),
       end: new Date(booking.end_time),
@@ -54,9 +64,14 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
   }
 
   const getDateStatus = (date: Date) => {
-    const bookingsOnDate = bookings.filter(booking =>
-      new Date(booking.start_time).toDateString() === date.toDateString()
-    )
+    const now = new Date()
+    const bookingsOnDate = bookings.filter(booking => {
+      const bookingDate = new Date(booking.start_time)
+      // Only include future bookings or active bookings
+      return bookingDate.toDateString() === date.toDateString() &&
+             (bookingDate >= now || booking.status === 'pending' || booking.status === 'approved')
+    })
+
     if (bookingsOnDate.some(b => b.status === 'approved')) return 'approved'
     if (bookingsOnDate.some(b => b.status === 'pending')) return 'pending'
     return null

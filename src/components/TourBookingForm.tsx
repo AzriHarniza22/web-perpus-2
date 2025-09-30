@@ -21,6 +21,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import dayjs from 'dayjs'
+import { Booking } from '@/lib/types'
+import { ensureLibraryTourRoom } from '@/lib/roomUtils'
+
+interface TourBookingFormProps {
+  existingBookings?: Booking[]
+  onBookingSuccess?: () => void
+}
 
 const tourBookingSchema = z.object({
   selectedDate: z.date().optional(),
@@ -66,13 +73,15 @@ const TOUR_INFO = {
   maxParticipants: 50,
 }
 
-export default function TourBookingForm() {
+export default function TourBookingForm({ existingBookings = [], onBookingSuccess }: TourBookingFormProps) {
   const router = useRouter()
 
   const { user, isAuthenticated } = useAuth()
 
   // Local state for immediate UI updates
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const [pendingOverlapWarning, setPendingOverlapWarning] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<TourBookingFormData>({
     resolver: zodResolver(tourBookingSchema),
@@ -95,12 +104,67 @@ export default function TourBookingForm() {
     form.setValue('selectedDate', date)
   }
 
+  const getBookedTimes = (date: Date) => {
+    const now = new Date()
+
+    return existingBookings
+      .filter(booking => {
+        const bookingDate = new Date(booking.start_time)
+        // Only show future bookings or active bookings (same logic as InteractiveCalendar)
+        return bookingDate.toDateString() === date.toDateString() &&
+               booking.status !== 'rejected' &&
+               (bookingDate >= now || booking.status === 'pending' || booking.status === 'approved')
+      })
+      .map(booking => ({
+        start: new Date(booking.start_time),
+        end: new Date(booking.end_time),
+        status: booking.status,
+      }))
+  }
+
+  const getBookedDates = () => {
+    const now = new Date()
+    const futureBookings = existingBookings.filter(booking => {
+      const bookingDate = new Date(booking.start_time)
+      // Only include future bookings or active bookings (same logic as InteractiveCalendar)
+      return bookingDate >= now || booking.status === 'pending' || booking.status === 'approved'
+    })
+
+    const dates = new Set<string>()
+    futureBookings.forEach(booking => {
+      const date = new Date(booking.start_time).toDateString()
+      dates.add(date)
+    })
+    return Array.from(dates).map(date => new Date(date))
+  }
+
+  const getDateStatus = (date: Date) => {
+    const now = new Date()
+    const bookingsOnDate = existingBookings.filter(booking => {
+      const bookingDate = new Date(booking.start_time)
+      // Only include future bookings or active bookings (same logic as InteractiveCalendar)
+      return bookingDate.toDateString() === date.toDateString() &&
+             (bookingDate >= now || booking.status === 'pending' || booking.status === 'approved')
+    })
+
+    if (bookingsOnDate.some(b => b.status === 'approved')) return 'approved'
+    if (bookingsOnDate.some(b => b.status === 'pending')) return 'pending'
+    return null
+  }
+
+  const isToday = (date: Date) => {
+    const today = new Date()
+    return date.toDateString() === today.toDateString()
+  }
+
   const onSubmit = async (data: TourBookingFormData) => {
     console.log(`TourBookingForm: onSubmit, user=${user ? user.id : 'null'}`)
     if (!isAuthenticated || !user) {
       form.setError('root', { message: 'Not authenticated' })
       return
     }
+
+    setIsSubmitting(true)
 
     const selectedDateStr = formatDate(data.selectedDate!, 'yyyy-MM-dd')
     const startTimeStr = `${data.startHour}:${data.startMinute}`
@@ -109,9 +173,55 @@ export default function TourBookingForm() {
     const startDateTime = dayjs(`${selectedDateStr} ${startTimeStr}`).toDate()
     const endDateTime = dayjs(`${selectedDateStr} ${endTimeStr}`).toDate()
 
-    // For tours, we'll use a fixed tour ID or get it from somewhere
-    // For now, we'll use a placeholder that should be replaced with actual tour ID logic
-    const tourId = 'tour-library-tour' // This should come from your tour selection or be fixed
+    // Check for approved conflicts
+    const approvedConflict = existingBookings.some(booking => {
+      if (booking.status !== 'approved') return false
+      const bookingStart = new Date(booking.start_time)
+      const bookingEnd = new Date(booking.end_time)
+      return (
+        (startDateTime >= bookingStart && startDateTime < bookingEnd) ||
+        (endDateTime > bookingStart && endDateTime <= bookingEnd) ||
+        (startDateTime <= bookingStart && endDateTime >= bookingEnd)
+      )
+    })
+
+    if (approvedConflict) {
+      form.setError('root', { message: 'This time slot is already approved' })
+      setIsSubmitting(false)
+      return
+    }
+
+    // Check for pending overlaps
+    const pendingOverlap = existingBookings.some(booking => {
+      if (booking.status !== 'pending') return false
+      const bookingStart = new Date(booking.start_time)
+      const bookingEnd = new Date(booking.end_time)
+      return (
+        (startDateTime >= bookingStart && startDateTime < bookingEnd) ||
+        (endDateTime > bookingStart && endDateTime <= bookingEnd) ||
+        (startDateTime <= bookingStart && endDateTime >= bookingEnd)
+      )
+    })
+
+    setPendingOverlapWarning(pendingOverlap)
+
+    // Get the Library Tour room UUID from database (with auto-creation if missing)
+    const roomResult = await ensureLibraryTourRoom()
+
+    if (!roomResult.success || !roomResult.roomId) {
+      console.error('Library Tour room lookup failed:', roomResult.error)
+      form.setError('root', {
+        message: roomResult.error || 'Library Tour room not found and could not be created'
+      })
+      return
+    }
+
+    // Log if room was created or if using fallback
+    if (roomResult.wasCreated) {
+      console.log('Library Tour room was created during booking')
+    } else if (roomResult.error) {
+      console.log('Using fallback room for booking:', roomResult.error)
+    }
 
     const file = data.tourDocumentFile;
     let filePath: string | undefined = undefined;
@@ -122,6 +232,7 @@ export default function TourBookingForm() {
       if (uploadError) {
         console.error(`TourBookingForm: Upload error for user ${user.id}:`, uploadError);
         form.setError('root', { message: 'Failed to upload file: ' + uploadError.message });
+        setIsSubmitting(false)
         return;
       }
       filePath = fileName;
@@ -129,19 +240,15 @@ export default function TourBookingForm() {
     }
 
     const bookingData = {
-      room_id: tourId, // Tour ID stored in room_id field for compatibility
       start_time: startDateTime.toISOString(),
       end_time: endDateTime.toISOString(),
-      status: 'pending',
       event_description: `Library Tour Booking`,
       guest_count: data.participantCount,
       notes: data.specialRequests || '',
       proposal_file: filePath,
-      // Tour-specific fields
-      is_tour: true,
-      tour_name: TOUR_INFO.name,
-      tour_guide: TOUR_INFO.guide,
-      tour_meeting_point: TOUR_INFO.meetingPoint,
+      room_id: roomResult.roomId, // Use the room ID from our utility function
+      // Tour-specific fields based on actual database schema
+      is_tour: true
     }
 
     try {
@@ -159,11 +266,18 @@ export default function TourBookingForm() {
       }
 
       const result = await response.json()
-      console.log(`TourBookingForm: Booking success, redirecting to /dashboard, user=${user ? user.id : 'null'}`)
+      console.log(`TourBookingForm: Booking success, refreshing bookings, user=${user ? user.id : 'null'}`)
+
+      // Refresh bookings in parent component
+      if (onBookingSuccess) {
+        onBookingSuccess()
+      }
+
       router.push('/dashboard?success=Tour booking submitted successfully')
     } catch (error) {
       console.error('Tour booking error:', error)
       form.setError('root', { message: error instanceof Error ? error.message : 'An error occurred' })
+      setIsSubmitting(false)
     }
   }
 
@@ -213,13 +327,81 @@ export default function TourBookingForm() {
                         today.setHours(0, 0, 0, 0);
                         return date < today;
                       }}
-                      className="rounded-md border shadow-sm"
+                      modifiers={{
+                        booked: getBookedDates(),
+                        approved: getBookedDates().filter(date => getDateStatus(date) === 'approved'),
+                        pending: getBookedDates().filter(date => getDateStatus(date) === 'pending'),
+                        today: (date) => isToday(date)
+                      }}
+                      modifiersStyles={{
+                        approved: {
+                          backgroundColor: 'rgb(254 202 202)', // red-200
+                          color: 'rgb(153 27 27)', // red-800
+                          fontWeight: 'bold'
+                        },
+                        pending: {
+                          backgroundColor: 'rgb(254 240 138)', // yellow-200
+                          color: 'rgb(133 77 14)', // yellow-800
+                          fontWeight: 'bold'
+                        },
+                        today: {
+                          backgroundColor: 'rgb(59 130 246)', // blue-500
+                          color: 'white',
+                          fontWeight: 'bold'
+                        }
+                      }}
+                      className="rounded-md border shadow-sm [&_.rdp-day_button:hover]:hover:bg-gray-100"
                     />
                   </div>
                   {form.formState.errors.selectedDate && (
                     <p className="text-sm text-red-500 mt-1">{form.formState.errors.selectedDate.message}</p>
                   )}
                 </div>
+
+                {selectedDate && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3"
+                  >
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center">
+                      <Clock className="w-4 h-4 mr-2 text-blue-600" />
+                      Waktu yang sudah dipesan untuk {formatDate(selectedDate, 'dd MMMM yyyy')}:
+                    </h4>
+                    <div className="space-y-1">
+                      {getBookedTimes(selectedDate).map((time, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md ${
+                            time.status === 'approved'
+                              ? 'text-red-600 bg-red-50 dark:bg-red-900/20'
+                              : 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
+                          }`}
+                        >
+                          <div className={`w-2 h-2 rounded-full ${
+                            time.status === 'approved' ? 'bg-red-500' : 'bg-yellow-500'
+                          }`}></div>
+                          {format(time.start, 'HH:mm')} - {format(time.end, 'HH:mm')} ({
+                            time.status === 'approved' ? 'Sudah disetujui' : 'Menunggu persetujuan'
+                          })
+                        </motion.div>
+                      ))}
+                      {getBookedTimes(selectedDate).length === 0 && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-md"
+                        >
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          Tidak ada pemesanan untuk tanggal ini
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -360,6 +542,14 @@ export default function TourBookingForm() {
                   </Alert>
                 )}
 
+                {pendingOverlapWarning && (
+                  <Alert>
+                    <AlertDescription>
+                      ⚠️ This time slot overlaps with a pending reservation. Your booking will still be submitted but may be rejected if the other reservation is approved first.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -367,11 +557,21 @@ export default function TourBookingForm() {
                 >
                   <Button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300"
+                    disabled={isSubmitting}
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <>
-                      <ArrowRight className="w-4 h-4 mr-2" />
-                      Kirim Booking Tour
+                      {isSubmitting ? (
+                        <>
+                          <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          Mengirim Booking...
+                        </>
+                      ) : (
+                        <>
+                          <ArrowRight className="w-4 h-4 mr-2" />
+                          Kirim Booking Tour
+                        </>
+                      )}
                     </>
                   </Button>
                 </motion.div>

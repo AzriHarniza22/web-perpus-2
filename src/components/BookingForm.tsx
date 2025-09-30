@@ -181,10 +181,15 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
   }
 
   const getBookedTimes = (date: Date) => {
+    const now = new Date()
+
     return existingBookings
       .filter(booking => {
         const bookingDate = new Date(booking.start_time)
-        return bookingDate.toDateString() === date.toDateString() && booking.status !== 'rejected'
+        // Only show future bookings or active bookings (same logic as InteractiveCalendar)
+        return bookingDate.toDateString() === date.toDateString() &&
+               booking.status !== 'rejected' &&
+               (bookingDate >= now || booking.status === 'pending' || booking.status === 'approved')
       })
       .map(booking => ({
         start: new Date(booking.start_time),
@@ -194,12 +199,38 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
   }
 
   const getBookedDates = () => {
+    const now = new Date()
+    const futureBookings = existingBookings.filter(booking => {
+      const bookingDate = new Date(booking.start_time)
+      // Only include future bookings or active bookings (same logic as InteractiveCalendar)
+      return bookingDate >= now || booking.status === 'pending' || booking.status === 'approved'
+    })
+
     const dates = new Set<string>()
-    existingBookings.forEach(booking => {
+    futureBookings.forEach(booking => {
       const date = new Date(booking.start_time).toDateString()
       dates.add(date)
     })
     return Array.from(dates).map(date => new Date(date))
+  }
+
+  const getDateStatus = (date: Date) => {
+    const now = new Date()
+    const bookingsOnDate = existingBookings.filter(booking => {
+      const bookingDate = new Date(booking.start_time)
+      // Only include future bookings or active bookings (same logic as InteractiveCalendar)
+      return bookingDate.toDateString() === date.toDateString() &&
+             (bookingDate >= now || booking.status === 'pending' || booking.status === 'approved')
+    })
+
+    if (bookingsOnDate.some(b => b.status === 'approved')) return 'approved'
+    if (bookingsOnDate.some(b => b.status === 'pending')) return 'pending'
+    return null
+  }
+
+  const isToday = (date: Date) => {
+    const today = new Date()
+    return date.toDateString() === today.toDateString()
   }
 
   return (
@@ -247,7 +278,30 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                     today.setHours(0, 0, 0, 0);
                     return date < today;
                   }}
-                  className="rounded-md border shadow-sm"
+                  modifiers={{
+                    booked: getBookedDates(),
+                    approved: getBookedDates().filter(date => getDateStatus(date) === 'approved'),
+                    pending: getBookedDates().filter(date => getDateStatus(date) === 'pending'),
+                    today: (date) => isToday(date)
+                  }}
+                  modifiersStyles={{
+                    approved: {
+                      backgroundColor: 'rgb(254 202 202)', // red-200
+                      color: 'rgb(153 27 27)', // red-800
+                      fontWeight: 'bold'
+                    },
+                    pending: {
+                      backgroundColor: 'rgb(254 240 138)', // yellow-200
+                      color: 'rgb(133 77 14)', // yellow-800
+                      fontWeight: 'bold'
+                    },
+                    today: {
+                      backgroundColor: 'rgb(59 130 246)', // blue-500
+                      color: 'white',
+                      fontWeight: 'bold'
+                    }
+                  }}
+                  className="rounded-md border shadow-sm [&_.rdp-day_button:hover]:hover:bg-gray-100"
                 />
                 {form.formState.errors.selectedDate && (
                   <p className="text-sm text-red-500 mt-1">{form.formState.errors.selectedDate.message}</p>

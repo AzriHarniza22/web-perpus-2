@@ -178,9 +178,9 @@ export default function ApprovalsPage() {
             animate={{ opacity: 1 }}
           >
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Persetujuan Reservasi
+              Persetujuan Ruangan & Tour
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Kelola permintaan reservasi</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Kelola semua permintaan reservasi dan tour</p>
           </motion.div>
           <div className="flex items-center space-x-4">
             <motion.span
@@ -204,33 +204,20 @@ export default function ApprovalsPage() {
           className="mb-8"
         >
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Persetujuan Reservasi
+            Persetujuan Terpadu
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            Kelola permintaan reservasi - setujui atau tolak booking yang menunggu approval
+            Kelola semua permintaan reservasi ruangan dan tour dalam satu tempat
           </p>
         </motion.div>
 
-        {/* Booking Approvals Component */}
+        {/* Enhanced BookingApprovals Component */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Clock className="w-5 h-5 mr-2 text-yellow-600" />
-                Reservasi Menunggu Persetujuan
-              </CardTitle>
-              <CardDescription>
-                Tinjau dan kelola permintaan reservasi yang belum diputuskan
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <BookingApprovals />
-            </CardContent>
-          </Card>
+          <BookingApprovals />
         </motion.div>
       </main>
     </div>

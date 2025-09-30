@@ -125,48 +125,24 @@ export const useBookings = (filters?: {
     queryFn: async () => {
       let query
 
-      if (isTour) {
-        // Use tour_bookings view for tour bookings
-        query = supabase
-          .from('tour_bookings')
-          .select(`
-            *,
-            profiles:user_id (
-              full_name,
-              email,
-              institution,
-              role,
-              profile_photo
-            ),
-            tours:tour_name (
-              name,
-              duration_minutes,
-              max_participants,
-              meeting_point,
-              guide_name,
-              guide_contact
-            )
-          `, { count: 'exact' })
-      } else {
-        // Use regular bookings table for room bookings
-        query = supabase
-          .from('bookings')
-          .select(`
-            *,
-            profiles:user_id (
-              full_name,
-              email,
-              institution,
-              role,
-              profile_photo
-            ),
-            rooms:room_id (
-              name,
-              capacity,
-              facilities
-            )
-          `, { count: 'exact' })
-      }
+      // Use regular bookings table for all bookings
+      query = supabase
+        .from('bookings')
+        .select(`
+          *,
+          profiles:user_id (
+            full_name,
+            email,
+            institution,
+            role,
+            profile_photo
+          ),
+          rooms:room_id (
+            name,
+            capacity,
+            facilities
+          )
+        `, { count: 'exact' })
 
       // Apply status filter
       if (status && status.length > 0) {
@@ -212,10 +188,8 @@ export const useCalendarBookings = () => {
   return useQuery<BookingWithRelations[]>({
     queryKey: ['calendarBookings'],
     queryFn: async () => {
-      // Get start of today in local timezone
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const todayISOString = today.toISOString()
+      // Get current timestamp for filtering
+      const now = new Date().toISOString()
 
       const { data, error } = await supabase
         .from('bookings')
@@ -226,7 +200,7 @@ export const useCalendarBookings = () => {
           )
         `)
         .in('status', ['approved', 'pending'])
-        .gte('start_time', todayISOString)
+        .gte('start_time', now)
         .order('start_time', { ascending: true })
 
       if (error) throw error

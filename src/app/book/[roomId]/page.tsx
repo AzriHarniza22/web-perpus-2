@@ -87,12 +87,14 @@ export default function BookRoomPage() {
 
       setRoom(roomData)
 
-      // Get existing bookings for this room
+      // Get existing bookings for this room (future bookings only)
+      const now = new Date().toISOString()
       const { data: bookingsData } = await supabase
         .from('bookings')
         .select('*')
         .eq('room_id', roomId)
         .in('status', ['approved', 'pending'])
+        .gte('start_time', now) // Only future bookings like landing page
 
       setBookings(bookingsData || [])
       setLoading(false)

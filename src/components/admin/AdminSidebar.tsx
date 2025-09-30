@@ -35,12 +35,6 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
       active: pathname === '/admin/tours'
     },
     {
-      href: '/admin/tour-approvals',
-      label: 'Tour Approvals',
-      icon: CheckCircle,
-      active: pathname === '/admin/tour-approvals'
-    },
-    {
       href: '/admin/analytics',
       label: 'Analytics & Reports',
       icon: BarChart3,
@@ -54,7 +48,7 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
     },
     {
       href: '/admin/approvals',
-      label: 'Persetujuan',
+      label: 'Persetujuan Terpadu',
       icon: CheckCircle,
       active: pathname === '/admin/approvals'
     }

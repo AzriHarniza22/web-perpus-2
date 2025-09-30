@@ -11,6 +11,7 @@ import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import TourBookingForm from '@/components/TourBookingForm'
 import { ArrowLeft, Sparkles } from 'lucide-react'
+import { Booking as BookingType } from '@/lib/types'
 
 // Tour interface
 interface Tour {
@@ -34,15 +35,7 @@ interface TourSchedule {
   availableSlots: number
 }
 
-interface Booking {
-  id: string
-  room_id: string
-  start_time: string
-  end_time: string
-  status: string
-  guest_count: number
-  notes?: string
-}
+interface Booking extends BookingType {}
 
 // Library Tour data - fixed tour information as required
 const libraryTour: Tour = {
@@ -119,7 +112,7 @@ export default function BookSpecificTourPage({ params }: { params: { tourId: str
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<User | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [existingBookings, setExistingBookings] = useState<Booking[]>([])
+  const [existingBookings, setExistingBookings] = useState<BookingType[]>([])
   const router = useRouter()
 
   useEffect(() => {
@@ -137,21 +130,35 @@ export default function BookSpecificTourPage({ params }: { params: { tourId: str
       // Always use Library Tour regardless of tourId parameter
       setTour(libraryTour)
 
-      // Fetch existing bookings for this tour
-      try {
-        const { data: bookings, error } = await supabase
-          .from('bookings')
-          .select('*')
-          .eq('room_id', 'library-tour') // Always use library-tour ID for bookings
-          .in('status', ['pending', 'approved'])
+      // Get the Library Tour room UUID from database
+      const { data: room, error: roomError } = await supabase
+        .from('rooms')
+        .select('id')
+        .eq('name', 'Library Tour')
+        .single()
 
-        if (error) {
-          console.error('Error fetching bookings:', error)
-        } else {
-          setExistingBookings(bookings || [])
+      if (roomError || !room) {
+        console.error('Library Tour room not found:', roomError)
+      } else {
+        // Fetch existing tour bookings using actual room UUID (future bookings only)
+        try {
+          const now = new Date().toISOString()
+          const { data: bookings, error } = await supabase
+            .from('bookings')
+            .select('*')
+            .eq('room_id', room.id) // Use actual room UUID for bookings
+            .eq('is_tour', true) // Only fetch tour bookings
+            .in('status', ['pending', 'approved'])
+            .gte('start_time', now) // Only future bookings like landing page
+
+          if (error) {
+            console.error('Error fetching tour bookings:', error)
+          } else {
+            setExistingBookings(bookings || [])
+          }
+        } catch (err) {
+          console.error('Unexpected error fetching tour bookings:', err)
         }
-      } catch (err) {
-        console.error('Unexpected error fetching bookings:', err)
       }
 
       setLoading(false)
@@ -275,7 +282,41 @@ export default function BookSpecificTourPage({ params }: { params: { tourId: str
           </motion.div>
 
           {/* Booking Form */}
-          <TourBookingForm />
+          <TourBookingForm
+            existingBookings={existingBookings}
+            onBookingSuccess={() => {
+              // Refresh bookings after successful submission
+              const refreshBookings = async () => {
+                try {
+                  const { data: room } = await supabase
+                    .from('rooms')
+                    .select('id')
+                    .eq('name', 'Library Tour')
+                    .single()
+
+                  if (room) {
+                    const now = new Date().toISOString()
+                    const { data: bookings, error } = await supabase
+                      .from('bookings')
+                      .select('*')
+                      .eq('room_id', room.id)
+                      .eq('is_tour', true) // Only fetch tour bookings
+                      .in('status', ['pending', 'approved'])
+                      .gte('start_time', now) // Only future bookings like landing page
+
+                    if (error) {
+                      console.error('Error refreshing tour bookings:', error)
+                    } else {
+                      setExistingBookings(bookings || [])
+                    }
+                  }
+                } catch (err) {
+                  console.error('Unexpected error refreshing bookings:', err)
+                }
+              }
+              refreshBookings()
+            }}
+          />
         </div>
       </main>
     </div>
