@@ -158,44 +158,6 @@ export default function BookTourPage() {
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}>
         <div className="max-w-4xl mx-auto px-4">
-          {/* Tour Information Card */}
-          {tour && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-8"
-            >
-              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                      {tour.name}
-                    </h2>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">
-                      {tour.description}
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900 dark:text-white">Durasi:</span>
-                        <span className="text-gray-600 dark:text-gray-300">{tour.duration} menit</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900 dark:text-white">Max Peserta:</span>
-                        <span className="text-gray-600 dark:text-gray-300">{tour.maxParticipants} orang</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900 dark:text-white">Meeting Point:</span>
-                        <span className="text-gray-600 dark:text-gray-300">{tour.meetingPoint}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
 
           {/* Tour Booking Form */}
           <TourBookingForm

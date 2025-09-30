@@ -8,8 +8,10 @@ import { useAuth } from '@/hooks/useAuth'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { History as HistoryIcon } from 'lucide-react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
-import BookingManagement from '@/components/admin/BookingManagement'
+import UnifiedBookingManagement from '@/components/admin/UnifiedBookingManagement'
 
 interface Profile {
   id: string;
@@ -22,7 +24,9 @@ interface Profile {
   updated_at: string;
 }
 
-export default function ReservationsPage() {
+// Unified booking management approach
+
+export default function AdminHistoryPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -109,14 +113,17 @@ export default function ReservationsPage() {
               <Skeleton className="h-5 w-96" />
             </motion.div>
 
-            {/* Content skeleton */}
+            {/* Tab skeleton */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
               <div className="space-y-6">
-                <Skeleton className="h-32 w-full" />
+                <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+                  <Skeleton className="h-10 w-24" />
+                  <Skeleton className="h-10 w-20" />
+                </div>
                 <Skeleton className="h-96 w-full" />
               </div>
             </motion.div>
@@ -129,6 +136,7 @@ export default function ReservationsPage() {
   if (!profile) {
     return null
   }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
@@ -149,9 +157,11 @@ export default function ReservationsPage() {
             animate={{ opacity: 1 }}
           >
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Reservations Management
+              History Management
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">View, filter, and manage all room reservations</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Unified view of all reservations and tour bookings
+            </p>
           </motion.div>
           <div className="flex items-center space-x-4">
             <motion.span
@@ -169,7 +179,13 @@ export default function ReservationsPage() {
       <main className={`transition-all duration-300 ${
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}>
-        <BookingManagement />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-6"
+        >
+          <UnifiedBookingManagement />
+        </motion.div>
       </main>
     </div>
   )

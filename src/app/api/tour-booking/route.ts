@@ -172,7 +172,6 @@ export async function POST(request: NextRequest) {
 
     // Send notification to admin
     try {
-      console.log('About to send tour booking notification to admin');
       const bookingDetails = {
         roomName: `${TOUR_CONFIG.tour_name} (${booking.rooms?.name || 'Library Tour'})`,
         time: `${new Date(booking.start_time).toLocaleString()} - ${new Date(booking.end_time).toLocaleString()}`,
