@@ -7,22 +7,30 @@ interface BookingNotificationDetails {
   time: string;
 }
 
-if (!process.env.EMAIL_HOST || !process.env.EMAIL_PORT || !process.env.EMAIL_SECURE || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-  console.error('Missing environment variables: EMAIL_HOST, EMAIL_PORT, EMAIL_SECURE, EMAIL_USER, and/or EMAIL_PASS');
-  throw new Error('Required EMAIL environment variables must be set');
+function validateEmailConfig() {
+  if (!process.env.EMAIL_HOST || !process.env.EMAIL_PORT || !process.env.EMAIL_SECURE || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.error('Missing environment variables: EMAIL_HOST, EMAIL_PORT, EMAIL_SECURE, EMAIL_USER, and/or EMAIL_PASS');
+    throw new Error('Required EMAIL environment variables must be set');
+  }
 }
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: process.env.EMAIL_SECURE === 'true',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+function createTransporter() {
+  validateEmailConfig();
+
+  return nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT || '587'),
+    secure: process.env.EMAIL_SECURE === 'true',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+}
 
 export async function sendEmail(to: string, subject: string, html?: string, text?: string) {
+  const transporter = createTransporter();
+
   console.log('Sending email to: ' + to + ', subject: ' + subject);
   const mailOptions = {
     from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
