@@ -6,13 +6,12 @@ import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CheckCircle, Clock } from 'lucide-react'
+import { Clock } from 'lucide-react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
-import BookingApprovals from '@/components/admin/BookingApprovals'
+import TourApprovals from '@/components/admin/TourApprovals'
 
 interface Profile {
   id: string;
@@ -25,7 +24,7 @@ interface Profile {
   updated_at: string;
 }
 
-export default function ApprovalsPage() {
+export default function TourApprovalsPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -66,7 +65,7 @@ export default function ApprovalsPage() {
   if (loading) {
     return (
       <Loading variant="skeleton">
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20">
           {/* Sidebar */}
           <AdminSidebar onToggle={setSidebarCollapsed} />
 
@@ -112,7 +111,7 @@ export default function ApprovalsPage() {
               <Skeleton className="h-5 w-96" />
             </motion.div>
 
-            {/* Booking Approvals Card */}
+            {/* Tour Approvals Card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -130,7 +129,7 @@ export default function ApprovalsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {[...Array(5)].map((_, i) => (
+                    {[...Array(3)].map((_, i) => (
                       <div key={i} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                         <div className="flex justify-between items-start mb-2">
                           <div>
@@ -160,7 +159,7 @@ export default function ApprovalsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20">
       {/* Sidebar */}
       <AdminSidebar onToggle={setSidebarCollapsed} />
 
@@ -177,10 +176,10 @@ export default function ApprovalsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Persetujuan Reservasi
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Tour Approvals
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Kelola permintaan reservasi</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Kelola persetujuan pemesanan tour</p>
           </motion.div>
           <div className="flex items-center space-x-4">
             <motion.span
@@ -204,14 +203,14 @@ export default function ApprovalsPage() {
           className="mb-8"
         >
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Persetujuan Reservasi
+            Tour Approvals
           </h1>
           <p className="text-gray-600 dark:text-gray-300">
-            Kelola permintaan reservasi - setujui atau tolak booking yang menunggu approval
+            Kelola persetujuan pemesanan tour - setujui atau tolak permintaan tour yang menunggu
           </p>
         </motion.div>
 
-        {/* Booking Approvals Component */}
+        {/* Tour Approvals Component */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -221,14 +220,14 @@ export default function ApprovalsPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Clock className="w-5 h-5 mr-2 text-yellow-600" />
-                Reservasi Menunggu Persetujuan
+                Tour Menunggu Persetujuan
               </CardTitle>
               <CardDescription>
-                Tinjau dan kelola permintaan reservasi yang belum diputuskan
+                Tinjau dan kelola permintaan tour yang belum diputuskan
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <BookingApprovals />
+              <TourApprovals />
             </CardContent>
           </Card>
         </motion.div>

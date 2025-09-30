@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogOut } from 'lucide-react'
-import useAuthStore from '@/lib/authStore'
+import { useAuth } from '@/hooks/useAuth'
 
 interface PageHeaderProps {
   title: string
@@ -23,7 +23,7 @@ export function PageHeader({
   onSignOut,
   sidebarCollapsed = false
 }: PageHeaderProps) {
-  const { profile } = useAuthStore()
+  const { profile } = useAuth()
 
   return (
     <motion.header

@@ -15,6 +15,7 @@ import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { User as UserIcon, Mail, Building, Phone, Edit, Save, X, CheckCircle, AlertCircle, Camera, Upload } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 import useAuthStore from '@/lib/authStore'
 
 interface Profile {
@@ -29,7 +30,7 @@ interface Profile {
 }
 
 export default function ProfilePage() {
-  const { user, profile, isLoading, fetchProfile, updateProfile } = useAuthStore()
+  const { user, profile, isLoading, isAuthenticated } = useAuth()
   const [saving, setSaving] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -44,7 +45,7 @@ export default function ProfilePage() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!isLoading && !isAuthenticated) {
       router.push('/login')
       return
     }
@@ -57,7 +58,7 @@ export default function ProfilePage() {
       })
       setProfilePhotoPreview(profile.profile_photo)
     }
-  }, [user, profile, isLoading, router])
+  }, [isAuthenticated, profile, isLoading, router])
 
   const handleSave = async () => {
     if (!user) return
@@ -100,13 +101,17 @@ export default function ProfilePage() {
 
       if (error) throw error
 
-      updateProfile({
-        full_name: formData.full_name,
-        institution: formData.institution,
-        phone: formData.phone,
-        profile_photo: profilePhotoUrl,
-        updated_at: new Date().toISOString()
-      })
+      // Refresh profile data from database
+      const { data: updatedProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (updatedProfile) {
+        // Update the profile in the auth store
+        useAuthStore.getState().updateProfile(updatedProfile)
+      }
 
       setProfilePhotoPreview(profilePhotoUrl)
       setProfilePhoto(null)
@@ -179,7 +184,7 @@ export default function ProfilePage() {
     )
   }
 
-  if (!user) {
+  if (!isAuthenticated || !user) {
     return null // Will redirect
   }
 

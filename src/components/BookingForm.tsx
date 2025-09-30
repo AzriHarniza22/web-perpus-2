@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useCreateBooking, type Room, type Booking } from '@/lib/api'
-import useAuthStore from '@/lib/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { motion } from 'framer-motion'
@@ -69,7 +69,7 @@ interface BookingFormProps {
 export default function BookingForm({ room, existingBookings }: BookingFormProps) {
   const router = useRouter()
 
-  const { user } = useAuthStore()
+  const { user, isAuthenticated } = useAuth()
   const createBookingMutation = useCreateBooking()
 
   // Local state for immediate UI updates
@@ -100,7 +100,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
 
   const onSubmit = async (data: BookingFormData) => {
     console.log(`BookingForm: onSubmit, user=${user ? user.id : 'null'}`)
-    if (!user) {
+    if (!isAuthenticated || !user) {
       form.setError('root', { message: 'Not authenticated' })
       return
     }

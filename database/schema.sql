@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   end_time TIMESTAMP WITH TIME ZONE NOT NULL,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'completed', 'cancelled')),
   event_description TEXT,
+  guest_count INTEGER,
   proposal_file TEXT, -- File URL if uploaded
   notes TEXT,
   letter TEXT,

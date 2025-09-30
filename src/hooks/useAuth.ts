@@ -46,10 +46,12 @@ export function useAuth(): UseAuthReturn {
     fetchUser: storeFetchUser
   } = useAuthStore()
 
-  // Auto-fetch user on mount
+  // Auto-fetch user only if no user exists
   useEffect(() => {
-    storeFetchUser()
-  }, [storeFetchUser])
+    if (!user) {
+      storeFetchUser()
+    }
+  }, [storeFetchUser, user])
 
   // Computed properties
   const isAuthenticated = !!user

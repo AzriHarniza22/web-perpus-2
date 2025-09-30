@@ -37,7 +37,7 @@ export default function LoginPage() {
   useEffect(() => {
     console.log('Login page: user state changed', { hasUser: !!user, userId: user?.id })
 
-    if (user) {
+    if (user && !isRedirecting) {
       // Check if email is confirmed
       if (!user.email_confirmed_at) {
         console.log('Login page: email not confirmed, redirecting to confirm', { email: user.email })
@@ -70,11 +70,11 @@ export default function LoginPage() {
       }
 
       checkRoleAndRedirect()
-    } else {
+    } else if (!user) {
       console.log('Login page: no user, staying on login')
       setIsRedirecting(false)
     }
-  }, [user, router])
+  }, [user, router, isRedirecting])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

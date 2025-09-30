@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, Users, Clock, CheckCircle, ArrowRight, Play, MapPin, Phone, Mail, Menu, X, Building, Award, Shield, Zap, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import { useCalendarBookings, useRooms, type Room } from '@/lib/api'
-import useAuthStore from '@/lib/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -48,7 +48,7 @@ const AnimatedCounter = ({ from, to, duration = 2, separator = ',' }: { from: nu
 }
 
 const HomePage = () => {
-  const { user, fetchUser, isLoading: authLoading } = useAuthStore()
+  const { user, isLoading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('home')
@@ -144,10 +144,12 @@ const HomePage = () => {
     })
   }
 
-  // Check auth on mount
+  // Set loading to false when auth is loaded
   useEffect(() => {
-    fetchUser().then(() => setLoading(false))
-  }, [fetchUser])
+    if (!authLoading) {
+      setLoading(false)
+    }
+  }, [authLoading])
 
   // Handle scroll for navbar
   useEffect(() => {
@@ -206,7 +208,7 @@ const HomePage = () => {
      redirectUser()
    }, [user, router])
 
-  if (loading || authLoading) {
+  if (loading) {
     return <Loading variant="fullscreen" message="Memuat Perpustakaan Aceh" />
   }
 

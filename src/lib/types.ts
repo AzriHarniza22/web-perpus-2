@@ -68,6 +68,7 @@ export interface Booking {
   end_time: string
   status: 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled'
   event_description: string | null
+  guest_count: number | null
   proposal_file: string | null
   notes: string | null
   letter: string | null

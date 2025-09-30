@@ -9,26 +9,26 @@ import BookingForm from '../../../components/BookingForm'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import { Loading } from '@/components/ui/loading'
-import useAuthStore from '@/lib/authStore'
+import { useAuth } from '@/hooks/useAuth'
 
 import { Room, Booking } from '@/lib/api'
 
 export default function BookRoomPage() {
   const params = useParams()
   const roomId = params.roomId as string
+  const { user, isLoading, isAuthenticated } = useAuth()
   const [room, setRoom] = useState<Room | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<User | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string>('')
   const [scale, setScale] = useState(1)
   const [initialDistance, setInitialDistance] = useState(0)
   const [initialScale, setInitialScale] = useState(1)
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
   const imageRef = useRef<HTMLImageElement>(null)
   const router = useRouter()
-  const { fetchUser } = useAuthStore()
 
   const getDistance = (touch1: Touch, touch2: Touch) => {
     return Math.sqrt(
@@ -37,18 +37,18 @@ export default function BookRoomPage() {
     )
   }
 
+  const handleImageError = (photo: string) => {
+    setImageErrors(prev => new Set(prev).add(photo))
+  }
+
+  const isImageValid = (photo: string) => {
+    return photo && !imageErrors.has(photo) && photo.trim() !== ''
+  }
+
   useEffect(() => {
-    const checkAuthAndFetchData = async () => {
-      // Check if user is authenticated
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      setUser(currentUser)
-
-      if (currentUser) {
-        await fetchUser()
-      }
-
-      if (!currentUser) {
-        router.push('/login')
+    const fetchData = async () => {
+      if (!isAuthenticated || !user) {
+        setLoading(false)
         return
       }
 
@@ -56,7 +56,7 @@ export default function BookRoomPage() {
       const { data: profile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('id', currentUser.id)
+        .eq('id', user.id)
         .single()
 
       if (!profile) {
@@ -64,11 +64,11 @@ export default function BookRoomPage() {
         await supabase
           .from('profiles')
           .insert({
-            id: currentUser.id,
-            email: currentUser.email,
-            full_name: currentUser.user_metadata?.full_name || '',
-            institution: currentUser.user_metadata?.institution || '',
-            phone: currentUser.user_metadata?.phone || '',
+            id: user.id,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || '',
+            institution: user.user_metadata?.institution || '',
+            phone: user.user_metadata?.phone || '',
           })
       }
 
@@ -98,10 +98,13 @@ export default function BookRoomPage() {
       setLoading(false)
     }
 
-    if (roomId) {
-      checkAuthAndFetchData()
+    if (roomId && isAuthenticated && user) {
+      fetchData()
+    } else if (!isLoading && !isAuthenticated) {
+      router.push('/login')
+      setLoading(false)
     }
-  }, [roomId, router, fetchUser])
+  }, [roomId, router, isAuthenticated, user, isLoading])
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
@@ -142,11 +145,11 @@ export default function BookRoomPage() {
     }
   }, [isModalOpen, scale, initialDistance, initialScale])
 
-  if (loading) {
+  if (isLoading || loading) {
     return <Loading variant="fullscreen" />
   }
 
-  if (!user || !room) {
+  if (!isAuthenticated || !user || !room) {
     return null // Will redirect
   }
 
@@ -183,16 +186,30 @@ export default function BookRoomPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {room.photos.map((photo, index) => (
                     <div key={index} className="relative aspect-video rounded-lg overflow-hidden shadow-md">
-                      <img
-                        src={photo}
-                        alt={`${room.name} - ${index + 1}`}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                        onClick={() => {
-                          setSelectedImage(photo)
-                          setIsModalOpen(true)
-                          setScale(1)
-                        }}
-                      />
+                      {isImageValid(photo) ? (
+                        <img
+                          src={photo}
+                          alt={`${room.name} - ${index + 1}`}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                          onError={() => handleImageError(photo)}
+                          onClick={() => {
+                            if (isImageValid(photo)) {
+                              setSelectedImage(photo)
+                              setIsModalOpen(true)
+                              setScale(1)
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                          <div className="text-center text-gray-500 dark:text-gray-400">
+                            <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <p className="text-sm">Gambar tidak tersedia</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -207,13 +224,26 @@ export default function BookRoomPage() {
                 }}
               >
                 <div className="relative max-w-full max-h-full p-4" onClick={e => e.stopPropagation()}>
-                  <img
-                    ref={imageRef}
-                    src={selectedImage}
-                    alt="Zoomed room image"
-                    className="max-w-full max-h-full object-contain"
-                    style={{ transform: `scale(${scale})`, transformOrigin: 'center' }}
-                  />
+                  {isImageValid(selectedImage) ? (
+                    <img
+                      ref={imageRef}
+                      src={selectedImage}
+                      alt="Zoomed room image"
+                      className="max-w-full max-h-full object-contain"
+                      style={{ transform: `scale(${scale})`, transformOrigin: 'center' }}
+                      onError={() => handleImageError(selectedImage)}
+                    />
+                  ) : (
+                    <div className="max-w-full max-h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg">
+                      <div className="text-center text-gray-500 dark:text-gray-400 p-8">
+                        <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p className="text-lg font-medium">Gambar tidak dapat dimuat</p>
+                        <p className="text-sm">Gambar mungkin telah dihapus atau URL tidak valid</p>
+                      </div>
+                    </div>
+                  )}
                   <button
                     className="absolute top-2 right-2 bg-white/75 rounded-full p-2 hover:bg-white transition"
                     onClick={() => {

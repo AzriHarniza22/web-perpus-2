@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
-import useAuthStore from '@/lib/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -93,16 +93,12 @@ export default function AnalyticsPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const { user, fetchUser } = useAuthStore()
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    fetchUser()
-  }, [fetchUser])
-
-  useEffect(() => {
     const checkAuth = async () => {
-      if (!user) {
+      if (!isAuthenticated || !user) {
         router.push('/login')
         return
       }
@@ -123,12 +119,15 @@ export default function AnalyticsPage() {
       setLoading(false)
     }
 
-    if (user) {
+    if (isAuthenticated && user) {
       checkAuth()
+    } else if (!authLoading && !isAuthenticated) {
+      router.push('/login')
+      setLoading(false)
     }
-  }, [user, router])
+  }, [isAuthenticated, user, router, authLoading])
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <Loading variant="skeleton">
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">

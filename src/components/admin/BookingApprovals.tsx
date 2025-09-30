@@ -8,11 +8,14 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { CheckCircle, XCircle, Clock, FileText, Users, Calendar, MapPin, Eye, File } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, FileText, Users, Calendar, MapPin, Eye, File, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export default function BookingApprovals() {
-  const { data: bookings = [], isLoading } = useBookings()
+  const [bookingType, setBookingType] = useState<'all' | 'room' | 'tour'>('all')
+  const { data: bookings = [], isLoading } = useBookings({
+    isTour: bookingType === 'tour' ? true : bookingType === 'room' ? false : undefined,
+  })
   const updateBookingStatusMutation = useUpdateBookingStatus()
 
   // Filter only pending bookings
@@ -59,6 +62,49 @@ export default function BookingApprovals() {
 
   return (
     <div className="space-y-6">
+      {/* Booking Type Filter */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Booking Approvals</h2>
+          <p className="text-muted-foreground">Review and approve pending bookings</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm font-medium">Filter:</span>
+          <div className="flex rounded-lg border">
+            <button
+              onClick={() => setBookingType('all')}
+              className={`px-3 py-1 text-sm font-medium ${
+                bookingType === 'all'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-background text-muted-foreground hover:bg-muted'
+              } rounded-l-lg border-r`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setBookingType('room')}
+              className={`px-3 py-1 text-sm font-medium ${
+                bookingType === 'room'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-background text-muted-foreground hover:bg-muted'
+              } border-r`}
+            >
+              Room Bookings
+            </button>
+            <button
+              onClick={() => setBookingType('tour')}
+              className={`px-3 py-1 text-sm font-medium ${
+                bookingType === 'tour'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-background text-muted-foreground hover:bg-muted'
+              } rounded-r-lg`}
+            >
+              Tour Bookings
+            </button>
+          </div>
+        </div>
+      </div>
+
       <AnimatePresence>
         {pendingBookings.map((booking, index) => (
           <motion.div
@@ -76,9 +122,13 @@ export default function BookingApprovals() {
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
                         <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mr-2">
-                          <MapPin className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                          {bookingType === 'tour' ? (
+                            <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                          ) : (
+                            <MapPin className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                          )}
                         </div>
-                        {booking.rooms?.name}
+                        {bookingType === 'tour' ? ((booking as any).tours?.name || 'Unknown Tour') : booking.rooms?.name}
                       </h3>
                       <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-xs">
                         <Clock className="w-3 h-3 mr-1" />
@@ -131,105 +181,157 @@ export default function BookingApprovals() {
                           </Button>
                         </motion.div>
                       </DialogTrigger>
-                      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader className="space-y-3">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                              <MapPin className="w-5 h-5 text-white" />
+                      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
+                        <DialogHeader className="space-y-4 pb-6 border-b border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                              <MapPin className="w-6 h-6 text-white" />
                             </div>
-                            <div>
-                              <DialogTitle className="text-xl font-bold">
+                            <div className="flex-1">
+                              <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                                 Detail Reservasi
                               </DialogTitle>
-                              <DialogDescription className="text-sm">
-                                {booking.rooms?.name} - Informasi lengkap permintaan reservasi
+                              <DialogDescription className="text-base text-gray-600 dark:text-gray-300 mt-1">
+                                Informasi lengkap permintaan reservasi - {booking.rooms?.name}
                               </DialogDescription>
+                            </div>
+                            <div className="text-right">
+                              <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800 px-3 py-1">
+                                <Clock className="w-3 h-3 mr-1" />
+                                Menunggu Approval
+                              </Badge>
                             </div>
                           </div>
                         </DialogHeader>
-                        <div className="space-y-4 mt-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                              <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
-                                <MapPin className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
-                                Ruangan
-                              </h4>
-                              <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{booking.rooms?.name}</p>
-                            </div>
-                            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                              <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
-                                <Users className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
-                                Pemohon
-                              </h4>
-                              <div className="flex items-center space-x-3">
-                                <Avatar className="w-8 h-8">
-                                  <AvatarImage src={booking.profiles?.profile_photo || undefined} alt={booking.profiles?.full_name} />
-                                  <AvatarFallback className="text-xs bg-gray-400 text-white">
-                                    {booking.profiles?.full_name ? booking.profiles.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{booking.profiles?.full_name}</p>
-                                  <p className="text-gray-600 dark:text-gray-400 text-xs">{booking.profiles?.email}</p>
+
+                        <div className="space-y-6 mt-6">
+                          {/* Basic Information Section */}
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-3">
+                                <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                              </div>
+                              Informasi Dasar
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
+                                <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
+                                  <MapPin className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+                                  Ruangan
+                                </h4>
+                                <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{booking.rooms?.name}</p>
+                              </div>
+                              <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
+                                <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
+                                  <Users className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
+                                  Pemohon
+                                </h4>
+                                <div className="flex items-center space-x-3">
+                                  <Avatar className="w-10 h-10">
+                                    <AvatarImage src={booking.profiles?.profile_photo || undefined} alt={booking.profiles?.full_name} />
+                                    <AvatarFallback className="text-sm bg-gradient-to-br from-purple-400 to-blue-500 text-white">
+                                      {booking.profiles?.full_name ? booking.profiles.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{booking.profiles?.full_name}</p>
+                                    <p className="text-gray-600 dark:text-gray-400 text-xs">{booking.profiles?.email}</p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                              <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
-                                <Calendar className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
-                                Waktu Mulai
-                              </h4>
-                              <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{formatDateTime(booking.start_time)}</p>
-                            </div>
-                            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                              <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
-                                <Clock className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
-                                Waktu Selesai
-                              </h4>
-                              <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{formatDateTime(booking.end_time)}</p>
+                              <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
+                                <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
+                                  <Users className="w-4 h-4 mr-2 text-green-600 dark:text-green-400" />
+                                  Jumlah Tamu
+                                </h4>
+                                <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">
+                                  {booking.guest_count ? `${booking.guest_count} orang` : 'Tidak ditentukan'}
+                                </p>
+                              </div>
                             </div>
                           </div>
 
+                          {/* Date & Time Section */}
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                              <div className="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center mr-3">
+                                <Calendar className="w-4 h-4 text-green-600 dark:text-green-400" />
+                              </div>
+                              Jadwal Reservasi
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
+                                  <Calendar className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+                                  Waktu Mulai
+                                </h4>
+                                <p className="text-gray-700 dark:text-gray-300 font-medium text-base">{formatDateTime(booking.start_time)}</p>
+                              </div>
+                              <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
+                                  <Clock className="w-4 h-4 mr-2 text-orange-600 dark:text-orange-400" />
+                                  Waktu Selesai
+                                </h4>
+                                <p className="text-gray-700 dark:text-gray-300 font-medium text-base">{formatDateTime(booking.end_time)}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Description Section */}
                           {booking.event_description && (
-                            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                              <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
-                                <FileText className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
+                            <div className="space-y-4">
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mr-3">
+                                  <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                </div>
                                 Deskripsi Kegiatan
-                              </h4>
-                              <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{booking.event_description}</p>
+                              </h3>
+                              <div className="bg-white dark:bg-gray-800/50 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{booking.event_description}</p>
+                              </div>
                             </div>
                           )}
 
+                          {/* Notes Section */}
                           {booking.notes && (
-                            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                              <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
-                                <FileText className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
+                            <div className="space-y-4">
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900/50 rounded-lg flex items-center justify-center mr-3">
+                                  <FileText className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                                </div>
                                 Catatan Tambahan
-                              </h4>
-                              <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{booking.notes}</p>
+                              </h3>
+                              <div className="bg-white dark:bg-gray-800/50 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{booking.notes}</p>
+                              </div>
                             </div>
                           )}
 
+                          {/* Proposal File Section */}
                           {booking.proposal_file && (
-                            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                              <h4 className="font-semibold text-sm mb-2 flex items-center text-gray-900 dark:text-gray-100">
-                                <File className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
-                                File Proposal
-                              </h4>
-                              <Button
-                                variant="outline"
-                                asChild
-                                className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-gray-400 transition-all"
-                              >
-                                <a
-                                  href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                            <div className="space-y-4">
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                <div className="w-8 h-8 bg-red-100 dark:bg-red-900/50 rounded-lg flex items-center justify-center mr-3">
+                                  <File className="w-4 h-4 text-red-600 dark:text-red-400" />
+                                </div>
+                                Dokumen Proposal
+                              </h3>
+                              <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <Button
+                                  variant="outline"
+                                  asChild
+                                  className="bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 dark:from-red-900/20 dark:to-pink-900/20 dark:hover:from-red-900/30 dark:hover:to-pink-900/30 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 transition-all"
                                 >
-                                  <File className="w-4 h-4 mr-2" />
-                                  Buka File Proposal
-                                </a>
-                              </Button>
+                                  <a
+                                    href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <File className="w-4 h-4 mr-2" />
+                                    Buka File Proposal
+                                  </a>
+                                </Button>
+                              </div>
                             </div>
                           )}
                         </div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
-import useAuthStore from '@/lib/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -26,18 +26,12 @@ export default function ReservationsPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const { user, isLoading: authLoading, fetchUser } = useAuthStore()
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    fetchUser()
-  }, [fetchUser])
-
-  useEffect(() => {
     const checkAuth = async () => {
-      if (authLoading) return // Wait for auth to load
-
-      if (!user) {
+      if (!isAuthenticated || !user) {
         router.push('/login')
         return
       }
@@ -58,8 +52,13 @@ export default function ReservationsPage() {
       setLoading(false)
     }
 
-    checkAuth()
-  }, [user, authLoading, router])
+    if (isAuthenticated && user) {
+      checkAuth()
+    } else if (!authLoading && !isAuthenticated) {
+      router.push('/login')
+      setLoading(false)
+    }
+  }, [isAuthenticated, user, router, authLoading])
 
   if (loading) {
     return (

@@ -34,6 +34,8 @@ interface FilterPanelProps {
   rooms: Room[]
   onClearFilters: () => void
   onApplyFilters: () => void
+  bookingType?: 'all' | 'room' | 'tour'
+  onBookingTypeChange?: (type: 'all' | 'room' | 'tour') => void
 }
 
 export function FilterPanel({
@@ -48,6 +50,8 @@ export function FilterPanel({
   rooms,
   onClearFilters,
   onApplyFilters,
+  bookingType = 'all',
+  onBookingTypeChange,
 }: FilterPanelProps) {
   const [isExpanded, setIsExpanded] = React.useState(true)
 
@@ -81,7 +85,7 @@ export function FilterPanel({
     }
   }
 
-  const hasActiveFilters = search || status.length > 0 || dateRange || roomIds.length > 0
+  const hasActiveFilters = search || status.length > 0 || dateRange || roomIds.length > 0 || bookingType !== 'all'
 
   return (
     <Card className="mb-6">
@@ -117,9 +121,26 @@ export function FilterPanel({
                 className="pl-9"
               />
             </div>
+
+            {/* Booking Type Filter */}
+            {onBookingTypeChange && (
+              <div className="space-y-2">
+                <Label>Booking Type</Label>
+                <Select value={bookingType} onValueChange={onBookingTypeChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All bookings" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Bookings</SelectItem>
+                    <SelectItem value="room">Room Bookings</SelectItem>
+                    <SelectItem value="tour">Tour Bookings</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Status Filter */}
             <div className="space-y-2">
               <Label>Status</Label>

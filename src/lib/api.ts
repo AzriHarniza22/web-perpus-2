@@ -21,9 +21,12 @@ export interface Booking {
   end_time: string
   status: string
   event_description?: string
+  guest_count?: number
   proposal_file?: string
   notes?: string
+  letter?: string
   created_at: string
+  updated_at?: string
 }
 
 export interface BookingWithRelations extends Booking {
@@ -39,6 +42,7 @@ export interface BookingWithRelations extends Booking {
     capacity?: number
     facilities?: string[]
   }
+  guest_count?: number
 }
 
 export interface Profile {
@@ -102,6 +106,7 @@ export const useBookings = (filters?: {
   limit?: number
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
+  isTour?: boolean
 }) => {
   const {
     status,
@@ -111,29 +116,57 @@ export const useBookings = (filters?: {
     page = 1,
     limit = 50,
     sortBy = 'created_at',
-    sortOrder = 'desc'
+    sortOrder = 'desc',
+    isTour
   } = filters || {}
 
   return useQuery<BookingWithRelations[]>({
     queryKey: ['bookings', filters],
     queryFn: async () => {
-      let query = supabase
-        .from('bookings')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            email,
-            institution,
-            role,
-            profile_photo
-          ),
-          rooms:room_id (
-            name,
-            capacity,
-            facilities
-          )
-        `, { count: 'exact' })
+      let query
+
+      if (isTour) {
+        // Use tour_bookings view for tour bookings
+        query = supabase
+          .from('tour_bookings')
+          .select(`
+            *,
+            profiles:user_id (
+              full_name,
+              email,
+              institution,
+              role,
+              profile_photo
+            ),
+            tours:tour_name (
+              name,
+              duration_minutes,
+              max_participants,
+              meeting_point,
+              guide_name,
+              guide_contact
+            )
+          `, { count: 'exact' })
+      } else {
+        // Use regular bookings table for room bookings
+        query = supabase
+          .from('bookings')
+          .select(`
+            *,
+            profiles:user_id (
+              full_name,
+              email,
+              institution,
+              role,
+              profile_photo
+            ),
+            rooms:room_id (
+              name,
+              capacity,
+              facilities
+            )
+          `, { count: 'exact' })
+      }
 
       // Apply status filter
       if (status && status.length > 0) {

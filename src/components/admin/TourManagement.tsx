@@ -2,9 +2,9 @@
 
 import * as React from 'react'
 import { DateRange } from 'react-day-picker'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, Sparkles } from 'lucide-react'
 
-import { useBookings, useUpdateBookingStatus, useRooms } from '@/lib/api'
+import { useBookings, useUpdateBookingStatus } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -14,8 +14,33 @@ import { FilterPanel } from '@/components/ui/filter-panel'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { BookingWithRelations } from '@/lib/api'
 
-// Function to auto-complete expired approved bookings
-const autoCompleteExpiredBookings = async (bookings: BookingWithRelations[]) => {
+// Mock tour data - in real implementation, this would come from API
+const mockTours = [
+  {
+    id: 'tour-1',
+    name: 'Library Heritage Tour',
+    description: 'Explore the rich history and architecture of our historic library building',
+    duration: 90,
+    maxParticipants: 15,
+  },
+  {
+    id: 'tour-2',
+    name: 'Digital Archives Tour',
+    description: 'Discover our extensive digital collection and research resources',
+    duration: 60,
+    maxParticipants: 10,
+  },
+  {
+    id: 'tour-3',
+    name: 'Children\'s Literature Tour',
+    description: 'A fun and educational tour of our children\'s literature collection',
+    duration: 45,
+    maxParticipants: 20,
+  },
+]
+
+// Function to auto-complete expired approved tour bookings
+const autoCompleteExpiredTourBookings = async (bookings: BookingWithRelations[]) => {
   const now = new Date()
   const expiredApprovedBookings = bookings.filter(booking =>
     booking.status === 'approved' &&
@@ -35,13 +60,12 @@ const autoCompleteExpiredBookings = async (bookings: BookingWithRelations[]) => 
   await Promise.all(updatePromises)
 }
 
-export default function BookingManagement() {
+export default function TourManagement() {
   // Filter states
   const [search, setSearch] = React.useState('')
   const [status, setStatus] = React.useState<string[]>([])
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>()
-  const [roomIds, setRoomIds] = React.useState<string[]>([])
-  const [bookingType, setBookingType] = React.useState<'all' | 'room' | 'tour'>('all')
+  const [tourIds, setTourIds] = React.useState<string[]>([])
 
   // Pagination and sorting
   const [currentPage, setCurrentPage] = React.useState(1)
@@ -55,43 +79,48 @@ export default function BookingManagement() {
     end: dateRange.to.toISOString()
   } : undefined
 
-  // Fetch data (without search - we'll filter client-side)
+  // Fetch all bookings first, then filter for tours
   const { data: allBookings = [], isLoading } = useBookings({
     status: status.length > 0 ? status : undefined,
     dateRange: apiDateRange,
-    roomIds: roomIds.length > 0 ? roomIds : undefined,
     page: currentPage,
     limit: pageSize,
     sortBy: sortKey,
     sortOrder: sortDirection,
-    isTour: bookingType === 'tour' ? true : bookingType === 'room' ? false : undefined,
   })
+
+  // Filter for tour bookings (identified by having tour-like event descriptions)
+  const tourBookings = React.useMemo(() => {
+    return allBookings.filter(booking =>
+      booking.event_description?.includes('Tour:') ||
+      booking.rooms?.name?.includes('Tour') ||
+      booking.notes?.includes('Meeting Point:')
+    )
+  }, [allBookings])
 
   // Client-side search filtering
   const bookings = React.useMemo(() => {
-    if (!search.trim()) return allBookings
+    if (!search.trim()) return tourBookings
 
     const searchLower = search.toLowerCase().trim()
-    return allBookings.filter(booking =>
+    return tourBookings.filter(booking =>
       booking.event_description?.toLowerCase().includes(searchLower) ||
       booking.notes?.toLowerCase().includes(searchLower) ||
       booking.profiles?.full_name?.toLowerCase().includes(searchLower) ||
-      booking.profiles?.email?.toLowerCase().includes(searchLower) ||
-      booking.rooms?.name?.toLowerCase().includes(searchLower)
+      booking.profiles?.email?.toLowerCase().includes(searchLower)
     )
-  }, [allBookings, search])
+  }, [tourBookings, search])
 
-  // Auto-complete expired approved bookings
+  // Auto-complete expired approved tour bookings
   React.useEffect(() => {
-    if (allBookings.length > 0) {
-      autoCompleteExpiredBookings(allBookings).then(() => {
+    if (tourBookings.length > 0) {
+      autoCompleteExpiredTourBookings(tourBookings).then(() => {
         // Invalidate and refetch bookings after updating expired ones
         // This will be handled by React Query's cache invalidation
       }).catch(console.error)
     }
-  }, [allBookings])
+  }, [tourBookings])
 
-  const { data: rooms = [] } = useRooms()
   const updateBookingStatusMutation = useUpdateBookingStatus()
 
   const updateBookingStatus = (id: string, status: string) => {
@@ -118,12 +147,17 @@ export default function BookingManagement() {
     }
   }
 
+  const getTourInfo = (booking: BookingWithRelations) => {
+    // Extract tour name from event description or use a default
+    const tourName = booking.event_description?.replace('Tour: ', '').split(' - ')[0] || 'Unknown Tour'
+    return mockTours.find(tour => tour.name === tourName) || mockTours[0]
+  }
+
   const handleClearFilters = () => {
     setSearch('')
     setStatus([])
     setDateRange(undefined)
-    setRoomIds([])
-    setBookingType('all')
+    setTourIds([])
     setCurrentPage(1)
   }
 
@@ -149,53 +183,37 @@ export default function BookingManagement() {
     {
       key: 'date',
       header: 'Date & Time',
-      render: (booking: BookingWithRelations) => (
-        <div>
-          <div className="font-medium">
-            {formatDateTime(booking.start_time)}
+      render: (booking: BookingWithRelations) => {
+        const tourInfo = getTourInfo(booking)
+        return (
+          <div>
+            <div className="font-medium">
+              {formatDateTime(booking.start_time)}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              to {formatDateTime(booking.end_time)} • {tourInfo.duration}min
+            </div>
           </div>
-          <div className="text-sm text-muted-foreground">
-            to {formatDateTime(booking.end_time)}
-          </div>
-        </div>
-      ),
+        )
+      },
       sortable: true,
     },
     {
-      key: 'room',
-      header: bookingType === 'tour' ? 'Tour' : 'Room',
+      key: 'tour',
+      header: 'Tour',
       render: (booking: BookingWithRelations) => {
-        if (bookingType === 'tour') {
-          // For tour bookings, show tour information
-          const tourInfo = (booking as any).tours
-          return (
-            <div>
-              <div className="font-medium">{tourInfo?.name || 'Unknown Tour'}</div>
-              {tourInfo?.guide_name && (
-                <div className="text-sm text-muted-foreground">
-                  Guide: {tourInfo.guide_name}
-                </div>
-              )}
-              {tourInfo?.meeting_point && (
-                <div className="text-sm text-muted-foreground">
-                  Meeting Point: {tourInfo.meeting_point}
-                </div>
-              )}
+        const tourInfo = getTourInfo(booking)
+        return (
+          <div>
+            <div className="font-medium flex items-center">
+              <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
+              {tourInfo.name}
             </div>
-          )
-        } else {
-          // For room bookings, show room information
-          return (
-            <div>
-              <div className="font-medium">{booking.rooms?.name}</div>
-              {booking.rooms?.capacity && (
-                <div className="text-sm text-muted-foreground">
-                  Capacity: {booking.rooms.capacity}
-                </div>
-              )}
+            <div className="text-sm text-muted-foreground">
+              Max {tourInfo.maxParticipants} participants
             </div>
-          )
-        }
+          </div>
+        )
       },
       sortable: false,
     },
@@ -218,6 +236,16 @@ export default function BookingManagement() {
       sortable: false,
     },
     {
+      key: 'participants',
+      header: 'Participants',
+      render: (booking: BookingWithRelations) => (
+        <div className="font-medium">
+          {booking.guest_count ? `${booking.guest_count} people` : 'Not specified'}
+        </div>
+      ),
+      sortable: false,
+    },
+    {
       key: 'status',
       header: 'Status',
       render: (booking: BookingWithRelations) => (
@@ -229,19 +257,19 @@ export default function BookingManagement() {
     },
     {
       key: 'event',
-      header: 'Event',
+      header: 'Details',
       render: (booking: BookingWithRelations) => (
         <div className="max-w-xs">
           {booking.event_description ? (
             <div className="truncate" title={booking.event_description}>
-              {booking.event_description}
+              {booking.event_description.replace('Tour: ', '').split(' - ')[1] || booking.event_description}
             </div>
           ) : (
             <span className="text-muted-foreground">-</span>
           )}
           {booking.notes && (
             <div className="text-xs text-muted-foreground mt-1 truncate" title={booking.notes}>
-              Notes: {booking.notes}
+              {booking.notes}
             </div>
           )}
         </div>
@@ -260,7 +288,7 @@ export default function BookingManagement() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                View Proposal
+                View Document
               </a>
             </Button>
           )}
@@ -310,8 +338,8 @@ export default function BookingManagement() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Reservations Management</h1>
-            <p className="text-muted-foreground">View, filter, and manage all room reservations</p>
+            <h1 className="text-3xl font-bold">Tour Management</h1>
+            <p className="text-muted-foreground">View, filter, and manage all library tours</p>
           </div>
           <Button variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -326,13 +354,11 @@ export default function BookingManagement() {
           onStatusChange={setStatus}
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
-          roomIds={roomIds}
-          onRoomIdsChange={setRoomIds}
-          rooms={rooms}
+          roomIds={tourIds}
+          onRoomIdsChange={setTourIds}
+          rooms={[]} // Empty array for tour management since we don't filter by rooms
           onClearFilters={handleClearFilters}
           onApplyFilters={handleApplyFilters}
-          bookingType={bookingType}
-          onBookingTypeChange={setBookingType}
         />
 
         <div className="space-y-4">
@@ -352,8 +378,8 @@ export default function BookingManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Reservations Management</h1>
-          <p className="text-muted-foreground">View, filter, and manage all room reservations</p>
+          <h1 className="text-3xl font-bold">Tour Management</h1>
+          <p className="text-muted-foreground">View, filter, and manage all library tours</p>
         </div>
         <Button variant="outline" size="sm">
           <RefreshCw className="h-4 w-4 mr-2" />
@@ -368,13 +394,11 @@ export default function BookingManagement() {
         onStatusChange={setStatus}
         dateRange={dateRange}
         onDateRangeChange={setDateRange}
-        roomIds={roomIds}
-        onRoomIdsChange={setRoomIds}
-        rooms={rooms}
+        roomIds={tourIds}
+        onRoomIdsChange={setTourIds}
+        rooms={[]} // Empty array for tour management since we don't filter by rooms
         onClearFilters={handleClearFilters}
         onApplyFilters={handleApplyFilters}
-        bookingType={bookingType}
-        onBookingTypeChange={setBookingType}
       />
 
       <DataTable
@@ -391,7 +415,10 @@ export default function BookingManagement() {
 
       {bookings.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground text-lg">No reservations found</p>
+          <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+          </div>
+          <p className="text-muted-foreground text-lg">No tour bookings found</p>
           <p className="text-sm text-muted-foreground mt-2">
             Try adjusting your filters or search terms
           </p>

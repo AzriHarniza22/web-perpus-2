@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { Calendar, History, LogOut, User as UserIcon, BookOpen, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { Calendar, History, LogOut, User as UserIcon, BookOpen, ChevronLeft, ChevronRight, Sparkles, MapPin } from 'lucide-react'
 
 interface UserSidebarProps {
   className?: string
@@ -27,6 +27,12 @@ export default function UserSidebar({ className, onToggle }: UserSidebarProps) {
       label: 'Pesan Ruangan',
       icon: BookOpen,
       active: pathname === '/book' || pathname.startsWith('/book/')
+    },
+    {
+      href: '/book-tour',
+      label: 'Pesan Tour',
+      icon: MapPin,
+      active: pathname === '/book-tour' || pathname.startsWith('/book-tour/')
     },
     {
       href: '/history',
