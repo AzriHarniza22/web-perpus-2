@@ -35,7 +35,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
         success: false,
         error: 'Service role key not configured',
         details: 'SUPABASE_SERVICE_ROLE_KEY is missing from environment variables'
-      } as ApiResponse, { status: 500 })
+      } as ApiResponse<RegistrationResponse>, { status: 500 })
     }
 
     // 3. Register user (regular auth)
@@ -49,18 +49,19 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     if (authError || !authData.user) {
       const error = handleError(authError || new Error('User creation failed'))
-      return NextResponse.json(formatErrorResponse(error), { status: error.statusCode })
+      return NextResponse.json(formatErrorResponse(error) as ApiResponse<RegistrationResponse>, { status: error.statusCode })
     }
 
     console.log('✅ User registered:', authData.user.id)
 
     // 4. Create profile using service role (bypass RLS completely)
     const profileData = await dbHelpers.createProfile(supabaseAdmin, {
-      id: authData.user.id,
       email: sanitizedData.email,
       full_name: sanitizedData.fullName,
       institution: sanitizedData.institution,
       phone: sanitizedData.phone,
+      profile_photo: null,
+      role: 'user',
     })
 
     console.log('✅ Registration and profile creation successful')
@@ -80,6 +81,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
   } catch (error) {
     const appError = handleError(error)
-    return NextResponse.json(formatErrorResponse(appError), { status: appError.statusCode })
+    return NextResponse.json(formatErrorResponse(appError) as ApiResponse<RegistrationResponse>, { status: appError.statusCode })
   }
 }
