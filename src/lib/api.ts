@@ -34,6 +34,7 @@ export interface BookingWithRelations extends Booking {
     full_name: string
     email: string
     institution?: string
+    phone?: string
     role?: string
     profile_photo?: string
   }
@@ -123,62 +124,34 @@ export const useBookings = (filters?: {
   return useQuery<BookingWithRelations[]>({
     queryKey: ['bookings', filters],
     queryFn: async () => {
-      let query
-
-      // Use regular bookings table for all bookings
-      query = supabase
-        .from('bookings')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            email,
-            institution,
-            role,
-            profile_photo
-          ),
-          rooms:room_id (
-            name,
-            capacity,
-            facilities
-          )
-        `, { count: 'exact' })
-
-      // Apply status filter
-      if (status && status.length > 0) {
-        query = query.in('status', status)
-      }
-
-      // Apply date range filter (on created_at)
+      // Build query parameters
+      const params = new URLSearchParams()
+      if (status && status.length > 0) params.set('status', status.join(','))
       if (dateRange) {
-        query = query
-          .gte('created_at', dateRange.start)
-          .lte('created_at', dateRange.end)
+        params.set('dateRangeStart', dateRange.start)
+        params.set('dateRangeEnd', dateRange.end)
+      }
+      if (roomIds && roomIds.length > 0) params.set('roomIds', roomIds.join(','))
+      if (search && search.trim()) params.set('search', search.trim())
+      params.set('page', page.toString())
+      params.set('limit', limit.toString())
+      params.set('sortBy', sortBy)
+      params.set('sortOrder', sortOrder)
+
+      const response = await fetch(`/api/bookings?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to fetch bookings')
       }
 
-      // Apply room filter
-      if (roomIds && roomIds.length > 0) {
-        query = query.in('room_id', roomIds)
-      }
-
-      // Apply search filter
-      if (search && search.trim()) {
-        const searchTerm = search.trim()
-        query = query.or(`event_description.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`)
-      }
-
-      // Apply sorting
-      query = query.order(sortBy, { ascending: sortOrder === 'asc' })
-
-      // Apply pagination
-      const from = (page - 1) * limit
-      const to = from + limit - 1
-      query = query.range(from, to)
-
-      const { data, error } = await query
-
-      if (error) throw error
-      return data || []
+      const result = await response.json()
+      return result.bookings || []
     },
   })
 }
@@ -291,13 +264,20 @@ export const useRooms = () => {
   return useQuery({
     queryKey: ['rooms'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('rooms')
-        .select('*')
-        .order('name')
+      const response = await fetch('/api/rooms', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
 
-      if (error) throw error
-      return data || []
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to fetch rooms')
+      }
+
+      const result = await response.json()
+      return result.rooms || []
     },
   })
 }

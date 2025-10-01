@@ -184,7 +184,7 @@ export default function AdminHistoryPage() {
           animate={{ opacity: 1, y: 0 }}
           className="p-6"
         >
-          <UnifiedBookingManagement />
+          <UnifiedBookingManagement readonly={true} />
         </motion.div>
       </main>
     </div>

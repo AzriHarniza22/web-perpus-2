@@ -38,6 +38,7 @@ export default function BookRoomPage() {
             .from('rooms')
             .select('*')
             .eq('is_active', true)
+            .neq('name', 'Library Tour')
             .order('name')
 
           if (error) {

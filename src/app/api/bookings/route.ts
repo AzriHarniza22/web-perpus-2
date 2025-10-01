@@ -2,6 +2,109 @@ import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNewBookingNotificationToAdmin } from '@/lib/email'
 
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              request.cookies.set({ name, value, ...options })
+            })
+          },
+        },
+      }
+    )
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Parse query parameters
+    const url = new URL(request.url)
+    const status = url.searchParams.get('status')?.split(',')
+    const dateRangeStart = url.searchParams.get('dateRangeStart')
+    const dateRangeEnd = url.searchParams.get('dateRangeEnd')
+    const roomIds = url.searchParams.get('roomIds')?.split(',')
+    const search = url.searchParams.get('search')
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = parseInt(url.searchParams.get('limit') || '50')
+    const sortBy = url.searchParams.get('sortBy') || 'created_at'
+    const sortOrder = url.searchParams.get('sortOrder') || 'desc'
+    const isTour = url.searchParams.get('isTour')
+
+    let query = supabase
+      .from('bookings')
+      .select(`
+        *,
+        profiles:user_id (
+          full_name,
+          email,
+          institution,
+          role,
+          profile_photo
+        ),
+        rooms:room_id (
+          name,
+          capacity,
+          facilities
+        )
+      `, { count: 'exact' })
+
+    // Apply filters
+    if (status && status.length > 0 && status[0] !== '') {
+      query = query.in('status', status)
+    }
+
+    if (dateRangeStart && dateRangeEnd) {
+      query = query
+        .gte('created_at', dateRangeStart)
+        .lte('created_at', dateRangeEnd)
+    }
+
+    if (roomIds && roomIds.length > 0 && roomIds[0] !== '') {
+      query = query.in('room_id', roomIds)
+    }
+
+    if (search && search.trim()) {
+      const searchTerm = search.trim()
+      query = query.or(`event_description.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`)
+    }
+
+    // Apply sorting
+    query = query.order(sortBy, { ascending: sortOrder === 'asc' })
+
+    // Apply pagination
+    const from = (page - 1) * limit
+    const to = from + limit - 1
+    query = query.range(from, to)
+
+    const { data: bookings, error, count } = await query
+
+    if (error) {
+      console.error('Bookings fetch error:', error)
+      return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      bookings: bookings || [],
+      totalCount: count || 0,
+      currentPage: page,
+      totalPages: Math.ceil((count || 0) / limit)
+    })
+  } catch (error) {
+    console.error('API error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = createServerClient(

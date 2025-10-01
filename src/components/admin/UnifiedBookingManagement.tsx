@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { DateRange } from 'react-day-picker'
-import { RefreshCw, History, Filter, FileText, Sparkles } from 'lucide-react'
+import { RefreshCw, History, Filter, FileText, Sparkles, Eye } from 'lucide-react'
 
 import { useBookings, useUpdateBookingStatus, useRooms } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DataTable } from '@/components/ui/data-table'
 import { FilterPanel } from '@/components/ui/filter-panel'
 import { Skeleton } from '@/components/ui/skeleton'
+import BookingDetailModal from '@/components/admin/BookingDetailModal'
 import type { BookingWithRelations } from '@/lib/api'
 
 // Function to auto-complete expired approved bookings
@@ -35,7 +36,11 @@ const autoCompleteExpiredBookings = async (bookings: BookingWithRelations[]) => 
   await Promise.all(updatePromises)
 }
 
-export default function UnifiedBookingManagement() {
+interface UnifiedBookingManagementProps {
+  readonly?: boolean;
+}
+
+export default function UnifiedBookingManagement({ readonly = false }: UnifiedBookingManagementProps) {
   // Filter states
   const [search, setSearch] = React.useState('')
   const [status, setStatus] = React.useState<string[]>([])
@@ -48,6 +53,10 @@ export default function UnifiedBookingManagement() {
   const [pageSize, setPageSize] = React.useState(10)
   const [sortKey, setSortKey] = React.useState<string>('created_at')
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('desc')
+
+  // Modal state
+  const [detailModalOpen, setDetailModalOpen] = React.useState(false)
+  const [selectedBooking, setSelectedBooking] = React.useState<BookingWithRelations | null>(null)
 
   // Convert date range to API format
   const apiDateRange = dateRange?.from && dateRange?.to ? {
@@ -184,6 +193,11 @@ export default function UnifiedBookingManagement() {
     setCurrentPage(1)
   }
 
+  const handleViewDetails = (booking: BookingWithRelations) => {
+    setSelectedBooking(booking)
+    setDetailModalOpen(true)
+  }
+
   const columns = [
     {
       key: 'type',
@@ -306,56 +320,95 @@ export default function UnifiedBookingManagement() {
     {
       key: 'actions',
       header: 'Actions',
-      render: (booking: BookingWithRelations) => (
-        <div className="flex items-center space-x-2">
-          {booking.proposal_file && (
-            <Button variant="outline" size="sm" asChild>
-              <a
-                href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View Proposal
-              </a>
-            </Button>
-          )}
-
-          {booking.status === 'pending' ? (
-            <div className="flex space-x-1">
+      render: (booking: BookingWithRelations) => {
+        if (readonly) {
+          return (
+            <div className="flex items-center space-x-2">
               <Button
+                variant="outline"
                 size="sm"
-                onClick={() => updateBookingStatus(booking.id, 'approved')}
-                className="bg-green-600 hover:bg-green-700"
+                onClick={() => handleViewDetails(booking)}
+                className="flex items-center"
               >
-                Approve
+                <Eye className="w-4 h-4 mr-2" />
+                Lihat Detail
               </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => updateBookingStatus(booking.id, 'rejected')}
-              >
-                Reject
-              </Button>
+              {booking.proposal_file && (
+                <Button variant="outline" size="sm" asChild>
+                  <a
+                    href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View Proposal
+                  </a>
+                </Button>
+              )}
             </div>
-          ) : (
-            <Select
-              value={booking.status}
-              onValueChange={(value) => updateBookingStatus(booking.id, value)}
+          )
+        }
+
+        return (
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleViewDetails(booking)}
+              className="flex items-center"
             >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-      ),
+              <Eye className="w-4 h-4 mr-2" />
+              Lihat Detail
+            </Button>
+
+            {booking.proposal_file && (
+              <Button variant="outline" size="sm" asChild>
+                <a
+                  href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View Proposal
+                </a>
+              </Button>
+            )}
+
+            {booking.status === 'pending' ? (
+              <div className="flex space-x-1">
+                <Button
+                  size="sm"
+                  onClick={() => updateBookingStatus(booking.id, 'approved')}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Approve
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => updateBookingStatus(booking.id, 'rejected')}
+                >
+                  Reject
+                </Button>
+              </div>
+            ) : (
+              <Select
+                value={booking.status}
+                onValueChange={(value) => updateBookingStatus(booking.id, value)}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        )
+      },
       sortable: false,
     },
   ]
@@ -500,6 +553,13 @@ export default function UnifiedBookingManagement() {
           </p>
         </div>
       )}
+
+      <BookingDetailModal
+        booking={selectedBooking}
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        context="history"
+      />
     </div>
   )
 }
