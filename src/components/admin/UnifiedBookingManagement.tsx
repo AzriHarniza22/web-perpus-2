@@ -51,7 +51,7 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
   // Pagination and sorting
   const [currentPage, setCurrentPage] = React.useState(1)
   const [pageSize, setPageSize] = React.useState(10)
-  const [sortKey, setSortKey] = React.useState<string>('created_at')
+  const [sortKey, setSortKey] = React.useState<string>('submitted_date')
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('desc')
 
   // Modal state
@@ -64,6 +64,22 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
     end: dateRange.to.toISOString()
   } : undefined
 
+  // Map column keys to API field names
+  const getApiSortField = (columnKey: string) => {
+    switch (columnKey) {
+      case 'submitted_date':
+        return 'created_at'
+      case 'reservation_date':
+        return 'start_time'
+      case 'accepted_date':
+        return 'updated_at'
+      case 'status':
+        return 'status'
+      default:
+        return 'created_at'
+    }
+  }
+
   // Fetch data based on booking view
   const { data: bookingsData, isLoading } = useBookings({
     status: status.length > 0 ? status : undefined,
@@ -71,7 +87,7 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
     roomIds: roomIds.length > 0 ? roomIds : undefined,
     page: currentPage,
     limit: pageSize,
-    sortBy: sortKey,
+    sortBy: getApiSortField(sortKey),
     sortOrder: sortDirection,
     isTour: bookingView === 'tour' ? true : bookingView === 'room' ? false : undefined,
   })
@@ -220,8 +236,18 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
       sortable: false,
     },
     {
-      key: 'date',
-      header: 'Date & Time',
+      key: 'submitted_date',
+      header: 'Tanggal Diajukan',
+      render: (booking: BookingWithRelations) => (
+        <div className="font-medium">
+          {formatDateTime(booking.created_at)}
+        </div>
+      ),
+      sortable: true,
+    },
+    {
+      key: 'reservation_date',
+      header: 'Tanggal Reservasi',
       render: (booking: BookingWithRelations) => (
         <div>
           <div className="font-medium">
@@ -232,6 +258,22 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
           </div>
         </div>
       ),
+      sortable: true,
+    },
+    {
+      key: 'accepted_date',
+      header: 'Tanggal Diterima',
+      render: (booking: BookingWithRelations) => {
+        // For accepted bookings, show when they were approved
+        if (booking.status === 'approved' || booking.status === 'completed') {
+          return (
+            <div className="font-medium text-green-600">
+              {formatDateTime(booking.updated_at || booking.created_at)}
+            </div>
+          )
+        }
+        return <span className="text-muted-foreground">-</span>
+      },
       sortable: true,
     },
     {
@@ -531,6 +573,50 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
         bookingType={bookingView}
         onBookingTypeChange={setBookingView}
       />
+
+      {/* Sorting Controls */}
+      <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <div className="flex items-center space-x-2">
+          <label className="text-sm font-medium">Sort by:</label>
+          <Select value={sortKey} onValueChange={(value) => handleSortingChange(value, sortDirection)}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Select field to sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="submitted_date">Tanggal Diajukan</SelectItem>
+              <SelectItem value="reservation_date">Tanggal Reservasi</SelectItem>
+              <SelectItem value="accepted_date">Tanggal Diterima</SelectItem>
+              <SelectItem value="status">Status</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <label className="text-sm font-medium">Order:</label>
+          <Select value={sortDirection} onValueChange={(value: 'asc' | 'desc') => handleSortingChange(sortKey, value)}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="asc">Ascending</SelectItem>
+              <SelectItem value="desc">Descending</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {(sortKey !== 'submitted_date' || sortDirection !== 'desc') && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSortKey('submitted_date')
+              setSortDirection('desc')
+            }}
+          >
+            Reset Sort
+          </Button>
+        )}
+      </div>
 
       <DataTable
         columns={columns}
