@@ -80,7 +80,7 @@ export default function TourManagement() {
   } : undefined
 
   // Fetch all bookings first, then filter for tours
-  const { data: allBookings = [], isLoading } = useBookings({
+  const { data: bookingsData, isLoading } = useBookings({
     status: status.length > 0 ? status : undefined,
     dateRange: apiDateRange,
     page: currentPage,
@@ -88,6 +88,8 @@ export default function TourManagement() {
     sortBy: sortKey,
     sortOrder: sortDirection,
   })
+
+  const allBookings = bookingsData?.bookings || []
 
   // Filter for tour bookings (identified by having tour-like event descriptions)
   const tourBookings = React.useMemo(() => {
@@ -411,6 +413,7 @@ export default function TourManagement() {
         onPageChange={handlePageChange}
         sortKey={sortKey}
         sortDirection={sortDirection}
+        totalItems={bookingsData?.totalCount || 0}
       />
 
       {bookings.length === 0 && (

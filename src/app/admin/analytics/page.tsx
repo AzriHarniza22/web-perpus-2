@@ -265,7 +265,8 @@ function AnalyticsContent() {
   const [selectedRooms, setSelectedRooms] = useState<string[]>([])
 
   const { data: rooms } = useRooms()
-  const { data: bookings } = useBookings()
+  const { data: bookingsData } = useBookings()
+  const bookings = bookingsData?.bookings || []
   const { data: notificationStats } = useNotificationStats()
 
   const dateRangeParam = dateRange?.from && dateRange?.to ? {

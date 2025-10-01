@@ -28,7 +28,8 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ profile }: AdminDashboardProps) {
-  const { data: bookings = [], isLoading: bookingsLoading } = useBookings()
+  const { data: bookingsData, isLoading: bookingsLoading } = useBookings()
+  const bookings = bookingsData?.bookings || []
   const { data: rooms = [], isLoading: roomsLoading } = useRooms()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 

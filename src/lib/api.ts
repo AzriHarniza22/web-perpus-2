@@ -121,7 +121,12 @@ export const useBookings = (filters?: {
     isTour
   } = filters || {}
 
-  return useQuery<BookingWithRelations[]>({
+  return useQuery<{
+    bookings: BookingWithRelations[]
+    totalCount: number
+    currentPage: number
+    totalPages: number
+  }>({
     queryKey: ['bookings', filters],
     queryFn: async () => {
       // Build query parameters
@@ -151,7 +156,12 @@ export const useBookings = (filters?: {
       }
 
       const result = await response.json()
-      return result.bookings || []
+      return {
+        bookings: result.bookings || [],
+        totalCount: result.totalCount || 0,
+        currentPage: result.currentPage || 1,
+        totalPages: result.totalPages || 1
+      }
     },
   })
 }

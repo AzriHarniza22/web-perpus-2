@@ -160,8 +160,13 @@ export function DataTable<T extends { id: string }>({
         </div>
 
         <div className="flex items-center space-x-2">
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Page {currentPage} of {totalPages}
+          <div className="flex w-[120px] items-center justify-center text-sm font-medium">
+            {(() => {
+              const totalItemsCount = totalItems || 0;
+              const startItem = totalItemsCount > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+              const endItem = totalItemsCount > 0 ? Math.min(currentPage * pageSize, totalItemsCount) : 0;
+              return `${startItem}-${endItem} of ${totalItemsCount}`;
+            })()}
           </div>
           <div className="flex items-center space-x-2">
             <Button

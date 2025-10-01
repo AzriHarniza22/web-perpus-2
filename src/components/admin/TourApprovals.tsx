@@ -46,7 +46,8 @@ const mockTours = [
 ]
 
 export default function TourApprovals() {
-  const { data: bookings = [], isLoading } = useBookings()
+  const { data: bookingsData, isLoading } = useBookings()
+  const bookings = bookingsData?.bookings || []
   const updateBookingStatusMutation = useUpdateBookingStatus()
 
   // Filter only pending tour bookings (tour bookings are identified by having tour-like event descriptions)

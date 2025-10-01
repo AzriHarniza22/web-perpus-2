@@ -65,7 +65,7 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
   } : undefined
 
   // Fetch data based on booking view
-  const { data: allBookings = [], isLoading } = useBookings({
+  const { data: bookingsData, isLoading } = useBookings({
     status: status.length > 0 ? status : undefined,
     dateRange: apiDateRange,
     roomIds: roomIds.length > 0 ? roomIds : undefined,
@@ -75,6 +75,8 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
     sortOrder: sortDirection,
     isTour: bookingView === 'tour' ? true : bookingView === 'room' ? false : undefined,
   })
+
+  const allBookings = bookingsData?.bookings || []
 
   // Filter bookings based on view selection
   const bookings = React.useMemo(() => {
@@ -540,6 +542,7 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
         onPageChange={handlePageChange}
         sortKey={sortKey}
         sortDirection={sortDirection}
+        totalItems={bookingsData?.totalCount || 0}
       />
 
       {filteredBookings.length === 0 && (

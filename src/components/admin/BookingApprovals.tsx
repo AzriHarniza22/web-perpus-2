@@ -43,7 +43,8 @@ export default function BookingApprovals() {
   const [bookingType, setBookingType] = useState<'all' | 'room' | 'tour'>('all')
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<BookingWithRelations | null>(null)
-  const { data: bookings = [], isLoading } = useBookings()
+  const { data: bookingsData, isLoading } = useBookings()
+  const bookings = bookingsData?.bookings || []
   const updateBookingStatusMutation = useUpdateBookingStatus()
 
   // Helper function to determine booking type based on data
