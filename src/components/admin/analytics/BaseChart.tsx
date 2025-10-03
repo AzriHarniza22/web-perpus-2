@@ -1,0 +1,347 @@
+'use client'
+
+import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+} from 'chart.js'
+import { Line, Bar, Scatter } from 'react-chartjs-2'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { LucideIcon } from 'lucide-react'
+
+// Register Chart.js components once to avoid duplication
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+)
+
+export type ChartType = 'line' | 'bar' | 'scatter'
+export type ViewMode = 'monthly' | 'daily' | 'weekly'
+
+export interface BaseChartProps {
+  title: string
+  description: string
+  icon?: LucideIcon
+  isLoading?: boolean
+  chartType?: ChartType
+  viewMode?: ViewMode
+  availableChartTypes?: ChartType[]
+  availableViewModes?: ViewMode[]
+  onChartTypeChange?: (type: ChartType) => void
+  onViewModeChange?: (mode: ViewMode) => void
+  chartData: any
+  getChartOptions: (viewMode?: ViewMode) => any
+  customControls?: React.ReactNode
+  customStats?: Array<{ label: string; value: string | number; icon?: LucideIcon }>
+  height?: number
+  children?: React.ReactNode
+}
+
+export function BaseChart({
+  title,
+  description,
+  icon: Icon,
+  isLoading = false,
+  chartType = 'line',
+  viewMode = 'monthly',
+  availableChartTypes = ['line', 'bar'],
+  availableViewModes = ['monthly', 'daily'],
+  onChartTypeChange,
+  onViewModeChange,
+  chartData,
+  getChartOptions,
+  customControls,
+  customStats = [],
+  height = 256,
+  children
+}: BaseChartProps) {
+
+  const [internalChartType, setInternalChartType] = useState<ChartType>(chartType)
+  const [internalViewMode, setInternalViewMode] = useState<ViewMode>(viewMode)
+
+  const currentChartType = onChartTypeChange ? chartType : internalChartType
+  const currentViewMode = onViewModeChange ? viewMode : internalViewMode
+
+  const handleChartTypeChange = (type: ChartType) => {
+    if (onChartTypeChange) {
+      onChartTypeChange(type)
+    } else {
+      setInternalChartType(type)
+    }
+  }
+
+  const handleViewModeChange = (mode: ViewMode) => {
+    if (onViewModeChange) {
+      onViewModeChange(mode)
+    } else {
+      setInternalViewMode(mode)
+    }
+  }
+
+  const renderLoadingState = () => (
+    <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          {Icon && <Icon className="w-5 h-5" />}
+          {title}
+        </CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          </div>
+          <div className="bg-gray-200 dark:bg-gray-700 rounded animate-pulse" style={{ height: `${height}px` }} />
+        </div>
+      </CardContent>
+    </Card>
+  )
+
+  const renderChart = () => {
+    // Ensure chartData has the required structure
+    if (!chartData || !chartData.labels || !chartData.datasets) {
+      console.warn('Chart data is missing required structure:', chartData)
+      return <div className="flex items-center justify-center h-full text-gray-500">No data available</div>
+    }
+
+    const options = getChartOptions(currentViewMode)
+
+    switch (currentChartType) {
+      case 'line':
+        return <Line data={chartData} options={options} />
+      case 'bar':
+        return <Bar data={chartData} options={options} />
+      case 'scatter':
+        return <Scatter data={chartData} options={options} />
+      default:
+        return <Line data={chartData} options={options} />
+    }
+  }
+
+  if (isLoading) {
+    return renderLoadingState()
+  }
+
+  return (
+    <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              {Icon && <Icon className="w-5 h-5" />}
+              {title}
+            </CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
+          {customStats.length > 0 && (
+            <div className="flex items-center gap-2">
+              {customStats.map((stat, index) => (
+                <Badge key={index} variant="outline" className="flex items-center gap-1">
+                  {stat.icon && <stat.icon className="w-3 h-3" />}
+                  {stat.label}: {stat.value}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {/* Controls */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* View Mode Controls */}
+            {availableViewModes.length > 1 && (
+              <div className="flex rounded-lg border bg-white dark:bg-gray-800">
+                {availableViewModes.map((mode) => (
+                  <Button
+                    key={mode}
+                    variant={currentViewMode === mode ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => handleViewModeChange(mode)}
+                    className={availableViewModes.indexOf(mode) === 0 ? 'rounded-r-none' : 'rounded-l-none'}
+                  >
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            )}
+
+            {/* Chart Type Controls */}
+            {availableChartTypes.length > 1 && (
+              <div className="flex rounded-lg border bg-white dark:bg-gray-800">
+                {availableChartTypes.map((type) => (
+                  <Button
+                    key={type}
+                    variant={currentChartType === type ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => handleChartTypeChange(type)}
+                    className={availableChartTypes.indexOf(type) === 0 ? 'rounded-r-none' : 'rounded-l-none'}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            )}
+
+            {/* Custom Controls */}
+            {customControls}
+          </div>
+
+          {/* Chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div style={{ height: `${height}px` }}>
+              {renderChart()}
+            </div>
+          </motion.div>
+
+          {/* Additional Content */}
+          {children}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Common chart options factory
+export function createChartOptions(overrides: any = {}) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          font: {
+            size: 12
+          }
+        }
+      },
+      tooltip: {
+        mode: 'index' as const,
+        intersect: false,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: 'white',
+        bodyColor: 'white',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        padding: 12
+      }
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false
+        },
+        ticks: {
+          font: {
+            size: 11
+          },
+          maxRotation: 45
+        }
+      },
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)'
+        },
+        ticks: {
+          font: {
+            size: 11
+          },
+          precision: 0
+        }
+      }
+    },
+    interaction: {
+      mode: 'nearest' as const,
+      axis: 'x' as const,
+      intersect: false
+    },
+    elements: {
+      point: {
+        radius: 4,
+        hoverRadius: 6
+      },
+      line: {
+        borderWidth: 2
+      }
+    },
+    ...overrides
+  }
+}
+
+// Data processing utilities
+export function processTimeSeriesData(
+  data: any[],
+  dateField: string = 'created_at',
+  groupBy: 'day' | 'month' | 'hour' = 'month',
+  valueFields: string[] = ['total']
+) {
+  const processedData = new Map()
+
+  data.forEach(item => {
+    const date = new Date(item[dateField])
+    let key: string
+
+    switch (groupBy) {
+      case 'day':
+        key = date.toISOString().split('T')[0]
+        break
+      case 'month':
+        key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+        break
+      case 'hour':
+        key = `${date.toISOString().split('T')[0]}T${String(date.getHours()).padStart(2, '0')}:00:00`
+        break
+      default:
+        key = date.toISOString().split('T')[0]
+    }
+
+    if (!processedData.has(key)) {
+      processedData.set(key, {
+        ...valueFields.reduce((acc, field) => ({ ...acc, [field]: 0 }), {}),
+        count: 0
+      })
+    }
+
+    const current = processedData.get(key)
+    current.count += 1
+
+    valueFields.forEach(field => {
+      if (item[field] !== undefined) {
+        current[field] += Number(item[field]) || 1
+      }
+    })
+  })
+
+  return Array.from(processedData.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, values]) => ({ key, ...values }))
+}

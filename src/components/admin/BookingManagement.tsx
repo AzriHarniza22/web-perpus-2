@@ -56,7 +56,7 @@ export default function BookingManagement() {
   } : undefined
 
   // Fetch data (without search - we'll filter client-side)
-  const { data: allBookings = [], isLoading } = useBookings({
+  const { data: bookingsData, isLoading } = useBookings({
     status: status.length > 0 ? status : undefined,
     dateRange: apiDateRange,
     roomIds: roomIds.length > 0 ? roomIds : undefined,
@@ -66,6 +66,8 @@ export default function BookingManagement() {
     sortOrder: sortDirection,
     isTour: bookingType === 'tour' ? true : bookingType === 'room' ? false : undefined,
   })
+
+  const allBookings = bookingsData?.bookings || []
 
   // Client-side search filtering
   const bookings = React.useMemo(() => {
@@ -380,6 +382,7 @@ export default function BookingManagement() {
         onPageChange={handlePageChange}
         sortKey={sortKey}
         sortDirection={sortDirection}
+        totalItems={bookingsData?.totalCount || 0}
       />
 
       {bookings.length === 0 && (

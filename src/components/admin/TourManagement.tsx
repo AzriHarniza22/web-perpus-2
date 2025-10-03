@@ -62,10 +62,11 @@ const autoCompleteExpiredTourBookings = async (bookings: BookingWithRelations[])
 
 export default function TourManagement() {
   // Filter states
-  const [search, setSearch] = React.useState('')
-  const [status, setStatus] = React.useState<string[]>([])
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>()
-  const [tourIds, setTourIds] = React.useState<string[]>([])
+   const [search, setSearch] = React.useState('')
+   const [status, setStatus] = React.useState<string[]>([])
+   const [dateRange, setDateRange] = React.useState<DateRange | undefined>()
+   const [tourIds, setTourIds] = React.useState<string[]>([])
+   const [bookingType, setBookingType] = React.useState<'all' | 'room' | 'tour'>('tour')
 
   // Pagination and sorting
   const [currentPage, setCurrentPage] = React.useState(1)
@@ -79,47 +80,41 @@ export default function TourManagement() {
     end: dateRange.to.toISOString()
   } : undefined
 
-  // Fetch all bookings first, then filter for tours
-  const { data: allBookings = [], isLoading } = useBookings({
-    status: status.length > 0 ? status : undefined,
-    dateRange: apiDateRange,
-    page: currentPage,
-    limit: pageSize,
-    sortBy: sortKey,
-    sortOrder: sortDirection,
-  })
+  // Fetch tour bookings using is_tour column filtering
+   const { data: bookingsData, isLoading } = useBookings({
+     status: status.length > 0 ? status : undefined,
+     dateRange: apiDateRange,
+     page: currentPage,
+     limit: pageSize,
+     sortBy: sortKey,
+     sortOrder: sortDirection,
+     isTour: true, // Always filter for tour bookings in TourManagement
+   })
 
-  // Filter for tour bookings (identified by having tour-like event descriptions)
-  const tourBookings = React.useMemo(() => {
-    return allBookings.filter(booking =>
-      booking.event_description?.includes('Tour:') ||
-      booking.rooms?.name?.includes('Tour') ||
-      booking.notes?.includes('Meeting Point:')
-    )
-  }, [allBookings])
+   const allBookings = bookingsData?.bookings || []
 
-  // Client-side search filtering
-  const bookings = React.useMemo(() => {
-    if (!search.trim()) return tourBookings
+   // Client-side search filtering
+   const bookings = React.useMemo(() => {
+     if (!search.trim()) return allBookings
 
-    const searchLower = search.toLowerCase().trim()
-    return tourBookings.filter(booking =>
-      booking.event_description?.toLowerCase().includes(searchLower) ||
-      booking.notes?.toLowerCase().includes(searchLower) ||
-      booking.profiles?.full_name?.toLowerCase().includes(searchLower) ||
-      booking.profiles?.email?.toLowerCase().includes(searchLower)
-    )
-  }, [tourBookings, search])
+     const searchLower = search.toLowerCase().trim()
+     return allBookings.filter(booking =>
+       booking.event_description?.toLowerCase().includes(searchLower) ||
+       booking.notes?.toLowerCase().includes(searchLower) ||
+       booking.profiles?.full_name?.toLowerCase().includes(searchLower) ||
+       booking.profiles?.email?.toLowerCase().includes(searchLower)
+     )
+   }, [allBookings, search])
 
   // Auto-complete expired approved tour bookings
   React.useEffect(() => {
-    if (tourBookings.length > 0) {
-      autoCompleteExpiredTourBookings(tourBookings).then(() => {
+    if (bookings.length > 0) {
+      autoCompleteExpiredTourBookings(bookings).then(() => {
         // Invalidate and refetch bookings after updating expired ones
         // This will be handled by React Query's cache invalidation
       }).catch(console.error)
     }
-  }, [tourBookings])
+  }, [bookings])
 
   const updateBookingStatusMutation = useUpdateBookingStatus()
 
@@ -154,12 +149,13 @@ export default function TourManagement() {
   }
 
   const handleClearFilters = () => {
-    setSearch('')
-    setStatus([])
-    setDateRange(undefined)
-    setTourIds([])
-    setCurrentPage(1)
-  }
+     setSearch('')
+     setStatus([])
+     setDateRange(undefined)
+     setTourIds([])
+     setBookingType('tour') // Reset to tour bookings
+     setCurrentPage(1)
+   }
 
   const handleApplyFilters = () => {
     setCurrentPage(1) // Reset to first page when applying filters
@@ -348,18 +344,20 @@ export default function TourManagement() {
         </div>
 
         <FilterPanel
-          search={search}
-          onSearchChange={setSearch}
-          status={status}
-          onStatusChange={setStatus}
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
-          roomIds={tourIds}
-          onRoomIdsChange={setTourIds}
-          rooms={[]} // Empty array for tour management since we don't filter by rooms
-          onClearFilters={handleClearFilters}
-          onApplyFilters={handleApplyFilters}
-        />
+           search={search}
+           onSearchChange={setSearch}
+           status={status}
+           onStatusChange={setStatus}
+           dateRange={dateRange}
+           onDateRangeChange={setDateRange}
+           roomIds={tourIds}
+           onRoomIdsChange={setTourIds}
+           rooms={[]} // Empty array for tour management since we don't filter by rooms
+           onClearFilters={handleClearFilters}
+           onApplyFilters={handleApplyFilters}
+           bookingType={bookingType}
+           onBookingTypeChange={setBookingType}
+         />
 
         <div className="space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -388,18 +386,20 @@ export default function TourManagement() {
       </div>
 
       <FilterPanel
-        search={search}
-        onSearchChange={setSearch}
-        status={status}
-        onStatusChange={setStatus}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
-        roomIds={tourIds}
-        onRoomIdsChange={setTourIds}
-        rooms={[]} // Empty array for tour management since we don't filter by rooms
-        onClearFilters={handleClearFilters}
-        onApplyFilters={handleApplyFilters}
-      />
+         search={search}
+         onSearchChange={setSearch}
+         status={status}
+         onStatusChange={setStatus}
+         dateRange={dateRange}
+         onDateRangeChange={setDateRange}
+         roomIds={tourIds}
+         onRoomIdsChange={setTourIds}
+         rooms={[]} // Empty array for tour management since we don't filter by rooms
+         onClearFilters={handleClearFilters}
+         onApplyFilters={handleApplyFilters}
+         bookingType={bookingType}
+         onBookingTypeChange={setBookingType}
+       />
 
       <DataTable
         columns={columns}
@@ -411,6 +411,7 @@ export default function TourManagement() {
         onPageChange={handlePageChange}
         sortKey={sortKey}
         sortDirection={sortDirection}
+        totalItems={bookingsData?.totalCount || 0}
       />
 
       {bookings.length === 0 && (

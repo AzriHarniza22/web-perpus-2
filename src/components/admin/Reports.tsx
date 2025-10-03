@@ -76,7 +76,8 @@ interface RoomUtilization {
 
 export default function Reports() {
   const { data: stats, isLoading: statsLoading } = useBookingStats()
-  const { data: bookings, isLoading: bookingsLoading } = useBookings()
+  const { data: bookingsData, isLoading: bookingsLoading } = useBookings()
+  const bookings = bookingsData?.bookings || []
   const { data: notificationStats, isLoading: notificationLoading } = useNotificationStats()
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
     from: subMonths(new Date(), 3),

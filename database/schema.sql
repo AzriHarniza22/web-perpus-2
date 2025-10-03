@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   proposal_file TEXT, -- File URL if uploaded
   notes TEXT,
   letter TEXT,
+  is_tour BOOLEAN DEFAULT false, -- Flag to distinguish tour bookings from room bookings
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   -- Ensure no overlapping approved bookings for the same room

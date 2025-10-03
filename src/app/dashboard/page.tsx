@@ -39,7 +39,8 @@ export default function DashboardPage() {
   })
   const [upcomingBookingsList, setUpcomingBookingsList] = useState<BookingWithRelations[]>([])
   const router = useRouter()
-  const { data: bookings = [] } = useBookings()
+  const { data: bookingsData } = useBookings()
+  const bookings = bookingsData?.bookings || []
   const { data: rooms = [] } = useRooms()
 
   // Calculate real stats from user's bookings

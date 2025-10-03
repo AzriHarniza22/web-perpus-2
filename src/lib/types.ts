@@ -1,4 +1,4 @@
-// Core application types
+// Core application types - Consolidated User and Profile interfaces
 export interface User {
   id: string
   email: string
@@ -10,6 +10,9 @@ export interface User {
   created_at: string
   updated_at: string
 }
+
+// Use User type for Profile to eliminate duplication
+export type Profile = User
 
 export interface RegistrationData {
   email: string
@@ -32,19 +35,6 @@ export interface AuthState {
   user: User | null
   isLoading: boolean
   error: string | null
-}
-
-// Database table types
-export interface Profile {
-  id: string
-  email: string
-  full_name: string | null
-  institution: string | null
-  phone: string | null
-  profile_photo: string | null
-  role: 'user' | 'admin'
-  created_at: string
-  updated_at: string
 }
 
 export interface Room {
@@ -72,10 +62,10 @@ export interface Booking {
   proposal_file: string | null
   notes: string | null
   letter: string | null
+  is_tour: boolean
   created_at: string
   updated_at: string
   // Tour-specific fields (added by tour schema update)
-  participant_count?: number | null
   tour_meeting_point?: string | null
   tour_guide?: string | null
   tour_duration_minutes?: number | null

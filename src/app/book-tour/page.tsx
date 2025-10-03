@@ -14,54 +14,28 @@ import TourBookingForm from '@/components/TourBookingForm'
 import { Sparkles } from 'lucide-react'
 import { Booking as BookingType } from '@/lib/types'
 
-// Tour interface
+// Tour interface matching database schema
 interface Tour {
   id: string
   name: string
-  description: string
-  duration: number
-  maxParticipants: number
-  meetingPoint: string
-  guideName: string
-  guideContact: string
-  schedule: TourSchedule[]
-  isActive: boolean
-}
-
-interface TourSchedule {
-  id: string
-  tourId: string
-  dayOfWeek: number
-  startTime: string
-  availableSlots: number
-}
-
-// Library Tour data - fixed tour information
-const libraryTour: Tour = {
-  id: 'library-tour',
-  name: 'Library Tour',
-  description: 'Guided tour of the library facilities and collections',
-  duration: 60,
-  maxParticipants: 50,
-  meetingPoint: 'Main Entrance',
-  guideName: 'Library Staff',
-  guideContact: 'info@library.edu',
-  schedule: [
-    { id: 'sched-library-1', tourId: 'library-tour', dayOfWeek: 1, startTime: '10:00', availableSlots: 50 },
-    { id: 'sched-library-2', tourId: 'library-tour', dayOfWeek: 2, startTime: '14:00', availableSlots: 50 },
-    { id: 'sched-library-3', tourId: 'library-tour', dayOfWeek: 3, startTime: '10:00', availableSlots: 50 },
-    { id: 'sched-library-4', tourId: 'library-tour', dayOfWeek: 4, startTime: '14:00', availableSlots: 50 },
-    { id: 'sched-library-5', tourId: 'library-tour', dayOfWeek: 5, startTime: '10:00', availableSlots: 50 },
-  ],
-  isActive: true,
+  description: string | null
+  capacity: number
+  facilities: string[] | null
+  photos: string[] | null
+  layout: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
 }
 
 export default function BookTourPage() {
   const [loading, setLoading] = useState(true)
+  const [tourLoading, setTourLoading] = useState(true)
   const [user, setUser] = useState<User | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [existingBookings, setExistingBookings] = useState<BookingType[]>([])
   const [tour, setTour] = useState<Tour | null>(null)
+  const [tourError, setTourError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -73,50 +47,64 @@ export default function BookTourPage() {
       if (!currentUser) {
         console.log('User not authenticated')
         setLoading(false)
+        setTourLoading(false)
         return
       }
 
-      // Set Library Tour as the default tour
-      setTour(libraryTour)
+      // Fetch Library Tour data from database
+      try {
+        const { data: tourData, error: tourError } = await supabase
+          .from('rooms')
+          .select('*')
+          .eq('name', 'Library Tour')
+          .eq('is_active', true)
+          .single()
 
-      // Get the Library Tour room UUID from database
-      const { data: room, error: roomError } = await supabase
-        .from('rooms')
-        .select('id')
-        .eq('name', 'Library Tour')
-        .single()
+        if (tourError) {
+          console.error('Error fetching Library Tour:', tourError)
+          setTourError('Failed to load tour information')
+          setTour(null)
+        } else if (tourData) {
+          setTour(tourData)
+          setTourError(null)
 
-      if (roomError || !room) {
-        console.error('Library Tour room not found:', roomError)
-      } else {
-        // Fetch existing tour bookings using actual room UUID (future bookings only)
-        try {
-          const now = new Date().toISOString()
-          const { data: bookings, error } = await supabase
-            .from('bookings')
-            .select('*')
-            .eq('room_id', room.id) // Use actual room UUID for bookings
-            .eq('is_tour', true) // Only fetch tour bookings
-            .in('status', ['pending', 'approved'])
-            .gte('start_time', now) // Only future bookings like landing page
+          // Fetch existing tour bookings using actual room UUID (future bookings only)
+          try {
+            const now = new Date().toISOString()
+            const { data: bookings, error } = await supabase
+              .from('bookings')
+              .select('*')
+              .eq('room_id', tourData.id) // Use actual room UUID for bookings
+              .eq('is_tour', true) // Only fetch tour bookings
+              .in('status', ['pending', 'approved'])
+              .gte('start_time', now) // Only future bookings like landing page
 
-          if (error) {
-            console.error('Error fetching tour bookings:', error)
-          } else {
-            setExistingBookings(bookings || [])
+            if (error) {
+              console.error('Error fetching tour bookings:', error)
+            } else {
+              setExistingBookings(bookings || [])
+            }
+          } catch (err) {
+            console.error('Unexpected error fetching tour bookings:', err)
           }
-        } catch (err) {
-          console.error('Unexpected error fetching tour bookings:', err)
+        } else {
+          setTourError('Library Tour not found')
+          setTour(null)
         }
+      } catch (err) {
+        console.error('Unexpected error fetching tour:', err)
+        setTourError('Failed to load tour information')
+        setTour(null)
       }
 
       setLoading(false)
+      setTourLoading(false)
     }
 
     checkAuthAndFetchTour()
   }, [])
 
-  if (loading) {
+  if (loading || tourLoading) {
     return <Loading variant="fullscreen" />
   }
 
@@ -135,6 +123,27 @@ export default function BookTourPage() {
           </p>
           <Button onClick={() => router.push('/login')}>
             Login
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (tourError || !tour) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Tour Tidak Tersedia
+          </h1>
+          <p className="text-gray-600 mb-6">
+            {tourError || 'Informasi tour tidak dapat dimuat saat ini.'}
+          </p>
+          <Button onClick={() => window.location.reload()}>
+            Coba Lagi
           </Button>
         </div>
       </div>
@@ -165,19 +174,13 @@ export default function BookTourPage() {
             onBookingSuccess={() => {
               // Refresh bookings after successful submission
               const refreshBookings = async () => {
-                try {
-                  const { data: room } = await supabase
-                    .from('rooms')
-                    .select('id')
-                    .eq('name', 'Library Tour')
-                    .single()
-
-                  if (room) {
+                if (tour) {
+                  try {
                     const now = new Date().toISOString()
                     const { data: bookings, error } = await supabase
                       .from('bookings')
                       .select('*')
-                      .eq('room_id', room.id)
+                      .eq('room_id', tour.id)
                       .eq('is_tour', true) // Only fetch tour bookings
                       .in('status', ['pending', 'approved'])
                       .gte('start_time', now) // Only future bookings like landing page
@@ -187,9 +190,9 @@ export default function BookTourPage() {
                     } else {
                       setExistingBookings(bookings || [])
                     }
+                  } catch (err) {
+                    console.error('Unexpected error refreshing bookings:', err)
                   }
-                } catch (err) {
-                  console.error('Unexpected error refreshing bookings:', err)
                 }
               }
               refreshBookings()
