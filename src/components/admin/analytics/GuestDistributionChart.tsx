@@ -10,7 +10,8 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
-  Title
+  Title,
+  TooltipItem
 } from 'chart.js'
 import { Pie, Bar } from 'react-chartjs-2'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,6 +19,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Users, PieChart, BarChart3, Building } from 'lucide-react'
+import { Booking, Room } from '@/lib/types'
+
+// Extended booking type for analytics that includes joined room data
+interface BookingWithRoom extends Booking {
+  rooms?: Room
+}
 
 ChartJS.register(
   ArcElement,
@@ -30,8 +37,8 @@ ChartJS.register(
 )
 
 interface GuestDistributionChartProps {
-  bookings: any[]
-  rooms: any[]
+  bookings: BookingWithRoom[]
+  rooms: Room[]
   selectedRoom?: string
   isLoading?: boolean
 }
@@ -300,10 +307,10 @@ function getPieChartOptions(chartType: 'pie' | 'doughnut') {
         cornerRadius: 8,
         padding: 12,
         callbacks: {
-          label: (context: any) => {
-            const total = context.dataset.data.reduce((sum: number, value: number) => sum + value, 0)
-            const percentage = Math.round((context.parsed * 100) / total)
-            return `${context.label}: ${context.parsed} (${percentage}%)`
+          label: (tooltipItem: TooltipItem<'pie'>) => {
+            const total = tooltipItem.dataset.data.reduce((sum: number, value: number) => sum + value, 0)
+            const percentage = Math.round((tooltipItem.parsed * 100) / total)
+            return `${tooltipItem.label}: ${tooltipItem.parsed} (${percentage}%)`
           }
         }
       }

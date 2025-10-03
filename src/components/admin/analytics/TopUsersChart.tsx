@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Users, Search, BookOpen, Award, ChevronLeft, ChevronRight, Trophy, Medal, Star } from 'lucide-react'
 import { aggregateUserAnalytics, getUserInitials } from '@/lib/userAnalytics'
+import { Booking, User } from '@/lib/types'
 
 ChartJS.register(
   CategoryScale,
@@ -30,8 +31,8 @@ ChartJS.register(
 )
 
 interface TopUsersChartProps {
-  bookings: any[]
-  users: any[]
+  bookings: Booking[]
+  users: User[]
   isLoading?: boolean
   dateFilter?: { from?: Date; to?: Date }
 }

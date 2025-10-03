@@ -8,19 +8,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time: string; end_time: string; rooms?: { name: string }; status: string; is_tour?: boolean; profiles?: { full_name?: string; email?: string } }> }) => {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [bookedDates, setBookedDates] = useState<string[]>([])
-
-  useEffect(() => {
-    const now = new Date()
-    const dates = bookings
-      .filter(booking => {
-        const bookingDate = new Date(booking.start_time)
-        // Only include future bookings or active bookings
-        return bookingDate >= now || booking.status === 'pending' || booking.status === 'approved'
-      })
-      .map(booking => new Date(booking.start_time).toDateString())
-    setBookedDates([...new Set(dates)])
-  }, [bookings])
 
   const getBookedTimes = (date: Date) => {
     const now = new Date()
@@ -44,7 +31,6 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
     const year = date.getFullYear()
     const month = date.getMonth()
     const firstDay = new Date(year, month, 1)
-    const lastDay = new Date(year, month + 1, 0)
     const startDate = new Date(firstDay)
     startDate.setDate(startDate.getDate() - firstDay.getDay())
 
@@ -76,10 +62,6 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
     if (bookingsOnDate.some(b => b.status === 'approved')) return 'approved'
     if (bookingsOnDate.some(b => b.status === 'pending')) return 'pending'
     return null
-  }
-
-  const isBooked = (date: Date) => {
-    return getDateStatus(date) !== null
   }
 
   const isSameMonth = (date: Date) => {

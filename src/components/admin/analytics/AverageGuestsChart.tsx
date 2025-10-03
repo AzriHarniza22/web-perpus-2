@@ -17,6 +17,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Users, Building, TrendingUp } from 'lucide-react'
+import { Booking, Room } from '@/lib/types'
+
+// Extended booking type for analytics that includes joined room data
+interface BookingWithRoom extends Booking {
+  rooms?: Room
+}
 
 ChartJS.register(
   CategoryScale,
@@ -28,8 +34,8 @@ ChartJS.register(
 )
 
 interface AverageGuestsChartProps {
-  bookings: any[]
-  rooms: any[]
+  bookings: BookingWithRoom[]
+  rooms: Room[]
   selectedRoom?: string
   isLoading?: boolean
 }
@@ -278,7 +284,7 @@ function getChartOptions() {
         cornerRadius: 8,
         padding: 12,
         callbacks: {
-          label: (context: any) => {
+          label: (context: { parsed: { y: number } }) => {
             return `Rata-rata Tamu: ${context.parsed.y}`
           }
         }

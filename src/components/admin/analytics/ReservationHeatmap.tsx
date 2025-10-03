@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Calendar, Activity, Flame } from 'lucide-react'
+import { Booking } from '@/lib/types'
 
 interface ReservationHeatmapProps {
-  bookings: any[]
+  bookings: Booking[]
   isLoading?: boolean
 }
 
@@ -196,7 +197,7 @@ export function ReservationHeatmap({ bookings, isLoading = false }: ReservationH
   )
 }
 
-function processHeatmapData(bookings: any[], daysBack: number): HeatmapData[] {
+function processHeatmapData(bookings: Booking[], daysBack: number): HeatmapData[] {
   const endDate = new Date()
   const startDate = new Date()
   startDate.setDate(endDate.getDate() - daysBack)
@@ -217,7 +218,7 @@ function processHeatmapData(bookings: any[], daysBack: number): HeatmapData[] {
     const hour = bookingDate.getHours()
 
     // Find existing data point or create new one
-    let dataPoint = heatmapData.find(d => d.day === dayOfWeek && d.hour === hour)
+    const dataPoint = heatmapData.find(d => d.day === dayOfWeek && d.hour === hour)
 
     if (dataPoint) {
       dataPoint.count += 1

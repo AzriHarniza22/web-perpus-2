@@ -3,8 +3,8 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { User } from '@supabase/supabase-js'
 import Link from 'next/link'
+import Image from 'next/image'
 import BookingForm from '../../../components/BookingForm'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
@@ -23,19 +23,9 @@ export default function BookRoomPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string>('')
-  const [scale, setScale] = useState(1)
-  const [initialDistance, setInitialDistance] = useState(0)
-  const [initialScale, setInitialScale] = useState(1)
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
-  const imageRef = useRef<HTMLImageElement>(null)
   const router = useRouter()
 
-  const getDistance = (touch1: Touch, touch2: Touch) => {
-    return Math.sqrt(
-      Math.pow(touch2.clientX - touch1.clientX, 2) +
-      Math.pow(touch2.clientY - touch1.clientY, 2)
-    )
-  }
 
   const handleImageError = (photo: string) => {
     setImageErrors(prev => new Set(prev).add(photo))
@@ -108,44 +98,7 @@ export default function BookRoomPage() {
     }
   }, [roomId, router, isAuthenticated, user, isLoading])
 
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault()
-      setScale(prev => Math.max(0.5, Math.min(3, prev + (e.deltaY > 0 ? -0.1 : 0.1))))
-    }
-    const img = imageRef.current
-    if (img && isModalOpen) {
-      img.addEventListener('wheel', handleWheel)
-      return () => img.removeEventListener('wheel', handleWheel)
-    }
-  }, [isModalOpen, scale])
 
-  useEffect(() => {
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
-        const dist = getDistance(e.touches[0], e.touches[1])
-        setInitialDistance(dist)
-        setInitialScale(scale)
-      }
-    }
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
-        e.preventDefault()
-        const dist = getDistance(e.touches[0], e.touches[1])
-        const newScale = initialScale * (dist / initialDistance)
-        setScale(Math.max(0.5, Math.min(3, newScale)))
-      }
-    }
-    const img = imageRef.current
-    if (img && isModalOpen) {
-      img.addEventListener('touchstart', handleTouchStart)
-      img.addEventListener('touchmove', handleTouchMove)
-      return () => {
-        img.removeEventListener('touchstart', handleTouchStart)
-        img.removeEventListener('touchmove', handleTouchMove)
-      }
-    }
-  }, [isModalOpen, scale, initialDistance, initialScale])
 
   if (isLoading || loading) {
     return <Loading variant="fullscreen" />
@@ -189,16 +142,16 @@ export default function BookRoomPage() {
                   {room.photos.map((photo, index) => (
                     <div key={index} className="relative aspect-video rounded-lg overflow-hidden shadow-md">
                       {isImageValid(photo) ? (
-                        <img
+                        <Image
                           src={photo}
                           alt={`${room.name} - ${index + 1}`}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                          fill
+                          className="object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
                           onError={() => handleImageError(photo)}
                           onClick={() => {
                             if (isImageValid(photo)) {
                               setSelectedImage(photo)
                               setIsModalOpen(true)
-                              setScale(1)
                             }
                           }}
                         />
@@ -222,17 +175,16 @@ export default function BookRoomPage() {
                 className="fixed inset-0 bg-black/75 flex items-center justify-center z-50"
                 onClick={() => {
                   setIsModalOpen(false)
-                  setScale(1)
                 }}
               >
                 <div className="relative max-w-full max-h-full p-4" onClick={e => e.stopPropagation()}>
                   {isImageValid(selectedImage) ? (
-                    <img
-                      ref={imageRef}
+                    <Image
                       src={selectedImage}
                       alt="Zoomed room image"
+                      width={800}
+                      height={600}
                       className="max-w-full max-h-full object-contain"
-                      style={{ transform: `scale(${scale})`, transformOrigin: 'center' }}
                       onError={() => handleImageError(selectedImage)}
                     />
                   ) : (
@@ -250,7 +202,6 @@ export default function BookRoomPage() {
                     className="absolute top-2 right-2 bg-white/75 rounded-full p-2 hover:bg-white transition"
                     onClick={() => {
                       setIsModalOpen(false)
-                      setScale(1)
                     }}
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,8 +1,24 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
+import { Booking } from '@/lib/types'
 
 // Type for Supabase client (generic)
 type SupabaseClient = ReturnType<typeof createServerClient>
+
+// Type for Supabase query builder
+type SupabaseQueryBuilder<T> = {
+  in: (column: string, values: string[]) => SupabaseQueryBuilder<T>
+  gte: (column: string, value: string) => SupabaseQueryBuilder<T>
+  lte: (column: string, value: string) => SupabaseQueryBuilder<T>
+  eq: (column: string, value: string | boolean) => SupabaseQueryBuilder<T>
+  or: (query: string) => SupabaseQueryBuilder<T>
+  order: (column: string, options: { ascending: boolean }) => SupabaseQueryBuilder<T>
+  range: (from: number, to: number) => SupabaseQueryBuilder<T>
+  neq: (column: string, value: string) => SupabaseQueryBuilder<T>
+  lt: (column: string, value: string) => SupabaseQueryBuilder<T>
+  gt: (column: string, value: string) => SupabaseQueryBuilder<T>
+  select: (columns: string) => SupabaseQueryBuilder<T>
+}
 
 export interface AuthenticatedRequest extends NextRequest {
   supabase: SupabaseClient
@@ -142,10 +158,10 @@ export function parseQueryParams(request: NextRequest): PaginationParams & Filte
 /**
  * Apply common filters to Supabase query
  */
-export function applyFilters(
-  query: any,
+export function applyFilters<T>(
+  query: SupabaseQueryBuilder<T>,
   filters: FilterParams
-): any {
+): SupabaseQueryBuilder<T> {
   let filteredQuery = query
 
   // Status filter
@@ -184,10 +200,10 @@ export function applyFilters(
 /**
  * Apply pagination and sorting to Supabase query
  */
-export function applyPaginationAndSorting(
-  query: any,
+export function applyPaginationAndSorting<T>(
+  query: SupabaseQueryBuilder<T>,
   params: PaginationParams
-): any {
+): SupabaseQueryBuilder<T> {
   let paginatedQuery = query
 
   // Apply sorting
@@ -246,7 +262,7 @@ export function errorResponse(
 export async function ensureProfileExists(
   supabase: SupabaseClient,
   user: AuthenticatedRequest['user']
-): Promise<{ data: any } | { error: any }> {
+): Promise<{ data: { id: string } | null } | { error: Error }> {
   // Check if profile exists
   const { data: existingProfile } = await supabase
     .from('profiles')
@@ -304,7 +320,7 @@ export async function checkBookingConflicts(
   startTime: string,
   endTime: string,
   excludeBookingId?: string
-): Promise<{ hasConflicts: boolean; conflicts?: any[] }> {
+): Promise<{ hasConflicts: boolean; conflicts?: Booking[] }> {
   let query = supabase
     .from('bookings')
     .select('id, status, start_time, end_time')

@@ -2,21 +2,22 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Users, MapPin, Clock, BarChart3, Calendar, UserCheck } from 'lucide-react'
+import { TrendingUp, Users, MapPin, Clock, BarChart3, Calendar, UserCheck, LucideIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { isTourBooking } from '@/lib/tourAnalytics'
+import { Booking, Tour } from '@/lib/types'
 
 interface TourOverviewCardsProps {
-  bookings: any[]
-  tours: any[]
+  bookings: Booking[]
+  tours: Tour[]
   isLoading?: boolean
 }
 
 interface StatCard {
   label: string
   value: number
-  icon: any
+  icon: LucideIcon
   color: string
   bgColor: string
   change?: number
@@ -77,12 +78,12 @@ export function TourOverviewCards({
   // Calculate tour analytics
   const tourStats = useMemo(() => {
     const totalBookings = tourBookings.length
-    const approvedBookings = tourBookings.filter((b: any) => b.status === 'approved').length
-    const pendingBookings = tourBookings.filter((b: any) => b.status === 'pending').length
-    const rejectedBookings = tourBookings.filter((b: any) => b.status === 'rejected').length
+    const approvedBookings = tourBookings.filter((b: Booking) => b.status === 'approved').length
+    const pendingBookings = tourBookings.filter((b: Booking) => b.status === 'pending').length
+    const rejectedBookings = tourBookings.filter((b: Booking) => b.status === 'rejected').length
 
     // Calculate total participants
-     const totalParticipants = tourBookings.reduce((sum: number, booking: any) => {
+     const totalParticipants = tourBookings.reduce((sum: number, booking: Booking) => {
        return sum + (booking.guest_count || 0)
      }, 0)
 
@@ -90,7 +91,7 @@ export function TourOverviewCards({
     const avgParticipants = totalBookings > 0 ? Math.round((totalParticipants / totalBookings) * 10) / 10 : 0
 
     // Calculate average duration in hours
-    const totalDuration = tourBookings.reduce((sum: number, booking: any) => {
+    const totalDuration = tourBookings.reduce((sum: number, booking: Booking) => {
       if (booking.start_time && booking.end_time) {
         const start = new Date(booking.start_time).getTime()
         const end = new Date(booking.end_time).getTime()
@@ -102,7 +103,7 @@ export function TourOverviewCards({
     const avgDuration = totalBookings > 0 ? Math.round(totalDuration / totalBookings * 10) / 10 : 0
 
     // Calculate utilization rate based on tour capacity
-    const totalCapacity = tours.reduce((sum: number, tour: any) => sum + (tour.capacity || 0), 0)
+    const totalCapacity = tours.reduce((sum: number, tour: Tour) => sum + (tour.capacity || 0), 0)
     const utilizationRate = totalCapacity > 0 ? Math.round((totalParticipants / totalCapacity) * 100) : 0
 
     return {

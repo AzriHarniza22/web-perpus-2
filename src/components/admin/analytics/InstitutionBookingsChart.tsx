@@ -9,7 +9,8 @@ import {
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  TooltipItem
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Building, TrendingUp, Users, BookOpen } from 'lucide-react'
 import { aggregateUserAnalytics } from '@/lib/userAnalytics'
+import { Booking, User } from '@/lib/types'
 
 ChartJS.register(
   CategoryScale,
@@ -28,8 +30,8 @@ ChartJS.register(
 )
 
 interface InstitutionBookingsChartProps {
-  bookings: any[]
-  users: any[]
+  bookings: Booking[]
+  users: User[]
   isLoading?: boolean
   dateFilter?: { from?: Date; to?: Date }
 }
@@ -259,12 +261,12 @@ export function InstitutionBookingsChart({
                       cornerRadius: 8,
                       padding: 12,
                       callbacks: {
-                        label: (context: any) => {
-                          const value = context.parsed.y
-                          const institution = userAnalytics.institutionStats[context.dataIndex]
+                        label: (tooltipItem: TooltipItem<'bar'>) => {
+                          const value = tooltipItem.parsed.y
+                          const institution = userAnalytics.institutionStats[tooltipItem.dataIndex]
 
                           if (chartType === 'stacked') {
-                            return `${context.dataset.label}: ${value}`
+                            return `${tooltipItem.dataset.label}: ${value}`
                           } else {
                             switch (metricType) {
                               case 'bookings':

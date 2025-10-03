@@ -12,13 +12,17 @@ import {
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  ChartData,
+  ChartOptions
 } from 'chart.js'
 import { Line, Bar, Scatter } from 'react-chartjs-2'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { LucideIcon } from 'lucide-react'
+
+// Using Chart.js types directly
 
 // Register Chart.js components once to avoid duplication
 ChartJS.register(
@@ -36,31 +40,31 @@ ChartJS.register(
 export type ChartType = 'line' | 'bar' | 'scatter'
 export type ViewMode = 'monthly' | 'daily' | 'weekly'
 
-export interface BaseChartProps {
+export interface BaseChartProps<T extends ChartType = ChartType> {
   title: string
   description: string
   icon?: LucideIcon
   isLoading?: boolean
-  chartType?: ChartType
+  chartType?: T
   viewMode?: ViewMode
   availableChartTypes?: ChartType[]
   availableViewModes?: ViewMode[]
   onChartTypeChange?: (type: ChartType) => void
   onViewModeChange?: (mode: ViewMode) => void
-  chartData: any
-  getChartOptions: (viewMode?: ViewMode) => any
+  chartData: ChartData<T, (number | [number, number] | null)[], unknown>
+  getChartOptions: (viewMode?: ViewMode) => ChartOptions<T>
   customControls?: React.ReactNode
   customStats?: Array<{ label: string; value: string | number; icon?: LucideIcon }>
   height?: number
   children?: React.ReactNode
 }
 
-export function BaseChart({
+export function BaseChart<T extends ChartType = ChartType>({
   title,
   description,
   icon: Icon,
   isLoading = false,
-  chartType = 'line',
+  chartType = 'line' as T,
   viewMode = 'monthly',
   availableChartTypes = ['line', 'bar'],
   availableViewModes = ['monthly', 'daily'],
@@ -72,7 +76,7 @@ export function BaseChart({
   customStats = [],
   height = 256,
   children
-}: BaseChartProps) {
+}: BaseChartProps<T>) {
 
   const [internalChartType, setInternalChartType] = useState<ChartType>(chartType)
   const [internalViewMode, setInternalViewMode] = useState<ViewMode>(viewMode)
@@ -128,13 +132,13 @@ export function BaseChart({
 
     switch (currentChartType) {
       case 'line':
-        return <Line data={chartData} options={options} />
+        return <Line data={chartData as ChartData<'line', (number | [number, number] | null)[], unknown>} options={options as ChartOptions<'line'>} />
       case 'bar':
-        return <Bar data={chartData} options={options} />
+        return <Bar data={chartData as ChartData<'bar', (number | [number, number] | null)[], unknown>} options={options as ChartOptions<'bar'>} />
       case 'scatter':
-        return <Scatter data={chartData} options={options} />
+        return <Scatter data={chartData as ChartData<'scatter', (number | [number, number] | null)[], unknown>} options={options as ChartOptions<'scatter'>} />
       default:
-        return <Line data={chartData} options={options} />
+        return <Line data={chartData as ChartData<'line', (number | [number, number] | null)[], unknown>} options={options as ChartOptions<'line'>} />
     }
   }
 
@@ -227,7 +231,7 @@ export function BaseChart({
 }
 
 // Common chart options factory
-export function createChartOptions(overrides: any = {}) {
+export function createChartOptions(overrides: ChartOptions<'line' | 'bar' | 'scatter'> = {}) {
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -299,7 +303,7 @@ export function createChartOptions(overrides: any = {}) {
 
 // Data processing utilities
 export function processTimeSeriesData(
-  data: any[],
+  data: Record<string, unknown>[],
   dateField: string = 'created_at',
   groupBy: 'day' | 'month' | 'hour' = 'month',
   valueFields: string[] = ['total']
@@ -307,7 +311,7 @@ export function processTimeSeriesData(
   const processedData = new Map()
 
   data.forEach(item => {
-    const date = new Date(item[dateField])
+    const date = new Date(item[dateField] as string)
     let key: string
 
     switch (groupBy) {
@@ -336,7 +340,7 @@ export function processTimeSeriesData(
 
     valueFields.forEach(field => {
       if (item[field] !== undefined) {
-        current[field] += Number(item[field]) || 1
+        current[field] += Number(item[field] as string | number) || 1
       }
     })
   })

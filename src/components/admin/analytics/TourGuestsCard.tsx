@@ -6,10 +6,11 @@ import { Users, TrendingUp, UserCheck } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { isTourBooking } from '@/lib/tourAnalytics'
+import { Booking, Tour } from '@/lib/types'
 
 interface TourGuestsCardProps {
-  bookings: any[]
-  tours: any[]
+  bookings: Booking[]
+  tours: Tour[]
   isLoading?: boolean
 }
 
@@ -24,24 +25,24 @@ export function TourGuestsCard({
   }, [bookings])
 
   const guestStats = useMemo(() => {
-    const totalParticipants = tourBookings.reduce((sum: number, booking: any) => {
+    const totalParticipants = tourBookings.reduce((sum: number, booking: Booking) => {
        return sum + (booking.guest_count || 0)
      }, 0)
 
     const approvedParticipants = tourBookings
        .filter(booking => booking.status === 'approved')
-       .reduce((sum: number, booking: any) => sum + (booking.guest_count || 0), 0)
+       .reduce((sum: number, booking: Booking) => sum + (booking.guest_count || 0), 0)
 
      const pendingParticipants = tourBookings
        .filter(booking => booking.status === 'pending')
-       .reduce((sum: number, booking: any) => sum + (booking.guest_count || 0), 0)
+       .reduce((sum: number, booking: Booking) => sum + (booking.guest_count || 0), 0)
 
     const avgParticipantsPerBooking = tourBookings.length > 0
       ? Math.round((totalParticipants / tourBookings.length) * 10) / 10
       : 0
 
     // Calculate capacity utilization
-    const totalCapacity = tours.reduce((sum: number, tour: any) => sum + (tour.capacity || 0), 0)
+    const totalCapacity = tours.reduce((sum: number, tour: Tour) => sum + (tour.capacity || 0), 0)
     const utilizationRate = totalCapacity > 0 ? Math.round((totalParticipants / totalCapacity) * 100) : 0
 
     return {

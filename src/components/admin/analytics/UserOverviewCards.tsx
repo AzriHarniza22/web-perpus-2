@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Users, UserCheck, UserPlus, Building, Award } from 'lucide-react'
+import { TrendingUp, Users, UserCheck, UserPlus, Building, Award, LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { aggregateUserAnalytics, getUserInitials } from '@/lib/userAnalytics'
+import { Booking, User } from '@/lib/types'
 
 interface UserOverviewCardsProps {
-  bookings: any[]
-  users: any[]
+  bookings: Booking[]
+  users: User[]
   isLoading?: boolean
   dateFilter?: { from?: Date; to?: Date }
 }
@@ -16,7 +17,7 @@ interface UserOverviewCardsProps {
 interface StatCard {
   label: string
   value: number
-  icon: any
+  icon: LucideIcon
   color: string
   bgColor: string
   change?: number
@@ -48,31 +49,31 @@ export function UserOverviewCards({
     approvalRate: 0
   })
 
-  // Calculate user analytics
-  const userAnalytics = aggregateUserAnalytics(bookings, users, dateFilter)
-
-  const stats = {
-    totalUsers: userAnalytics.totalUsers,
-    activeUsers: userAnalytics.activeUsers,
-    newUsersThisMonth: userAnalytics.newUsersThisMonth,
-    avgBookingsPerUser: userAnalytics.activeUsers > 0
-      ? userAnalytics.topUsers.reduce((sum, user) => sum + user.bookingCount, 0) / userAnalytics.activeUsers
-      : 0,
-    topInstitutionCount: userAnalytics.topInstitutions.length,
-    approvalRate: userAnalytics.totalUsers > 0
-      ? Math.round((userAnalytics.activeUsers / userAnalytics.totalUsers) * 100)
-      : 0
-  }
-
   // Animate numbers on change
   useEffect(() => {
+    // Calculate user analytics and stats inside useEffect to avoid recreating on every render
+    const currentUserAnalytics = aggregateUserAnalytics(bookings, users, dateFilter)
+
+    const currentStats = {
+      totalUsers: currentUserAnalytics.totalUsers,
+      activeUsers: currentUserAnalytics.activeUsers,
+      newUsersThisMonth: currentUserAnalytics.newUsersThisMonth,
+      avgBookingsPerUser: currentUserAnalytics.activeUsers > 0
+        ? currentUserAnalytics.topUsers.reduce((sum, user) => sum + user.bookingCount, 0) / currentUserAnalytics.activeUsers
+        : 0,
+      topInstitutionCount: currentUserAnalytics.topInstitutions.length,
+      approvalRate: currentUserAnalytics.totalUsers > 0
+        ? Math.round((currentUserAnalytics.activeUsers / currentUserAnalytics.totalUsers) * 100)
+        : 0
+    }
+
     const currentValues = {
-      totalUsers: stats.totalUsers,
-      activeUsers: stats.activeUsers,
-      newUsersThisMonth: stats.newUsersThisMonth,
-      avgBookingsPerUser: Math.round(stats.avgBookingsPerUser * 10) / 10,
-      topInstitutionCount: stats.topInstitutionCount,
-      approvalRate: stats.approvalRate
+      totalUsers: currentStats.totalUsers,
+      activeUsers: currentStats.activeUsers,
+      newUsersThisMonth: currentStats.newUsersThisMonth,
+      avgBookingsPerUser: Math.round(currentStats.avgBookingsPerUser * 10) / 10,
+      topInstitutionCount: currentStats.topInstitutionCount,
+      approvalRate: currentStats.approvalRate
     }
 
     // Check if values changed
@@ -130,13 +131,13 @@ export function UserOverviewCards({
       animateValue('avgBookingsPerUser', currentValues.avgBookingsPerUser, animatedValues.avgBookingsPerUser)
       animateValue('topInstitutionCount', currentValues.topInstitutionCount, animatedValues.topInstitutionCount)
       animateValue('approvalRate', currentValues.approvalRate, animatedValues.approvalRate)
-    }
-  }, [stats, animatedValues, prevValues])
+   }
+ }, [bookings, users, dateFilter, animatedValues, prevValues])
 
   const statCards: StatCard[] = [
     {
       label: 'Total Pengguna',
-      value: animatedValues.totalUsers || stats.totalUsers,
+      value: animatedValues.totalUsers,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100 dark:bg-blue-900/50',
@@ -145,17 +146,17 @@ export function UserOverviewCards({
     },
     {
       label: 'Pengguna Aktif',
-      value: animatedValues.activeUsers || stats.activeUsers,
+      value: animatedValues.activeUsers,
       icon: UserCheck,
       color: 'text-green-600',
       bgColor: 'bg-green-100 dark:bg-green-900/50',
-      subtitle: `${animatedValues.approvalRate || stats.approvalRate}% dari total`,
+      subtitle: `${animatedValues.approvalRate}% dari total`,
       change: 8,
       changeType: 'increase'
     },
     {
       label: 'Pengguna Baru',
-      value: animatedValues.newUsersThisMonth || stats.newUsersThisMonth,
+      value: animatedValues.newUsersThisMonth,
       icon: UserPlus,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100 dark:bg-purple-900/50',
@@ -165,7 +166,7 @@ export function UserOverviewCards({
     },
     {
       label: 'Rata-rata Booking',
-      value: animatedValues.avgBookingsPerUser || stats.avgBookingsPerUser,
+      value: animatedValues.avgBookingsPerUser,
       icon: TrendingUp,
       color: 'text-orange-600',
       bgColor: 'bg-orange-100 dark:bg-orange-900/50',
@@ -175,7 +176,7 @@ export function UserOverviewCards({
     },
     {
       label: 'Institusi Terdaftar',
-      value: animatedValues.topInstitutionCount || stats.topInstitutionCount,
+      value: animatedValues.topInstitutionCount,
       icon: Building,
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-100 dark:bg-indigo-900/50',
@@ -184,7 +185,7 @@ export function UserOverviewCards({
     },
     {
       label: 'Tingkat Aktivitas',
-      value: animatedValues.approvalRate || stats.approvalRate,
+      value: animatedValues.approvalRate,
       icon: Award,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-100 dark:bg-emerald-900/50',

@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Loading } from '@/components/ui/loading'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { ArrowLeft, Mail, CheckCircle, AlertCircle, Sparkles } from 'lucide-react'
+import { ArrowLeft, Mail, CheckCircle, AlertCircle } from 'lucide-react'
 
 function ConfirmPageContent() {
   const [email, setEmail] = useState('')

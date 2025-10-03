@@ -4,7 +4,16 @@ import Papa from 'papaparse'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { ExportData, ExportOptions } from './exportUtils'
+import { Booking, User, Room, Tour } from './types'
 
+/**
+ * Generic configuration for tab data processing
+ * Uses 'any' type for flexibility across different data types (Booking, User, etc.)
+ * This is necessary because the interface needs to handle different data structures
+ * dynamically based on the specific tab configuration being used.
+ * Type safety is maintained through explicit type annotations in TAB_CONFIGS.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface TabDataConfig<T = any> {
   title: string
   dataSelector: (data: ExportData) => T[]
@@ -26,7 +35,7 @@ export const TAB_CONFIGS: ExportTabConfig = {
     title: 'DATA BOOKING UMUM',
     dataSelector: (data) => data.bookings,
     headers: ['ID', 'Pengguna', 'Email', 'Institusi', 'Ruangan', 'Waktu Mulai', 'Waktu Selesai', 'Status', 'Deskripsi Acara', 'Catatan'],
-    rowMapper: (booking) => [
+    rowMapper: (booking: ExportData['bookings'][0]) => [
       booking.id,
       booking.profiles?.full_name || 'Unknown',
       booking.profiles?.email || 'Unknown',
@@ -43,7 +52,7 @@ export const TAB_CONFIGS: ExportTabConfig = {
     title: 'DATA BOOKING PER RUANGAN',
     dataSelector: (data) => data.bookings,
     headers: ['ID', 'Pengguna', 'Email', 'Institusi', 'Ruangan', 'Waktu Mulai', 'Waktu Selesai', 'Status', 'Jumlah Tamu', 'Durasi (jam)'],
-    rowMapper: (booking) => [
+    rowMapper: (booking: ExportData['bookings'][0]) => [
       booking.id,
       booking.profiles?.full_name || 'Unknown',
       booking.profiles?.email || 'Unknown',
@@ -58,14 +67,14 @@ export const TAB_CONFIGS: ExportTabConfig = {
   },
   tour: {
     title: 'DATA BOOKING TOUR',
-    dataSelector: (data) => data.bookings.filter((b: any) => b.tours),
+    dataSelector: (data) => data.bookings.filter((b: Booking) => (b as { tours?: unknown }).tours),
     headers: ['ID', 'Pengguna', 'Email', 'Institusi', 'Tour', 'Waktu Mulai', 'Waktu Selesai', 'Status', 'Jumlah Peserta', 'Durasi (jam)'],
-    rowMapper: (booking) => [
+    rowMapper: (booking: ExportData['bookings'][0]) => [
       booking.id,
       booking.profiles?.full_name || 'Unknown',
       booking.profiles?.email || 'Unknown',
       booking.profiles?.institution || 'Unknown',
-      booking.tours?.title || 'Unknown',
+      booking.tours?.name || 'Unknown',
       format(new Date(booking.start_time), 'dd/MM/yyyy HH:mm'),
       format(new Date(booking.end_time), 'dd/MM/yyyy HH:mm'),
       booking.status,
@@ -77,8 +86,8 @@ export const TAB_CONFIGS: ExportTabConfig = {
     title: 'DATA PENGGUNA',
     dataSelector: (data) => data.users,
     headers: ['ID', 'Nama Lengkap', 'Email', 'Institusi', 'Telepon', 'Role', 'Total Booking', 'Tanggal Dibuat'],
-    rowMapper: (user, _, data) => {
-      const userBookings = data?.bookings.filter((b: any) => b.user_id === user.id) || []
+    rowMapper: (user: User, _, data) => {
+      const userBookings = data?.bookings.filter((b: Booking) => (b as { user_id?: string }).user_id === user.id) || []
       return [
         user.id,
         user.full_name || 'N/A',
@@ -332,7 +341,7 @@ function calculateDuration(startTime: string, endTime: string): number {
 /**
  * Filter bookings by selected rooms
  */
-export function filterBookingsByRoom(bookings: any[], selectedRooms?: string[]): any[] {
+export function filterBookingsByRoom(bookings: Record<string, unknown>[], selectedRooms?: string[]): Record<string, unknown>[] {
   if (!selectedRooms || selectedRooms.length === 0) return bookings
-  return bookings.filter(booking => selectedRooms.includes(booking.room_id))
+  return bookings.filter(booking => selectedRooms.includes(booking.room_id as string))
 }

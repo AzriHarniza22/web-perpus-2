@@ -7,10 +7,11 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Calendar, Clock, MapPin } from 'lucide-react'
 import { isTourBooking } from '@/lib/tourAnalytics'
+import { Booking, Tour } from '@/lib/types'
 
 interface TourTimeHeatmapProps {
-  bookings: any[]
-  tours: any[]
+  bookings: Booking[]
+  tours: Tour[]
   isLoading?: boolean
 }
 

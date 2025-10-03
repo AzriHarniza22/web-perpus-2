@@ -1,32 +1,19 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Loading } from '@/components/ui/loading'
-import { Calendar, History, LogOut, User as UserIcon, BookOpen, TrendingUp, Clock, CheckCircle, Sparkles } from 'lucide-react'
+import { History, User as UserIcon, BookOpen, TrendingUp, Clock, CheckCircle, Sparkles } from 'lucide-react'
 import { useBookings, useRooms, BookingWithRelations } from '@/lib/api'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 
-interface Room {
-  id: string;
-  name: string;
-  description: string | null;
-  capacity: number;
-  facilities: string[] | null;
-  photos: string[] | null;
-  layout: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
 
 export default function DashboardPage() {
   const { user, isLoading, logout, isAuthenticated } = useAuth()
@@ -41,11 +28,10 @@ export default function DashboardPage() {
   const router = useRouter()
   const { data: bookingsData } = useBookings()
   const bookings = bookingsData?.bookings || []
-  const { data: rooms = [] } = useRooms()
 
   // Calculate real stats from user's bookings
   useEffect(() => {
-    if (isAuthenticated && user && bookings.length > 0) {
+    if (isAuthenticated && user) {
       const userBookings = bookings.filter(booking => booking.user_id === user.id)
       const now = new Date()
 
@@ -83,12 +69,12 @@ export default function DashboardPage() {
     }
   }, [isLoading, isAuthenticated, router])
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     console.log('Dashboard: handleSignOut called')
     await logout()
     console.log('Dashboard: logout completed, pushing to /')
     router.push('/')
-  }
+  }, [logout, router])
 
   if (isLoading) {
     return (

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
+import Image from 'next/image'
 import { User } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -122,10 +123,11 @@ export default function BookRoomPage() {
                       className="absolute inset-0 flex items-center justify-center"
                     >
                       {room.photos && room.photos.length > 0 ? (
-                        <img
+                        <Image
                           src={room.photos[0]}
                           alt={room.name}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
                         />
                       ) : (
                         <Building className="w-16 h-16 text-white/80" />

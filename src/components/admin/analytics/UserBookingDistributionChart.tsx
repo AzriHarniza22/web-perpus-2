@@ -9,7 +9,8 @@ import {
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  TooltipItem
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { BarChart3, TrendingUp, Users, Target } from 'lucide-react'
 import { aggregateUserAnalytics } from '@/lib/userAnalytics'
+import { Booking, User } from '@/lib/types'
 
 ChartJS.register(
   CategoryScale,
@@ -28,8 +30,8 @@ ChartJS.register(
 )
 
 interface UserBookingDistributionChartProps {
-  bookings: any[]
-  users: any[]
+  bookings: Booking[]
+  users: User[]
   isLoading?: boolean
   dateFilter?: { from?: Date; to?: Date }
 }
@@ -272,8 +274,8 @@ export function UserBookingDistributionChart({
                       cornerRadius: 8,
                       padding: 12,
                       callbacks: {
-                        label: (context: any) => {
-                          const value = context.parsed.y
+                        label: (tooltipItem: TooltipItem<'bar'>) => {
+                          const value = tooltipItem.parsed.y
                           return `${metricType === 'count' ? 'Users' : 'Percentage'}: ${value}${metricType === 'percentage' ? '%' : ''}`
                         }
                       }
@@ -301,7 +303,7 @@ export function UserBookingDistributionChart({
                           size: 11
                         },
                         precision: 0,
-                        callback: function(value: any) {
+                        callback: function(value: string | number) {
                           return metricType === 'percentage' ? value + '%' : value
                         }
                       }

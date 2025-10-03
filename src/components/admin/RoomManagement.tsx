@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -201,7 +202,7 @@ export default function RoomManagement() {
                 <div className="flex flex-wrap gap-2 mt-2">
                   {formData.photos.map((url, index) => (
                     <div key={index} className="relative">
-                      <img src={url} alt={`Foto ruangan ${index + 1}`} className="w-20 h-20 object-cover rounded-lg border" />
+                      <Image src={url} alt={`Foto ruangan ${index + 1}`} width={80} height={80} className="object-cover rounded-lg border" />
                       <button
                         type="button"
                         onClick={() => removePhoto(index)}
@@ -269,10 +270,11 @@ export default function RoomManagement() {
                     className="absolute inset-0 flex items-center justify-center"
                   >
                     {room.photos && room.photos.length > 0 ? (
-                      <img
+                      <Image
                         src={room.photos[0]}
                         alt={room.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     ) : (
                       <Building className="w-16 h-16 text-white/80" />

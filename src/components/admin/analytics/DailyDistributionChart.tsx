@@ -9,7 +9,8 @@ import {
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  TooltipItem
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns'
@@ -19,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { BarChart3, Filter, Calendar } from 'lucide-react'
+import { Booking } from '@/lib/types'
 
 ChartJS.register(
   CategoryScale,
@@ -30,7 +32,7 @@ ChartJS.register(
 )
 
 interface DailyDistributionChartProps {
-  bookings: any[]
+  bookings: Booking[]
   isLoading?: boolean
 }
 
@@ -151,7 +153,7 @@ export function DailyDistributionChart({ bookings, isLoading = false }: DailyDis
   )
 }
 
-function processDailyDistributionData(bookings: any[], statusFilter: StatusFilter, daysBack: number) {
+function processDailyDistributionData(bookings: Booking[], statusFilter: StatusFilter, daysBack: number) {
   const endDate = new Date()
   const startDate = new Date()
   startDate.setDate(endDate.getDate() - daysBack)
@@ -262,8 +264,8 @@ function getChartOptions() {
         padding: 12,
         displayColors: true,
         callbacks: {
-          label: function(context: any) {
-            return `${context.dataset.label}: ${context.parsed.y}`
+          label: function(tooltipItem: TooltipItem<'bar'>) {
+            return `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y}`
           }
         }
       }

@@ -1,16 +1,17 @@
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval } from 'date-fns'
+import { Booking, Tour } from './types'
 
 /**
  * Utility function to identify if a booking is a tour booking
  */
-export function isTourBooking(booking: any): boolean {
+export function isTourBooking(booking: Booking): boolean {
   return booking.is_tour === true
 }
 
 /**
  * Filter bookings to get only tour bookings
  */
-export function filterTourBookings(bookings: any[]): any[] {
+export function filterTourBookings(bookings: Booking[]): Booking[] {
   return bookings.filter(isTourBooking)
 }
 
@@ -18,14 +19,14 @@ export interface TourBooking {
   id: string
   room_id: string
   user_id: string
-  guest_count: number
+  guest_count: number | null
   status: 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled'
   start_time?: string
   end_time?: string
   created_at: string
   updated_at: string
-  event_description?: string
-  notes?: string
+  event_description: string | null
+  notes: string | null
   is_tour?: boolean
   rooms?: {
     id: string
@@ -79,10 +80,10 @@ export interface TimeHeatmapData {
  * Filter tour bookings based on date range
  */
 export function filterTourBookingsByDateRange(
-  bookings: TourBooking[],
+  bookings: Booking[],
   startDate?: Date,
   endDate?: Date
-): TourBooking[] {
+): Booking[] {
   if (!startDate || !endDate) return bookings
 
   return bookings.filter(booking => {
@@ -95,8 +96,8 @@ export function filterTourBookingsByDateRange(
  * Calculate comprehensive tour analytics
  */
 export function calculateTourAnalytics(
-  bookings: TourBooking[],
-  tours: any[] = []
+  bookings: Booking[],
+  tours: Tour[] = []
 ): TourAnalyticsData {
   // Filter tour bookings using the utility function
   const tourBookings = bookings.filter(isTourBooking)
@@ -169,7 +170,7 @@ export function calculateTourAnalytics(
 /**
  * Calculate monthly trends for tour bookings
  */
-export function calculateMonthlyTrends(bookings: TourBooking[]): MonthlyTrend[] {
+export function calculateMonthlyTrends(bookings: Booking[]): MonthlyTrend[] {
   const monthlyData = new Map<string, MonthlyTrend>()
 
   bookings.forEach(booking => {
@@ -210,7 +211,7 @@ export function calculateMonthlyTrends(bookings: TourBooking[]): MonthlyTrend[] 
 /**
  * Calculate daily distribution for tour bookings
  */
-export function calculateDailyDistribution(bookings: TourBooking[]): DailyDistribution[] {
+export function calculateDailyDistribution(bookings: Booking[]): DailyDistribution[] {
   const dailyData = new Map<string, DailyDistribution>()
 
   bookings.forEach(booking => {
@@ -252,7 +253,7 @@ export function calculateDailyDistribution(bookings: TourBooking[]): DailyDistri
  * Calculate time-based heatmap data
  */
 export function calculateTimeHeatmap(
-  bookings: TourBooking[],
+  bookings: Booking[],
   timeRange: 'week' | 'month' | '3months' = 'month'
 ): TimeHeatmapData {
   const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
@@ -305,8 +306,8 @@ export function calculateTimeHeatmap(
  * Get tour capacity utilization metrics
  */
 export function calculateTourCapacityUtilization(
-  bookings: TourBooking[],
-  tours: any[]
+  bookings: Booking[],
+  tours: Tour[]
 ): { tourId: string; name: string; capacity: number; utilization: number; bookings: number }[] {
   // Filter tour bookings using the utility function
   const tourBookings = bookings.filter(isTourBooking)
@@ -329,7 +330,7 @@ export function calculateTourCapacityUtilization(
 /**
  * Get tour booking status distribution
  */
-export function getTourBookingStatusDistribution(bookings: TourBooking[]): {
+export function getTourBookingStatusDistribution(bookings: Booking[]): {
   status: string
   count: number
   percentage: number
@@ -365,7 +366,7 @@ export function getTourBookingStatusDistribution(bookings: TourBooking[]): {
  * Get tour participant trends over time
  */
 export function getTourParticipantTrends(
-  bookings: TourBooking[],
+  bookings: Booking[],
   period: 'daily' | 'weekly' | 'monthly' = 'monthly'
 ): { period: string; participants: number; bookings: number }[] {
   const trends = new Map<string, { participants: number; bookings: number }>()
