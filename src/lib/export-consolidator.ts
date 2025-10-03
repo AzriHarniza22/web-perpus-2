@@ -11,6 +11,7 @@ import { Booking, User } from './types'
  * Uses 'any' type for flexibility across different data types (Booking, User, etc.)
  * This is necessary because the interface needs to handle different data structures
  * dynamically based on the specific tab configuration being used.
+ * Type safety is maintained through explicit type annotations in TAB_CONFIGS.
  */
 export interface TabDataConfig<T = any> {
   title: string
@@ -33,7 +34,7 @@ export const TAB_CONFIGS: ExportTabConfig = {
     title: 'DATA BOOKING UMUM',
     dataSelector: (data) => data.bookings,
     headers: ['ID', 'Pengguna', 'Email', 'Institusi', 'Ruangan', 'Waktu Mulai', 'Waktu Selesai', 'Status', 'Deskripsi Acara', 'Catatan'],
-    rowMapper: (booking) => [
+    rowMapper: (booking: ExportData['bookings'][0]) => [
       booking.id,
       booking.profiles?.full_name || 'Unknown',
       booking.profiles?.email || 'Unknown',
@@ -50,7 +51,7 @@ export const TAB_CONFIGS: ExportTabConfig = {
     title: 'DATA BOOKING PER RUANGAN',
     dataSelector: (data) => data.bookings,
     headers: ['ID', 'Pengguna', 'Email', 'Institusi', 'Ruangan', 'Waktu Mulai', 'Waktu Selesai', 'Status', 'Jumlah Tamu', 'Durasi (jam)'],
-    rowMapper: (booking) => [
+    rowMapper: (booking: ExportData['bookings'][0]) => [
       booking.id,
       booking.profiles?.full_name || 'Unknown',
       booking.profiles?.email || 'Unknown',
@@ -67,12 +68,12 @@ export const TAB_CONFIGS: ExportTabConfig = {
     title: 'DATA BOOKING TOUR',
     dataSelector: (data) => data.bookings.filter((b: Booking) => (b as { tours?: unknown }).tours),
     headers: ['ID', 'Pengguna', 'Email', 'Institusi', 'Tour', 'Waktu Mulai', 'Waktu Selesai', 'Status', 'Jumlah Peserta', 'Durasi (jam)'],
-    rowMapper: (booking) => [
+    rowMapper: (booking: ExportData['bookings'][0]) => [
       booking.id,
       booking.profiles?.full_name || 'Unknown',
       booking.profiles?.email || 'Unknown',
       booking.profiles?.institution || 'Unknown',
-      booking.tours?.title || 'Unknown',
+      booking.tours?.name || 'Unknown',
       format(new Date(booking.start_time), 'dd/MM/yyyy HH:mm'),
       format(new Date(booking.end_time), 'dd/MM/yyyy HH:mm'),
       booking.status,
@@ -84,7 +85,7 @@ export const TAB_CONFIGS: ExportTabConfig = {
     title: 'DATA PENGGUNA',
     dataSelector: (data) => data.users,
     headers: ['ID', 'Nama Lengkap', 'Email', 'Institusi', 'Telepon', 'Role', 'Total Booking', 'Tanggal Dibuat'],
-    rowMapper: (user, _, data) => {
+    rowMapper: (user: User, _, data) => {
       const userBookings = data?.bookings.filter((b: Booking) => (b as { user_id?: string }).user_id === user.id) || []
       return [
         user.id,
