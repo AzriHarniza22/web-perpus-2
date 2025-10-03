@@ -82,7 +82,7 @@ export function RoomOverviewCards({
 
     // Calculate total guests
     const totalGuests = filteredBookings.reduce((sum: number, booking: any) => {
-      return sum + (booking.participant_count || 0)
+      return sum + (booking.guest_count || 0)
     }, 0)
 
     // Calculate average duration in hours

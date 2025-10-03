@@ -10,7 +10,7 @@ export interface RoomBooking {
   start_time: string
   end_time: string
   status: 'pending' | 'approved' | 'rejected'
-  participant_count?: number
+  guest_count?: number
   event_description?: string
   notes?: string
   created_at: string
@@ -98,7 +98,7 @@ export function calculateRoomAnalytics(bookings: RoomBooking[], rooms: RoomData[
     }
 
     // Update guest count
-    analytics.totalGuests += booking.participant_count || 0
+    analytics.totalGuests += booking.guest_count || 0
   })
 
   // Calculate derived metrics for each room
@@ -234,7 +234,7 @@ export function getGuestDistributionByRoom(bookings: RoomBooking[]) {
   roomBookings.forEach(booking => {
     const roomId = booking.room_id
     const roomName = booking.rooms?.name || 'Unknown Room'
-    const guestCount = booking.participant_count || 0
+    const guestCount = booking.guest_count || 0
 
     if (!roomGuestData.has(roomId)) {
       roomGuestData.set(roomId, { name: roomName, totalGuests: 0, bookingCount: 0 })
@@ -350,7 +350,7 @@ export function getAverageGuestsByRoom(bookings: RoomBooking[]) {
   roomBookings.forEach(booking => {
     const roomId = booking.room_id
     const roomName = booking.rooms?.name || 'Unknown Room'
-    const guestCount = booking.participant_count || 0
+    const guestCount = booking.guest_count || 0
 
     if (!roomGuestData.has(roomId)) {
       roomGuestData.set(roomId, {

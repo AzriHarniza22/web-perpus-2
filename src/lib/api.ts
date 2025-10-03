@@ -150,14 +150,22 @@ export const useBookings = (filters?: {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include cookies for authentication
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to fetch bookings')
+        const errorText = await response.text()
+        console.error('API Error Response:', { status: response.status, text: errorText })
+        try {
+          const error = JSON.parse(errorText)
+          throw new Error(error.error || 'Failed to fetch bookings')
+        } catch (parseError) {
+          throw new Error(`API Error ${response.status}: ${errorText}`)
+        }
       }
 
       const result = await response.json()
+      console.log('API Response:', result)
       return {
         bookings: result.bookings || [],
         totalCount: result.totalCount || 0,
@@ -281,6 +289,7 @@ export const useRooms = () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include cookies for authentication
       })
 
       if (!response.ok) {

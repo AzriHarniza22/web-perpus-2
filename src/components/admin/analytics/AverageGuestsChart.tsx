@@ -56,7 +56,7 @@ export function AverageGuestsChart({
     filteredBookings.forEach(booking => {
       const roomId = booking.room_id
       const roomName = booking.rooms?.name || 'Unknown Room'
-      const guestCount = booking.participant_count || 0
+      const guestCount = booking.guest_count || 0
 
       if (!roomGuestData.has(roomId)) {
         roomGuestData.set(roomId, {

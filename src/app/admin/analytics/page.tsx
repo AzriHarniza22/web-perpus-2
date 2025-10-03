@@ -208,11 +208,21 @@ export default function AnalyticsPage() {
 
 function AnalyticsContent() {
   const { data: rooms } = useRooms()
-  const { data: bookingsData } = useBookings()
+  const { data: bookingsData, isLoading: bookingsLoading, error: bookingsError } = useBookings()
   const [users, setUsers] = useState<any[]>([])
   const [usersLoading, setUsersLoading] = useState(true)
 
   const bookings = bookingsData?.bookings || []
+
+  // Debug logging
+  console.log('Analytics Debug:', {
+    rooms: rooms?.length || 0,
+    bookings: bookings?.length || 0,
+    bookingsData,
+    bookingsLoading,
+    bookingsError,
+    users: users.length
+  })
 
   // Fetch users data
   useEffect(() => {
@@ -226,6 +236,7 @@ function AnalyticsContent() {
         if (error) {
           console.error('Error fetching users:', error)
         } else {
+          console.log('Users fetched:', data?.length || 0)
           setUsers(data || [])
         }
       } catch (error) {
@@ -244,7 +255,7 @@ function AnalyticsContent() {
     rooms: rooms || [],
     tours: rooms || [], // Use rooms data as tours for now since tours are stored as rooms
     users,
-    isLoading: usersLoading || !rooms || !bookingsData
+    isLoading: usersLoading || bookingsLoading || !rooms
   }
 
   return (
