@@ -70,7 +70,7 @@ export async function exportToCSV(
   const fileName = options.fileName || generateFileName('csv', currentTab, filters)
 
   // Prepare CSV data based on current tab
-   let csvData: (string | number | string[])[][] = []
+   const csvData: (string | number | string[])[][] = []
 
   // Add metadata header
   if (options.includeMetadata !== false) {

@@ -29,11 +29,11 @@ export function MonthlyReservationsChart({ bookings, isLoading = false }: Monthl
     }
 
     if (viewMode === 'monthly') {
-      const result = aggregateMonthlyBookings(bookings as any)
-      console.log('Monthly aggregation result:', result)
-      return result
-    } else {
-      const result = aggregateDailyBookings(bookings as any)
+       const result = aggregateMonthlyBookings(bookings)
+       console.log('Monthly aggregation result:', result)
+       return result
+     } else {
+       const result = aggregateDailyBookings(bookings)
       console.log('Daily aggregation result:', result)
       return result
     }

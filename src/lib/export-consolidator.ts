@@ -6,6 +6,10 @@ import { id } from 'date-fns/locale'
 import { ExportData, ExportOptions } from './exportUtils'
 import { Booking, User } from './types'
 
+/**
+ * Generic configuration for tab data processing
+ * Uses 'any' type for flexibility across different data types (Booking, User, etc.)
+ */
 export interface TabDataConfig<T = any> {
   title: string
   dataSelector: (data: ExportData) => T[]
