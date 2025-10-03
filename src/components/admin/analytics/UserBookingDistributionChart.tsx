@@ -303,7 +303,7 @@ export function UserBookingDistributionChart({
                           size: 11
                         },
                         precision: 0,
-                        callback: function(value: any) {
+                        callback: function(value: string | number) {
                           return metricType === 'percentage' ? value + '%' : value
                         }
                       }

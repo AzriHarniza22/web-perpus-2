@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { TrendingUp, Users, Building, MapPin, Clock, BarChart3, LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Booking, Room, User } from '@/lib/types'
+import { Booking, Room, Tour, User } from '@/lib/types'
 
 interface GeneralOverviewCardsProps {
   bookings: Booking[]
   rooms: Room[]
-  tours: Room[]
+  tours: Tour[]
   users: User[]
   isLoading?: boolean
 }

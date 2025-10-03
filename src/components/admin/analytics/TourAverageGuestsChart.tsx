@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Users, TrendingUp, Calendar } from 'lucide-react'
 import { isTourBooking } from '@/lib/tourAnalytics'
+import { Booking, Tour } from '@/lib/types'
 
 ChartJS.register(
   CategoryScale,
@@ -33,8 +34,8 @@ ChartJS.register(
 )
 
 interface TourAverageGuestsChartProps {
-  bookings: any[]
-  tours: any[]
+  bookings: Booking[]
+  tours: Tour[]
   isLoading?: boolean
 }
 

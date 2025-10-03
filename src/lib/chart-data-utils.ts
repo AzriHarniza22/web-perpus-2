@@ -1,8 +1,9 @@
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval } from 'date-fns'
 import { id } from 'date-fns/locale'
+import { Booking } from './types'
 
 export interface DataPoint {
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export interface AggregatedData {
@@ -34,7 +35,7 @@ export interface StatusAggregation {
 /**
  * Generic data aggregation utility for time-based grouping
  */
-export function aggregateTimeSeriesData<T extends DataPoint>(
+export function aggregateTimeSeriesData<T extends Record<string, unknown>>(
   data: T[],
   options: {
     dateField?: keyof T
@@ -145,10 +146,10 @@ export function aggregateTimeSeriesData<T extends DataPoint>(
  * Convert aggregated data to chart format
  */
 export function formatChartData(
-  aggregatedData: Map<string, any>,
+  aggregatedData: Map<string, StatusAggregation & Record<string, number>>,
   options: {
     labelFormat?: (key: string) => string
-    sortFn?: (a: [string, any], b: [string, any]) => number
+    sortFn?: (a: [string, StatusAggregation & Record<string, number>], b: [string, StatusAggregation & Record<string, number>]) => number
     datasetConfigs?: Array<{
       key: string
       label: string
@@ -187,7 +188,7 @@ export function formatChartData(
  * Specialized function for monthly booking aggregation (replaces processMonthlyData)
  */
 export function aggregateMonthlyBookings(
-  bookings: any[],
+  bookings: Booking[],
   dateFilter?: { from?: Date; to?: Date }
 ): AggregatedData {
   console.log('aggregateMonthlyBookings called with:', { bookingsCount: bookings?.length, dateFilter })
@@ -197,7 +198,7 @@ export function aggregateMonthlyBookings(
     return { labels: [], datasets: [] }
   }
 
-  const aggregatedData = aggregateTimeSeriesData(bookings, {
+  const aggregatedData = aggregateTimeSeriesData(bookings as unknown as Record<string, unknown>[], {
     groupBy: 'month',
     dateFilter
   })
@@ -219,10 +220,10 @@ export function aggregateMonthlyBookings(
  * Specialized function for daily booking aggregation (replaces processDailyData)
  */
 export function aggregateDailyBookings(
-  bookings: any[],
+  bookings: Booking[],
   dateFilter?: { from?: Date; to?: Date }
 ): AggregatedData {
-  const aggregatedData = aggregateTimeSeriesData(bookings, {
+  const aggregatedData = aggregateTimeSeriesData(bookings as unknown as Record<string, unknown>[], {
     groupBy: 'day',
     dateFilter
   })
@@ -239,7 +240,7 @@ export function aggregateDailyBookings(
  * Specialized function for peak hours analysis
  */
 export function aggregatePeakHours(
-  bookings: any[],
+  bookings: DataPoint[],
   timeRange: number = 24
 ): AggregatedData {
   const hoursData = new Map<number, number>()
@@ -252,8 +253,8 @@ export function aggregatePeakHours(
   // Count bookings per hour
   bookings.forEach(booking => {
     const dateTime = booking.start_time
-      ? parseISO(booking.start_time)
-      : parseISO(booking.created_at)
+      ? parseISO(booking.start_time as string)
+      : parseISO(booking.created_at as string)
     const hour = dateTime.getHours()
 
     if (hour < timeRange) {

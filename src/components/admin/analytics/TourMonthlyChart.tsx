@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { BarChart3, TrendingUp, Calendar, MapPin, Users } from 'lucide-react'
 import { isTourBooking } from '@/lib/tourAnalytics'
+import { Booking, Tour } from '@/lib/types'
 
 ChartJS.register(
   CategoryScale,
@@ -36,8 +37,8 @@ ChartJS.register(
 )
 
 interface TourMonthlyChartProps {
-  bookings: any[]
-  tours: any[]
+  bookings: Booking[]
+  tours: Tour[]
   isLoading?: boolean
 }
 
@@ -78,7 +79,7 @@ export function TourMonthlyChart({
   }, [chartData, totalReservations])
 
   const totalParticipants = useMemo(() => {
-     return tourBookings.reduce((sum: number, booking: any) => {
+     return tourBookings.reduce((sum: number, booking: Booking) => {
        return sum + (booking.guest_count || 0)
      }, 0)
    }, [tourBookings])
@@ -204,7 +205,7 @@ export function TourMonthlyChart({
   )
 }
 
-function processMonthlyData(bookings: any[]) {
+function processMonthlyData(bookings: Booking[]) {
   const monthlyData = new Map()
 
   bookings.forEach(booking => {
@@ -279,7 +280,7 @@ function processMonthlyData(bookings: any[]) {
   }
 }
 
-function processDailyData(bookings: any[]) {
+function processDailyData(bookings: Booking[]) {
   const dailyData = new Map()
 
   bookings.forEach(booking => {

@@ -365,19 +365,19 @@ export function getTimeRangeOptions(timeRange: string): Partial<ChartOptions> {
 // Tooltip formatters
 export const TOOLTIP_FORMATTERS = {
   default: function(context: Record<string, unknown>) {
-    const ctx = context as any
+    const ctx = context as { dataset: { label?: string }; parsed: { y: number } }
     return `${ctx.dataset.label}: ${ctx.parsed.y}`
   },
   time: function(context: Record<string, unknown>[]) {
-    const ctx = context[0] as any
+    const ctx = context[0] as { label?: string; parsed: { y: number } }
     return `Jam ${ctx.label}: ${ctx.parsed.y} reservasi`
   },
   duration: function(context: Record<string, unknown>) {
-    const ctx = context as any
+    const ctx = context as { parsed: { x: number } }
     return `Durasi: ${ctx.parsed.x} jam`
   },
   percentage: function(context: Record<string, unknown>) {
-    const ctx = context as any
+    const ctx = context as { dataset: { label?: string }; parsed: { y: number } }
     return `${ctx.dataset.label}: ${ctx.parsed.y}%`
   }
 }

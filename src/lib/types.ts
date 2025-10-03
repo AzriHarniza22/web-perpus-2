@@ -71,6 +71,19 @@ export interface Booking {
   tour_duration_minutes?: number | null
 }
 
+export interface Tour {
+  id: string
+  name: string
+  description: string | null
+  capacity: number
+  duration_minutes: number | null
+  meeting_point: string | null
+  guide_name: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 // API response types
 export interface RegistrationResponse {
   success: boolean

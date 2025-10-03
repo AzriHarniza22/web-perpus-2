@@ -303,7 +303,7 @@ export function createChartOptions(overrides: ChartOptions<'line' | 'bar' | 'sca
 
 // Data processing utilities
 export function processTimeSeriesData(
-  data: Record<string, any>[],
+  data: Record<string, unknown>[],
   dateField: string = 'created_at',
   groupBy: 'day' | 'month' | 'hour' = 'month',
   valueFields: string[] = ['total']

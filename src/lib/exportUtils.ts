@@ -4,12 +4,17 @@ import html2canvas from 'html2canvas'
 import Papa from 'papaparse'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
+import { Booking, Room, Tour, User } from './types'
 
 export interface ExportData {
-  bookings: any[]
-  rooms: any[]
-  tours: any[]
-  users: any[]
+  bookings: (Booking & {
+    profiles?: User
+    rooms?: Room
+    tours?: Tour
+  })[]
+  rooms: Room[]
+  tours: Tour[]
+  users: User[]
   currentTab: 'general' | 'room' | 'tour' | 'user'
   filters: {
     dateRange?: { from: Date; to: Date }
@@ -65,7 +70,7 @@ export async function exportToCSV(
   const fileName = options.fileName || generateFileName('csv', currentTab, filters)
 
   // Prepare CSV data based on current tab
-  let csvData: any[][] = []
+   let csvData: (string | number | string[])[][] = []
 
   // Add metadata header
   if (options.includeMetadata !== false) {
@@ -257,7 +262,7 @@ export async function exportToExcel(
 }
 
 // Helper functions for CSV data preparation
-function getGeneralTabCSVData(data: ExportData): any[][] {
+function getGeneralTabCSVData(data: ExportData): (string | number | string[])[][] {
   const { bookings, rooms, users } = data
 
   return [
@@ -283,7 +288,7 @@ function getGeneralTabCSVData(data: ExportData): any[][] {
       room.name,
       room.capacity || 'N/A',
       room.facilities || 'N/A',
-      room.status || 'Active'
+      room.is_active ? 'Active' : 'Inactive'
     ]),
     [''],
     ['=== DATA PENGGUNA ==='],
@@ -300,7 +305,7 @@ function getGeneralTabCSVData(data: ExportData): any[][] {
   ]
 }
 
-function getRoomTabCSVData(data: ExportData): any[][] {
+function getRoomTabCSVData(data: ExportData): (string | number)[][] {
   const { bookings, rooms, filters } = data
   const filteredBookings = filterBookingsByRoom(bookings, filters.selectedRooms)
 
@@ -313,16 +318,16 @@ function getRoomTabCSVData(data: ExportData): any[][] {
       booking.profiles?.email || 'Unknown',
       booking.profiles?.institution || 'Unknown',
       booking.rooms?.name || 'Unknown',
-      format(new Date(booking.start_time), 'dd/MM/yyyy HH:mm'),
-      format(new Date(booking.end_time), 'dd/MM/yyyy HH:mm'),
+      format(new Date(booking.start_time as string), 'dd/MM/yyyy HH:mm'),
+      format(new Date(booking.end_time as string), 'dd/MM/yyyy HH:mm'),
       booking.status,
       booking.guest_count || 0,
-      calculateDuration(booking.start_time, booking.end_time)
+      calculateDuration(booking.start_time as string, booking.end_time as string)
     ])
   ]
 }
 
-function getTourTabCSVData(data: ExportData): any[][] {
+function getTourTabCSVData(data: ExportData): (string | number)[][] {
   const { bookings, tours } = data
 
   return [
@@ -335,17 +340,17 @@ function getTourTabCSVData(data: ExportData): any[][] {
         booking.profiles?.full_name || 'Unknown',
         booking.profiles?.email || 'Unknown',
         booking.profiles?.institution || 'Unknown',
-        booking.tours?.title || 'Unknown',
+        booking.tours?.name || 'Unknown',
         format(new Date(booking.start_time), 'dd/MM/yyyy HH:mm'),
         format(new Date(booking.end_time), 'dd/MM/yyyy HH:mm'),
         booking.status,
         booking.guest_count || 0,
-        calculateDuration(booking.start_time, booking.end_time)
+        calculateDuration(booking.start_time as string, booking.end_time as string)
       ])
   ]
 }
 
-function getUserTabCSVData(data: ExportData): any[][] {
+function getUserTabCSVData(data: ExportData): (string | number)[][] {
   const { bookings, users } = data
 
   return [
@@ -500,8 +505,8 @@ function addGeneralTabExcelSheets(workbook: XLSX.WorkBook, data: ExportData): vo
       booking.profiles?.email || 'Unknown',
       booking.profiles?.institution || 'Unknown',
       booking.rooms?.name || 'Unknown',
-      booking.start_time,
-      booking.end_time,
+      booking.start_time as string,
+      booking.end_time as string,
       booking.status,
       booking.event_description || '',
       booking.notes || ''
@@ -518,7 +523,7 @@ function addGeneralTabExcelSheets(workbook: XLSX.WorkBook, data: ExportData): vo
       room.name,
       room.capacity || 'N/A',
       room.facilities || 'N/A',
-      room.status || 'Active'
+      room.is_active ? 'Active' : 'Inactive'
     ])
   ])
   XLSX.utils.book_append_sheet(workbook, roomsSheet, 'Rooms')
@@ -553,11 +558,11 @@ function addRoomTabExcelSheets(workbook: XLSX.WorkBook, data: ExportData): void 
       booking.profiles?.email || 'Unknown',
       booking.profiles?.institution || 'Unknown',
       booking.rooms?.name || 'Unknown',
-      booking.start_time,
-      booking.end_time,
+      booking.start_time as string,
+      booking.end_time as string,
       booking.status,
       booking.guest_count || 0,
-      calculateDuration(booking.start_time, booking.end_time)
+      calculateDuration(booking.start_time as string, booking.end_time as string)
     ])
   ])
   XLSX.utils.book_append_sheet(workbook, sheet, 'Room Bookings')
@@ -576,12 +581,12 @@ function addTourTabExcelSheets(workbook: XLSX.WorkBook, data: ExportData): void 
         booking.profiles?.full_name || 'Unknown',
         booking.profiles?.email || 'Unknown',
         booking.profiles?.institution || 'Unknown',
-        booking.tours?.title || 'Unknown',
-        booking.start_time,
-        booking.end_time,
+        booking.tours?.name || 'Unknown',
+        booking.start_time as string,
+        booking.end_time as string,
         booking.status,
         booking.guest_count || 0,
-        calculateDuration(booking.start_time, booking.end_time)
+        calculateDuration(booking.start_time as string, booking.end_time as string)
       ])
   ])
   XLSX.utils.book_append_sheet(workbook, sheet, 'Tour Bookings')
@@ -611,7 +616,7 @@ function addUserTabExcelSheets(workbook: XLSX.WorkBook, data: ExportData): void 
 }
 
 // Utility functions
-function filterBookingsByRoom(bookings: any[], selectedRooms?: string[]): any[] {
+function filterBookingsByRoom(bookings: (Booking & { profiles?: User; rooms?: Room; tours?: Tour })[], selectedRooms?: string[]): (Booking & { profiles?: User; rooms?: Room; tours?: Tour })[] {
   if (!selectedRooms || selectedRooms.length === 0) return bookings
   return bookings.filter(booking => selectedRooms.includes(booking.room_id))
 }

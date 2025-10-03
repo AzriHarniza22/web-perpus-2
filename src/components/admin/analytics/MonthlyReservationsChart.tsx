@@ -8,7 +8,7 @@ import { BaseChart, ChartType as BaseChartType, ViewMode } from './BaseChart'
 import { aggregateMonthlyBookings, aggregateDailyBookings, calculateStats } from '@/lib/chart-data-utils'
 import { getChartOptionsByType, createStatusDatasets, STATUS_COLORS } from '@/lib/chart-config-utils'
 import { Booking } from '@/lib/types'
-import { TooltipItem } from 'chart.js'
+import { TooltipItem, ChartOptions } from 'chart.js'
 
 interface MonthlyReservationsChartProps {
   bookings: Booking[]
@@ -16,7 +16,7 @@ interface MonthlyReservationsChartProps {
 }
 
 export function MonthlyReservationsChart({ bookings, isLoading = false }: MonthlyReservationsChartProps) {
-  const [chartType, setChartType] = useState<BaseChartType>('line')
+  const [chartType, setChartType] = useState<'line' | 'bar'>('line')
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
 
   // Process data based on view mode using new utilities
@@ -29,11 +29,11 @@ export function MonthlyReservationsChart({ bookings, isLoading = false }: Monthl
     }
 
     if (viewMode === 'monthly') {
-      const result = aggregateMonthlyBookings(bookings)
+      const result = aggregateMonthlyBookings(bookings as any)
       console.log('Monthly aggregation result:', result)
       return result
     } else {
-      const result = aggregateDailyBookings(bookings)
+      const result = aggregateDailyBookings(bookings as any)
       console.log('Daily aggregation result:', result)
       return result
     }
@@ -61,7 +61,7 @@ export function MonthlyReservationsChart({ bookings, isLoading = false }: Monthl
           }
         }
       }
-    }) as any
+    }) as ChartOptions<'line' | 'bar'>
   }
 
   return (
@@ -74,7 +74,7 @@ export function MonthlyReservationsChart({ bookings, isLoading = false }: Monthl
       viewMode={viewMode}
       availableChartTypes={['line', 'bar']}
       availableViewModes={['monthly', 'daily']}
-      onChartTypeChange={setChartType}
+      onChartTypeChange={(type) => setChartType(type as 'bar' | 'line')}
       onViewModeChange={setViewMode}
       chartData={chartData}
       getChartOptions={getChartOptions}

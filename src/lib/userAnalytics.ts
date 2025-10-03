@@ -1,6 +1,7 @@
 'use client'
 
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval } from 'date-fns'
+import { Booking, User } from './types'
 
 export interface UserAnalytics {
   totalUsers: number
@@ -59,14 +60,14 @@ export interface InstitutionStats {
  * Aggregate user analytics data from bookings and users
  */
 export function aggregateUserAnalytics(
-  bookings: any[],
-  users: any[],
+  bookings: Booking[],
+  users: User[],
   dateFilter?: { from?: Date; to?: Date }
 ): UserAnalytics {
   // Apply date filter if provided
   const filteredBookings = dateFilter?.from && dateFilter?.to
     ? bookings.filter(booking => {
-        const bookingDate = parseISO(booking.created_at)
+        const bookingDate = parseISO(booking.created_at as string)
         return isWithinInterval(bookingDate, { start: dateFilter.from!, end: dateFilter.to! })
       })
     : bookings
@@ -102,8 +103,8 @@ export function aggregateUserAnalytics(
     }
 
     // Update last booking date
-    if (new Date(booking.created_at) > new Date(userData.lastBookingDate)) {
-      userData.lastBookingDate = booking.created_at
+    if (new Date(booking.created_at as string) > new Date(userData.lastBookingDate)) {
+      userData.lastBookingDate = booking.created_at as string
     }
   })
 
@@ -161,12 +162,12 @@ export function aggregateUserAnalytics(
 /**
  * Calculate user registration trends by month
  */
-function calculateUserRegistrationTrend(users: any[], bookings: any[]): RegistrationTrend[] {
+function calculateUserRegistrationTrend(users: User[], bookings: Booking[]): RegistrationTrend[] {
   const monthlyData = new Map()
 
   // Process user registrations
   users.forEach(user => {
-    const date = parseISO(user.created_at)
+    const date = parseISO(user.created_at as string)
     const monthKey = format(date, 'yyyy-MM')
 
     if (!monthlyData.has(monthKey)) {
@@ -183,7 +184,7 @@ function calculateUserRegistrationTrend(users: any[], bookings: any[]): Registra
 
   // Process booking statuses for each month
   bookings.forEach(booking => {
-    const date = parseISO(booking.created_at)
+    const date = parseISO(booking.created_at as string)
     const monthKey = format(date, 'yyyy-MM')
 
     if (monthlyData.has(monthKey)) {
@@ -246,7 +247,7 @@ function calculateBookingDistribution(users: UserData[]): BookingDistribution[] 
  * Calculate institution statistics
  */
 function calculateInstitutionStats(
-  institutionMap: Map<string, any>,
+  institutionMap: Map<string, InstitutionData>,
   users: UserData[]
 ): InstitutionStats[] {
   return Array.from(institutionMap.entries()).map(([name, data]) => {
@@ -268,13 +269,13 @@ function calculateInstitutionStats(
 /**
  * Calculate new users this month
  */
-function calculateNewUsersThisMonth(users: any[]): number {
+function calculateNewUsersThisMonth(users: User[]): number {
   const now = new Date()
   const startOfThisMonth = startOfMonth(now)
   const endOfThisMonth = endOfMonth(now)
 
   return users.filter(user => {
-    const registrationDate = parseISO(user.created_at)
+    const registrationDate = parseISO(user.created_at as string)
     return isWithinInterval(registrationDate, { start: startOfThisMonth, end: endOfThisMonth })
   }).length
 }
@@ -320,13 +321,13 @@ export function getUserInitials(name: string): string {
  * Format user registration data for daily view
  */
 export function getDailyUserRegistrations(
-  users: any[],
-  bookings: any[],
+  users: User[],
+  bookings: Booking[],
   dateFilter?: { from?: Date; to?: Date }
-): { labels: string[], datasets: any[] } {
+): { labels: string[], datasets: Array<{ label: string; data: number[]; borderColor: string; backgroundColor: string; fill: boolean; tension: number }> } {
   const filteredUsers = dateFilter?.from && dateFilter?.to
     ? users.filter(user => {
-        const regDate = parseISO(user.created_at)
+        const regDate = parseISO(user.created_at as string)
         return isWithinInterval(regDate, { start: dateFilter.from!, end: dateFilter.to! })
       })
     : users
@@ -334,7 +335,7 @@ export function getDailyUserRegistrations(
   const dailyData = new Map()
 
   filteredUsers.forEach(user => {
-    const date = parseISO(user.created_at)
+    const date = parseISO(user.created_at as string)
     const dayKey = format(date, 'yyyy-MM-dd')
 
     if (!dailyData.has(dayKey)) {
@@ -349,10 +350,10 @@ export function getDailyUserRegistrations(
 
   // Add booking data for users who registered and made bookings on the same day
   bookings.forEach(booking => {
-    const bookingDate = parseISO(booking.created_at)
+    const bookingDate = parseISO(booking.created_at as string)
     const userRegDate = users.find(u => u.id === booking.user_id)?.created_at
     if (userRegDate) {
-      const regDate = parseISO(userRegDate)
+      const regDate = parseISO(userRegDate as string)
       const dayKey = format(regDate, 'yyyy-MM-dd')
 
       if (format(bookingDate, 'yyyy-MM-dd') === dayKey && dailyData.has(dayKey)) {

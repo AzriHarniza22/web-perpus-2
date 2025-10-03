@@ -265,7 +265,7 @@ function getChartOptions(timeRange: TimeRange) {
             size: 11
           },
           maxRotation: 0,
-          callback: function(value: any, index: number) {
+          callback: function(value: string | number, index: number) {
             if (maxHours <= 12) {
               return `${index}:00`
             }
@@ -331,10 +331,10 @@ function getScatterOptions(timeRange: TimeRange) {
         cornerRadius: 8,
         padding: 12,
         callbacks: {
-          title: function(context: any) {
+          title: function(context: TooltipItem<'scatter'>[]) {
             return `Jam ${context[0].label}:00`
           },
-          label: function(context: any) {
+          label: function(context: TooltipItem<'scatter'>) {
             return `Reservasi: ${context.parsed.y}`
           }
         }
@@ -352,7 +352,7 @@ function getScatterOptions(timeRange: TimeRange) {
             size: 11
           },
           stepSize: 1,
-          callback: function(value: any) {
+          callback: function(value: string | number) {
             return `${value}:00`
           }
         },

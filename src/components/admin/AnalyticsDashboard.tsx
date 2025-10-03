@@ -52,12 +52,12 @@ import { InstitutionBookingsChart } from '@/components/admin/analytics/Instituti
 import { UserBookingDistributionChart } from '@/components/admin/analytics/UserBookingDistributionChart'
 import { ExportButton } from '@/components/admin/analytics/ExportButton'
 import { exportToCSV, exportToPDF, exportToExcel, ExportData } from '@/lib/exportUtils'
-import { Booking, Room, User } from '@/lib/types'
+import { Booking, Room, Tour, User } from '@/lib/types'
 
 interface AnalyticsDashboardProps {
   bookings: Booking[]
   rooms: Room[]
-  tours: Room[]
+  tours: Tour[]
   users: User[]
   isLoading?: boolean
 }
@@ -70,7 +70,7 @@ interface DateFilter {
 interface GeneralAnalyticsTabProps {
   bookings: Booking[]
   rooms: Room[]
-  tours: Room[]
+  tours: Tour[]
   users: User[]
 }
 
@@ -82,7 +82,7 @@ interface RoomAnalyticsTabProps {
 
 interface TourAnalyticsTabProps {
   bookings: Booking[]
-  tours: Room[]
+  tours: Tour[]
 }
 
 interface UserAnalyticsTabProps {
