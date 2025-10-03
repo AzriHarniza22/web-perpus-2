@@ -4,7 +4,7 @@ import Papa from 'papaparse'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { ExportData, ExportOptions } from './exportUtils'
-import { Booking, User } from './types'
+import { Booking, User, Room, Tour } from './types'
 
 /**
  * Generic configuration for tab data processing
@@ -13,6 +13,7 @@ import { Booking, User } from './types'
  * dynamically based on the specific tab configuration being used.
  * Type safety is maintained through explicit type annotations in TAB_CONFIGS.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface TabDataConfig<T = any> {
   title: string
   dataSelector: (data: ExportData) => T[]
