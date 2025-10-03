@@ -19,6 +19,7 @@ import { id } from 'date-fns/locale'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Users, TrendingUp, Calendar } from 'lucide-react'
+import { isTourBooking } from '@/lib/tourAnalytics'
 
 ChartJS.register(
   CategoryScale,
@@ -42,9 +43,9 @@ export function TourAverageGuestsChart({
   tours,
   isLoading = false
 }: TourAverageGuestsChartProps) {
-  // Filter tour bookings
+  // Filter tour bookings using the utility function
   const tourBookings = useMemo(() => {
-    return bookings.filter(booking => booking.tour_id)
+    return bookings.filter(isTourBooking)
   }, [bookings])
 
   // Process average guests data by month
@@ -64,7 +65,7 @@ export function TourAverageGuestsChart({
       }
 
       const data = monthlyData.get(monthKey)
-      const participants = booking.participant_count || 0
+      const participants = booking.guest_count || 0
 
       data.totalParticipants += participants
       data.count += 1
@@ -104,7 +105,7 @@ export function TourAverageGuestsChart({
       }
     }
 
-    const participants = tourBookings.map(booking => booking.participant_count || 0)
+    const participants = tourBookings.map(booking => booking.guest_count || 0)
     const avgParticipants = participants.reduce((sum, count) => sum + count, 0) / participants.length
     const minParticipants = Math.min(...participants)
     const maxParticipants = Math.max(...participants)

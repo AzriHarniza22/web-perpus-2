@@ -1,16 +1,33 @@
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval } from 'date-fns'
 
+/**
+ * Utility function to identify if a booking is a tour booking
+ */
+export function isTourBooking(booking: any): boolean {
+  return booking.is_tour === true
+}
+
+/**
+ * Filter bookings to get only tour bookings
+ */
+export function filterTourBookings(bookings: any[]): any[] {
+  return bookings.filter(isTourBooking)
+}
+
 export interface TourBooking {
   id: string
-  tour_id: string
+  room_id: string
   user_id: string
-  participant_count: number
-  status: 'pending' | 'approved' | 'rejected'
+  guest_count: number
+  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled'
   start_time?: string
   end_time?: string
   created_at: string
   updated_at: string
-  tours?: {
+  event_description?: string
+  notes?: string
+  is_tour?: boolean
+  rooms?: {
     id: string
     name: string
     capacity: number
@@ -81,7 +98,8 @@ export function calculateTourAnalytics(
   bookings: TourBooking[],
   tours: any[] = []
 ): TourAnalyticsData {
-  const tourBookings = bookings.filter(booking => booking.tour_id)
+  // Filter tour bookings using the utility function
+  const tourBookings = bookings.filter(isTourBooking)
 
   const totalBookings = tourBookings.length
   const approvedBookings = tourBookings.filter(b => b.status === 'approved').length
@@ -89,7 +107,7 @@ export function calculateTourAnalytics(
   const rejectedBookings = tourBookings.filter(b => b.status === 'rejected').length
 
   const totalParticipants = tourBookings.reduce((sum, booking) => {
-    return sum + (booking.participant_count || 0)
+    return sum + (booking.guest_count || 0)
   }, 0)
 
   const avgParticipants = totalBookings > 0 ? Math.round((totalParticipants / totalBookings) * 10) / 10 : 0
@@ -110,15 +128,17 @@ export function calculateTourAnalytics(
     ? Math.round((totalDuration / bookingsWithDuration.length) * 10) / 10
     : 0
 
-  // Calculate utilization rate
-  const totalCapacity = tours.reduce((sum, tour) => sum + (tour.capacity || 0), 0)
+  // Calculate utilization rate based on tour bookings capacity
+  // For tours, we use a default capacity per tour booking or calculate from actual bookings
+  const avgCapacityPerTour = 20 // Default capacity for tour bookings
+  const totalCapacity = tourBookings.length * avgCapacityPerTour
   const utilizationRate = totalCapacity > 0 ? Math.round((totalParticipants / totalCapacity) * 100) : 0
 
   // Find peak hour
   const hourCounts = new Map<number, number>()
   tourBookings.forEach(booking => {
     const hour = new Date(booking.created_at).getHours()
-    hourCounts.set(hour, (hourCounts.get(hour) || 0) + (booking.participant_count || 1))
+    hourCounts.set(hour, (hourCounts.get(hour) || 0) + (booking.guest_count || 1))
   })
 
   let peakHour = '0'
@@ -169,7 +189,7 @@ export function calculateMonthlyTrends(bookings: TourBooking[]): MonthlyTrend[] 
 
     const data = monthlyData.get(monthKey)!
     data.total += 1
-    data.participants += booking.participant_count || 0
+    data.participants += booking.guest_count || 0
 
     switch (booking.status) {
       case 'approved':
@@ -210,7 +230,7 @@ export function calculateDailyDistribution(bookings: TourBooking[]): DailyDistri
 
     const data = dailyData.get(dayKey)!
     data.total += 1
-    data.participants += booking.participant_count || 0
+    data.participants += booking.guest_count || 0
 
     switch (booking.status) {
       case 'approved':
@@ -266,7 +286,7 @@ export function calculateTimeHeatmap(
       const hour = date.getHours()
 
       if (dayOfWeek >= 0 && dayOfWeek < 7 && hour >= 0 && hour < 24) {
-        grid[dayOfWeek][hour] += booking.participant_count || 1
+        grid[dayOfWeek][hour] += booking.guest_count || 1
       }
     })
 
@@ -288,9 +308,12 @@ export function calculateTourCapacityUtilization(
   bookings: TourBooking[],
   tours: any[]
 ): { tourId: string; name: string; capacity: number; utilization: number; bookings: number }[] {
+  // Filter tour bookings using the utility function
+  const tourBookings = bookings.filter(isTourBooking)
+
   return tours.map(tour => {
-    const tourBookings = bookings.filter(booking => booking.tour_id === tour.id)
-    const totalParticipants = tourBookings.reduce((sum, booking) => sum + (booking.participant_count || 0), 0)
+    // For each tour (room), calculate utilization based on tour bookings
+    const totalParticipants = tourBookings.reduce((sum, booking) => sum + (booking.guest_count || 0), 0)
     const utilization = tour.capacity > 0 ? Math.round((totalParticipants / tour.capacity) * 100) : 0
 
     return {
@@ -312,7 +335,8 @@ export function getTourBookingStatusDistribution(bookings: TourBooking[]): {
   percentage: number
   participants: number
 }[] {
-  const tourBookings = bookings.filter(booking => booking.tour_id)
+  // Filter tour bookings using the utility function
+  const tourBookings = bookings.filter(isTourBooking)
   const totalBookings = tourBookings.length
 
   if (totalBookings === 0) {
@@ -325,7 +349,7 @@ export function getTourBookingStatusDistribution(bookings: TourBooking[]): {
       acc[status] = { count: 0, participants: 0 }
     }
     acc[status].count += 1
-    acc[status].participants += booking.participant_count || 0
+    acc[status].participants += booking.guest_count || 0
     return acc
   }, {} as Record<string, { count: number; participants: number }>)
 
@@ -346,8 +370,10 @@ export function getTourParticipantTrends(
 ): { period: string; participants: number; bookings: number }[] {
   const trends = new Map<string, { participants: number; bookings: number }>()
 
-  bookings
-    .filter(booking => booking.tour_id)
+  // Filter tour bookings using the utility function
+  const tourBookings = bookings.filter(isTourBooking)
+
+  tourBookings
     .forEach(booking => {
       const date = parseISO(booking.created_at)
       let periodKey: string
@@ -371,7 +397,7 @@ export function getTourParticipantTrends(
       }
 
       const data = trends.get(periodKey)!
-      data.participants += booking.participant_count || 0
+      data.participants += booking.guest_count || 0
       data.bookings += 1
     })
 

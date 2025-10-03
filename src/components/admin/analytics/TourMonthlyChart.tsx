@@ -21,6 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { BarChart3, TrendingUp, Calendar, MapPin, Users } from 'lucide-react'
+import { isTourBooking } from '@/lib/tourAnalytics'
 
 ChartJS.register(
   CategoryScale,
@@ -51,9 +52,9 @@ export function TourMonthlyChart({
   const [chartType, setChartType] = useState<ChartType>('line')
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
 
-  // Filter tour bookings
+  // Filter tour bookings using the utility function
   const tourBookings = useMemo(() => {
-    return bookings.filter(booking => booking.tour_id)
+    return bookings.filter(isTourBooking)
   }, [bookings])
 
   // Process data based on view mode
@@ -77,10 +78,10 @@ export function TourMonthlyChart({
   }, [chartData, totalReservations])
 
   const totalParticipants = useMemo(() => {
-    return tourBookings.reduce((sum: number, booking: any) => {
-      return sum + (booking.participant_count || 0)
-    }, 0)
-  }, [tourBookings])
+     return tourBookings.reduce((sum: number, booking: any) => {
+       return sum + (booking.guest_count || 0)
+     }, 0)
+   }, [tourBookings])
 
   if (isLoading) {
     return (
@@ -221,8 +222,8 @@ function processMonthlyData(bookings: any[]) {
     }
 
     const data = monthlyData.get(monthKey)
-    data.total += 1
-    data.participants += booking.participant_count || 0
+     data.total += 1
+     data.participants += booking.guest_count || 0
 
     switch (booking.status) {
       case 'approved':
@@ -296,8 +297,8 @@ function processDailyData(bookings: any[]) {
     }
 
     const data = dailyData.get(dayKey)
-    data.total += 1
-    data.participants += booking.participant_count || 0
+     data.total += 1
+     data.participants += booking.guest_count || 0
 
     switch (booking.status) {
       case 'approved':

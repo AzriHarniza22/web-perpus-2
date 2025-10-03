@@ -2,16 +2,13 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Users, Building, Clock, BarChart3, Filter } from 'lucide-react'
+import { TrendingUp, Users, Building, Clock, BarChart3 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 
 interface RoomOverviewCardsProps {
   bookings: any[]
   rooms: any[]
-  selectedRoom?: string
-  onRoomChange?: (roomId: string) => void
   isLoading?: boolean
 }
 
@@ -29,8 +26,6 @@ interface StatCard {
 export function RoomOverviewCards({
   bookings,
   rooms,
-  selectedRoom,
-  onRoomChange,
   isLoading = false
 }: RoomOverviewCardsProps) {
   const [animatedValues, setAnimatedValues] = useState<{
@@ -73,11 +68,10 @@ export function RoomOverviewCards({
     peakHour: '0'
   })
 
-  // Filter bookings based on selected room
+  // Filter room bookings (non-tour bookings)
   const filteredBookings = useMemo(() => {
-    if (!selectedRoom || selectedRoom === 'all') return bookings
-    return bookings.filter(booking => booking.room_id === selectedRoom)
-  }, [bookings, selectedRoom])
+    return bookings.filter(booking => booking.is_tour === false)
+  }, [bookings])
 
   // Calculate room analytics
   const roomStats = useMemo(() => {
@@ -103,12 +97,10 @@ export function RoomOverviewCards({
     }, 0)
     const avgDuration = totalBookings > 0 ? Math.round(totalDuration / totalBookings * 10) / 10 : 0
 
-    // Calculate utilization rate
-    const selectedRoomData = selectedRoom && selectedRoom !== 'all'
-      ? rooms.find(room => room.id === selectedRoom)
-      : null
-    const utilizationRate = selectedRoomData?.capacity > 0
-      ? Math.round((totalBookings / selectedRoomData.capacity) * 100)
+    // Calculate utilization rate based on total room capacity
+    const totalRoomCapacity = rooms.reduce((sum: number, room: any) => sum + (room.capacity || 0), 0)
+    const utilizationRate = totalRoomCapacity > 0
+      ? Math.round((totalGuests / totalRoomCapacity) * 100)
       : 0
 
     // Find peak hour
@@ -138,7 +130,7 @@ export function RoomOverviewCards({
       utilizationRate,
       peakHour: peakHour + ':00'
     }
-  }, [filteredBookings, selectedRoom, rooms])
+  }, [filteredBookings, rooms])
 
   // Animate numbers on change
   useEffect(() => {
@@ -340,23 +332,6 @@ export function RoomOverviewCards({
             </p>
           </div>
 
-          {/* Room Filter Dropdown */}
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-            <Select value={selectedRoom || 'all'} onValueChange={onRoomChange}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Pilih ruangan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Ruangan</SelectItem>
-                {rooms?.map((room) => (
-                  <SelectItem key={room.id} value={room.id}>
-                    {room.name}
-                  </SelectItem>
-                )) || []}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
       </CardHeader>
       <CardContent>

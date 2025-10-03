@@ -46,15 +46,13 @@ const mockTours = [
 ]
 
 export default function TourApprovals() {
-  const { data: bookingsData, isLoading } = useBookings()
+  // Use API filtering for tour bookings only
+  const { data: bookingsData, isLoading } = useBookings({
+    status: ['pending'],
+    isTour: true
+  })
   const bookings = bookingsData?.bookings || []
   const updateBookingStatusMutation = useUpdateBookingStatus()
-
-  // Filter only pending tour bookings (tour bookings are identified by having tour-like event descriptions)
-  const pendingTourBookings = bookings.filter(booking =>
-    booking.status === 'pending' &&
-    (booking.event_description?.includes('Tour:') || booking.rooms?.name?.includes('Tour'))
-  )
 
   const updateBookingStatus = (id: string, status: string) => {
     updateBookingStatusMutation.mutate({ id, status })
@@ -104,7 +102,7 @@ export default function TourApprovals() {
   return (
     <div className="space-y-6">
       <AnimatePresence>
-        {pendingTourBookings.map((booking, index) => {
+        {bookings.map((booking, index) => {
           const tourInfo = getTourInfo(booking)
           return (
             <motion.div
@@ -399,7 +397,7 @@ export default function TourApprovals() {
         })}
       </AnimatePresence>
 
-      {pendingTourBookings.length === 0 && (
+      {bookings.length === 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

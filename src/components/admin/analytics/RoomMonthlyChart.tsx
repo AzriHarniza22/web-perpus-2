@@ -20,7 +20,6 @@ import { id } from 'date-fns/locale'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { BarChart3, TrendingUp, Calendar, Building } from 'lucide-react'
 
 ChartJS.register(
@@ -38,7 +37,6 @@ ChartJS.register(
 interface RoomMonthlyChartProps {
   bookings: any[]
   rooms: any[]
-  selectedRoom?: string
   isLoading?: boolean
 }
 
@@ -48,18 +46,15 @@ type ViewMode = 'monthly' | 'daily'
 export function RoomMonthlyChart({
   bookings,
   rooms,
-  selectedRoom,
   isLoading = false
 }: RoomMonthlyChartProps) {
   const [chartType, setChartType] = useState<ChartType>('line')
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
-  const [localRoomFilter, setLocalRoomFilter] = useState<string>(selectedRoom || 'all')
 
-  // Filter bookings based on selected room
+  // Filter room bookings (non-tour bookings)
   const filteredBookings = useMemo(() => {
-    if (!localRoomFilter || localRoomFilter === 'all') return bookings
-    return bookings.filter(booking => booking.room_id === localRoomFilter)
-  }, [bookings, localRoomFilter])
+    return bookings.filter(booking => booking.is_tour === false)
+  }, [bookings])
 
   // Process data based on view mode
   const chartData = useMemo(() => {
@@ -81,10 +76,7 @@ export function RoomMonthlyChart({
     return 0
   }, [chartData, totalReservations])
 
-  const selectedRoomName = useMemo(() => {
-    if (!localRoomFilter || localRoomFilter === 'all') return 'Semua Ruangan'
-    return rooms?.find(room => room.id === localRoomFilter)?.name || 'Unknown Room'
-  }, [localRoomFilter, rooms])
+  const selectedRoomName = 'Semua Ruangan'
 
   if (isLoading) {
     return (
@@ -183,20 +175,6 @@ export function RoomMonthlyChart({
               </Button>
             </div>
 
-            {/* Room Filter */}
-            <Select value={localRoomFilter} onValueChange={setLocalRoomFilter}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Pilih ruangan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Ruangan</SelectItem>
-                {rooms?.map((room) => (
-                  <SelectItem key={room.id} value={room.id}>
-                    {room.name}
-                  </SelectItem>
-                )) || []}
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Chart */}

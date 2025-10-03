@@ -242,7 +242,7 @@ function AnalyticsContent() {
   const dashboardData = {
     bookings,
     rooms: rooms || [],
-    tours: [], // TODO: Add tours data when available
+    tours: rooms || [], // Use rooms data as tours for now since tours are stored as rooms
     users,
     isLoading: usersLoading || !rooms || !bookingsData
   }

@@ -92,30 +92,7 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
     isTour: bookingView === 'tour' ? true : bookingView === 'room' ? false : undefined,
   })
 
-  const allBookings = bookingsData?.bookings || []
-
-  // Filter bookings based on view selection
-  const bookings = React.useMemo(() => {
-    if (bookingView === 'all') return allBookings
-
-    if (bookingView === 'room') {
-      return allBookings.filter(booking =>
-        !booking.event_description?.includes('Tour:') &&
-        !booking.rooms?.name?.includes('Tour') &&
-        !booking.notes?.includes('Meeting Point:')
-      )
-    }
-
-    if (bookingView === 'tour') {
-      return allBookings.filter(booking =>
-        booking.event_description?.includes('Tour:') ||
-        booking.rooms?.name?.includes('Tour') ||
-        booking.notes?.includes('Meeting Point:')
-      )
-    }
-
-    return allBookings
-  }, [allBookings, bookingView])
+  const bookings = bookingsData?.bookings || []
 
   // Client-side search filtering
   const filteredBookings = React.useMemo(() => {
@@ -133,13 +110,13 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
 
   // Auto-complete expired approved bookings
   React.useEffect(() => {
-    if (allBookings.length > 0) {
-      autoCompleteExpiredBookings(allBookings).then(() => {
+    if (bookings.length > 0) {
+      autoCompleteExpiredBookings(bookings).then(() => {
         // Invalidate and refetch bookings after updating expired ones
         // This will be handled by React Query's cache invalidation
       }).catch(console.error)
     }
-  }, [allBookings])
+  }, [bookings])
 
   const { data: rooms = [] } = useRooms()
   const updateBookingStatusMutation = useUpdateBookingStatus()
@@ -169,17 +146,15 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
   }
 
   const getBookingTypeIcon = (booking: BookingWithRelations) => {
-    const isTour = booking.event_description?.includes('Tour:') ||
-                   booking.rooms?.name?.includes('Tour') ||
-                   booking.notes?.includes('Meeting Point:')
+    // Use is_tour column to determine if it's a tour booking
+    const isTour = booking.is_tour || false
 
     return isTour ? Sparkles : FileText
   }
 
   const getBookingTypeLabel = (booking: BookingWithRelations) => {
-    const isTour = booking.event_description?.includes('Tour:') ||
-                   booking.rooms?.name?.includes('Tour') ||
-                   booking.notes?.includes('Meeting Point:')
+    // Use is_tour column to determine if it's a tour booking
+    const isTour = booking.is_tour || false
 
     return isTour ? 'Tour' : 'Room'
   }

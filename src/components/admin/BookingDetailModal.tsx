@@ -86,9 +86,8 @@ export default function BookingDetailModal({
     }
   }
 
-  const isTour = booking.event_description?.includes('Tour:') ||
-                  booking.rooms?.name?.includes('Tour') ||
-                  booking.notes?.includes('Meeting Point:')
+  // Use is_tour column if available, otherwise fallback to client-side detection
+  const isTour = booking.is_tour || false
 
   const getBookingTypeConfig = () => {
     if (isTour) {

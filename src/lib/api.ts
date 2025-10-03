@@ -25,6 +25,7 @@ export interface Booking {
   proposal_file?: string
   notes?: string
   letter?: string
+  is_tour?: boolean
   created_at: string
   updated_at?: string
 }
@@ -138,6 +139,7 @@ export const useBookings = (filters?: {
       }
       if (roomIds && roomIds.length > 0) params.set('roomIds', roomIds.join(','))
       if (search && search.trim()) params.set('search', search.trim())
+      if (isTour !== undefined) params.set('isTour', isTour.toString())
       params.set('page', page.toString())
       params.set('limit', limit.toString())
       params.set('sortBy', sortBy)

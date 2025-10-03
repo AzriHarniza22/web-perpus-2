@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Calendar, Clock, MapPin } from 'lucide-react'
+import { isTourBooking } from '@/lib/tourAnalytics'
 
 interface TourTimeHeatmapProps {
   bookings: any[]
@@ -20,9 +21,9 @@ export function TourTimeHeatmap({
   tours,
   isLoading = false
 }: TourTimeHeatmapProps) {
-  // Filter tour bookings
+  // Filter tour bookings using the utility function
   const tourBookings = useMemo(() => {
-    return bookings.filter(booking => booking.tour_id)
+    return bookings.filter(isTourBooking)
   }, [bookings])
 
   const [timeRange, setTimeRange] = useState<TimeRange>('month')
@@ -60,8 +61,8 @@ export function TourTimeHeatmap({
         const hour = date.getHours()
 
         if (dayOfWeek >= 0 && dayOfWeek < 7 && hour >= 0 && hour < 24) {
-          grid[dayOfWeek][hour] += booking.participant_count || 1
-        }
+           grid[dayOfWeek][hour] += booking.guest_count || 1
+         }
       })
 
     // Find max value for color scaling
@@ -227,7 +228,7 @@ export function TourTimeHeatmap({
             </div>
             <div className="text-center">
               <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {tourBookings.reduce((sum, booking) => sum + (booking.participant_count || 0), 0)}
+                {tourBookings.reduce((sum, booking) => sum + (booking.guest_count || 0), 0)}
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-400">Total Participants</p>
             </div>

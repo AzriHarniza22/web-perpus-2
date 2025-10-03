@@ -72,6 +72,7 @@ export interface Booking {
   proposal_file: string | null
   notes: string | null
   letter: string | null
+  is_tour: boolean
   created_at: string
   updated_at: string
   // Tour-specific fields (added by tour schema update)

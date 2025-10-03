@@ -78,6 +78,15 @@ export async function GET(request: NextRequest) {
       query = query.or(`event_description.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`)
     }
 
+    // Apply tour filtering if specified
+    if (isTour === 'true') {
+      // Filter for tour bookings using is_tour column
+      query = query.eq('is_tour', true)
+    } else if (isTour === 'false') {
+      // Filter for room bookings using is_tour column
+      query = query.eq('is_tour', false)
+    }
+
     // Apply sorting
     query = query.order(sortBy, { ascending: sortOrder === 'asc' })
 

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { TrendingUp, Users, MapPin, Clock, BarChart3, Calendar, UserCheck } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { isTourBooking } from '@/lib/tourAnalytics'
 
 interface TourOverviewCardsProps {
   bookings: any[]
@@ -68,9 +69,9 @@ export function TourOverviewCards({
     utilizationRate: 0
   })
 
-  // Filter tour bookings
+  // Filter tour bookings using the utility function
   const tourBookings = useMemo(() => {
-    return bookings.filter(booking => booking.tour_id)
+    return bookings.filter(isTourBooking)
   }, [bookings])
 
   // Calculate tour analytics
@@ -81,9 +82,9 @@ export function TourOverviewCards({
     const rejectedBookings = tourBookings.filter((b: any) => b.status === 'rejected').length
 
     // Calculate total participants
-    const totalParticipants = tourBookings.reduce((sum: number, booking: any) => {
-      return sum + (booking.participant_count || 0)
-    }, 0)
+     const totalParticipants = tourBookings.reduce((sum: number, booking: any) => {
+       return sum + (booking.guest_count || 0)
+     }, 0)
 
     // Calculate average participants per booking
     const avgParticipants = totalBookings > 0 ? Math.round((totalParticipants / totalBookings) * 10) / 10 : 0

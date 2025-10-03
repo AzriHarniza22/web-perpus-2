@@ -19,6 +19,7 @@ import { id } from 'date-fns/locale'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Clock, TrendingUp, Calendar } from 'lucide-react'
+import { isTourBooking } from '@/lib/tourAnalytics'
 
 ChartJS.register(
   CategoryScale,
@@ -42,9 +43,9 @@ export function TourAverageTimeChart({
   tours,
   isLoading = false
 }: TourAverageTimeChartProps) {
-  // Filter tour bookings
+  // Filter tour bookings using the same logic as other tour components
   const tourBookings = useMemo(() => {
-    return bookings.filter(booking => booking.tour_id && booking.start_time && booking.end_time)
+    return bookings.filter(booking => isTourBooking(booking) && booking.start_time && booking.end_time)
   }, [bookings])
 
   // Process average duration data by month

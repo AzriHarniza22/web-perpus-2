@@ -408,8 +408,6 @@ function RoomAnalyticsTab({ bookings, rooms, selectedRooms }: any) {
       <RoomOverviewCards
         bookings={bookings}
         rooms={rooms}
-        selectedRoom={roomFilter}
-        onRoomChange={setRoomFilter}
       />
 
       {/* Charts Grid */}
@@ -417,7 +415,6 @@ function RoomAnalyticsTab({ bookings, rooms, selectedRooms }: any) {
         <RoomMonthlyChart
           bookings={bookings}
           rooms={rooms}
-          selectedRoom={roomFilter}
         />
         <GuestDistributionChart
           bookings={bookings}
@@ -430,7 +427,6 @@ function RoomAnalyticsTab({ bookings, rooms, selectedRooms }: any) {
         <RoomTimeHeatmap
           bookings={bookings}
           rooms={rooms}
-          selectedRoom={roomFilter}
         />
         <AverageReservationTimeChart
           bookings={bookings}

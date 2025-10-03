@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const { data: conflicts, error: conflictError } = await supabase
       .from('bookings')
       .select('id, status, start_time, end_time')
-      .eq('room_id', tour_id) // tour_id stored in room_id field
+      .eq('is_tour', true) // Filter by is_tour column instead of room_id
       .eq('status', 'approved')
       .lt('start_time', end_time)
       .gt('end_time', start_time)
@@ -116,7 +116,8 @@ export async function POST(request: NextRequest) {
       proposal_file,
       notes,
       guest_count,
-      status: 'pending'
+      status: 'pending',
+      is_tour: true // Mark this booking as a tour booking
     }
 
     const { data: booking, error: insertError } = await supabase

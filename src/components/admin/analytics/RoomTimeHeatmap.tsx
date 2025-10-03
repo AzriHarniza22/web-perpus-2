@@ -6,13 +6,11 @@ import { format, parseISO } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Calendar, Clock, Building } from 'lucide-react'
 
 interface RoomTimeHeatmapProps {
   bookings: any[]
   rooms: any[]
-  selectedRoom?: string
   isLoading?: boolean
 }
 
@@ -26,16 +24,14 @@ interface HeatmapData {
 export function RoomTimeHeatmap({
   bookings,
   rooms,
-  selectedRoom,
   isLoading = false
 }: RoomTimeHeatmapProps) {
-  const [localRoomFilter, setLocalRoomFilter] = useState<string>(selectedRoom || 'all')
+  // No longer need local room filter state
 
-  // Filter bookings based on selected room
+  // Filter room bookings (non-tour bookings)
   const filteredBookings = useMemo(() => {
-    if (!localRoomFilter || localRoomFilter === 'all') return bookings
-    return bookings.filter(booking => booking.room_id === localRoomFilter)
-  }, [bookings, localRoomFilter])
+    return bookings.filter(booking => booking.is_tour === false)
+  }, [bookings])
 
   // Process heatmap data
   const heatmapData = useMemo(() => {
@@ -85,10 +81,7 @@ export function RoomTimeHeatmap({
     return `${maxData.hour}:00`
   }, [heatmapData])
 
-  const selectedRoomName = useMemo(() => {
-    if (!localRoomFilter || localRoomFilter === 'all') return 'Semua Ruangan'
-    return rooms?.find(room => room.id === localRoomFilter)?.name || 'Unknown Room'
-  }, [localRoomFilter, rooms])
+  const selectedRoomName = 'Semua Ruangan'
 
   // Days of week in Indonesian
   const daysOfWeek = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
@@ -151,22 +144,6 @@ export function RoomTimeHeatmap({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* Room Filter */}
-          <div className="flex items-center gap-2">
-            <Select value={localRoomFilter} onValueChange={setLocalRoomFilter}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Pilih ruangan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Ruangan</SelectItem>
-                {rooms?.map((room) => (
-                  <SelectItem key={room.id} value={room.id}>
-                    {room.name}
-                  </SelectItem>
-                )) || []}
-              </SelectContent>
-            </Select>
-          </div>
 
           {/* Heatmap */}
           <motion.div

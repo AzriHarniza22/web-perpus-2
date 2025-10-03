@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Users, TrendingUp, UserCheck } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { isTourBooking } from '@/lib/tourAnalytics'
 
 interface TourGuestsCardProps {
   bookings: any[]
@@ -17,23 +18,23 @@ export function TourGuestsCard({
   tours,
   isLoading = false
 }: TourGuestsCardProps) {
-  // Filter tour bookings
+  // Filter tour bookings using the utility function
   const tourBookings = useMemo(() => {
-    return bookings.filter(booking => booking.tour_id)
+    return bookings.filter(isTourBooking)
   }, [bookings])
 
   const guestStats = useMemo(() => {
     const totalParticipants = tourBookings.reduce((sum: number, booking: any) => {
-      return sum + (booking.participant_count || 0)
-    }, 0)
+       return sum + (booking.guest_count || 0)
+     }, 0)
 
     const approvedParticipants = tourBookings
-      .filter(booking => booking.status === 'approved')
-      .reduce((sum: number, booking: any) => sum + (booking.participant_count || 0), 0)
+       .filter(booking => booking.status === 'approved')
+       .reduce((sum: number, booking: any) => sum + (booking.guest_count || 0), 0)
 
-    const pendingParticipants = tourBookings
-      .filter(booking => booking.status === 'pending')
-      .reduce((sum: number, booking: any) => sum + (booking.participant_count || 0), 0)
+     const pendingParticipants = tourBookings
+       .filter(booking => booking.status === 'pending')
+       .reduce((sum: number, booking: any) => sum + (booking.guest_count || 0), 0)
 
     const avgParticipantsPerBooking = tourBookings.length > 0
       ? Math.round((totalParticipants / tourBookings.length) * 10) / 10

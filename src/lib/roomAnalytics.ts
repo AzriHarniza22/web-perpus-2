@@ -14,6 +14,7 @@ export interface RoomBooking {
   event_description?: string
   notes?: string
   created_at: string
+  is_tour?: boolean
   rooms?: {
     id: string
     name: string
@@ -44,11 +45,14 @@ export interface RoomAnalytics {
 }
 
 /**
- * Filter bookings by room
+ * Filter bookings to exclude tour bookings (is_tour=false)
  */
 export function filterBookingsByRoom(bookings: RoomBooking[], roomId: string | null): RoomBooking[] {
-  if (!roomId || roomId === 'all') return bookings
-  return bookings.filter(booking => booking.room_id === roomId)
+  // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
+  const roomBookings = bookings.filter(booking => booking.is_tour !== true)
+
+  if (!roomId || roomId === 'all') return roomBookings
+  return roomBookings.filter(booking => booking.room_id === roomId)
 }
 
 /**
@@ -152,7 +156,10 @@ export function calculateRoomAnalytics(bookings: RoomBooking[], rooms: RoomData[
 export function getMonthlyRoomData(bookings: RoomBooking[]) {
   const monthlyData = new Map<string, { total: number; approved: number; pending: number; rejected: number }>()
 
-  bookings.forEach(booking => {
+  // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
+  const roomBookings = bookings.filter(booking => booking.is_tour !== true)
+
+  roomBookings.forEach(booking => {
     const date = new Date(booking.created_at)
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 
@@ -185,7 +192,10 @@ export function getMonthlyRoomData(bookings: RoomBooking[]) {
 export function getDailyRoomData(bookings: RoomBooking[]) {
   const dailyData = new Map<string, { total: number; approved: number; pending: number; rejected: number }>()
 
-  bookings.forEach(booking => {
+  // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
+  const roomBookings = bookings.filter(booking => booking.is_tour !== true)
+
+  roomBookings.forEach(booking => {
     const date = new Date(booking.created_at)
     const dayKey = date.toISOString().split('T')[0]
 
@@ -218,7 +228,10 @@ export function getDailyRoomData(bookings: RoomBooking[]) {
 export function getGuestDistributionByRoom(bookings: RoomBooking[]) {
   const roomGuestData = new Map<string, { name: string; totalGuests: number; bookingCount: number }>()
 
-  bookings.forEach(booking => {
+  // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
+  const roomBookings = bookings.filter(booking => booking.is_tour !== true)
+
+  roomBookings.forEach(booking => {
     const roomId = booking.room_id
     const roomName = booking.rooms?.name || 'Unknown Room'
     const guestCount = booking.participant_count || 0
@@ -248,7 +261,10 @@ export function getGuestDistributionByRoom(bookings: RoomBooking[]) {
 export function getRoomTimeHeatmapData(bookings: RoomBooking[]) {
   const timeData = new Map<string, { hour: number; day: string; count: number }>()
 
-  bookings.forEach(booking => {
+  // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
+  const roomBookings = bookings.filter(booking => booking.is_tour !== true)
+
+  roomBookings.forEach(booking => {
     if (booking.start_time) {
       const date = new Date(booking.start_time)
       const hour = date.getHours()
@@ -280,7 +296,10 @@ export function getRoomTimeHeatmapData(bookings: RoomBooking[]) {
 export function getAverageReservationDurationByRoom(bookings: RoomBooking[]) {
   const roomDurationData = new Map<string, { name: string; totalDuration: number; bookingCount: number; capacity: number }>()
 
-  bookings.forEach(booking => {
+  // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
+  const roomBookings = bookings.filter(booking => booking.is_tour !== true)
+
+  roomBookings.forEach(booking => {
     const roomId = booking.room_id
     const roomName = booking.rooms?.name || 'Unknown Room'
 
@@ -325,7 +344,10 @@ export function getAverageReservationDurationByRoom(bookings: RoomBooking[]) {
 export function getAverageGuestsByRoom(bookings: RoomBooking[]) {
   const roomGuestData = new Map<string, { name: string; totalGuests: number; bookingCount: number; capacity: number }>()
 
-  bookings.forEach(booking => {
+  // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
+  const roomBookings = bookings.filter(booking => booking.is_tour !== true)
+
+  roomBookings.forEach(booking => {
     const roomId = booking.room_id
     const roomName = booking.rooms?.name || 'Unknown Room'
     const guestCount = booking.participant_count || 0

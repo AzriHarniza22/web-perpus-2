@@ -43,17 +43,15 @@ export default function BookingApprovals() {
   const [bookingType, setBookingType] = useState<'all' | 'room' | 'tour'>('all')
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<BookingWithRelations | null>(null)
-  const { data: bookingsData, isLoading } = useBookings()
+
+  // Use API filtering instead of client-side filtering
+  const isTourFilter = bookingType === 'all' ? undefined : bookingType === 'tour'
+  const { data: bookingsData, isLoading } = useBookings({
+    status: ['pending'],
+    isTour: isTourFilter
+  })
   const bookings = bookingsData?.bookings || []
   const updateBookingStatusMutation = useUpdateBookingStatus()
-
-  // Helper function to determine booking type based on data
-  const getBookingType = (booking: BookingWithRelations) => {
-    if (booking.event_description?.includes('Tour') || booking.rooms?.name?.includes('Tour')) {
-      return 'tour'
-    }
-    return 'room'
-  }
 
   // Helper function to get tour information from booking
   const getTourInfo = (booking: BookingWithRelations) => {
@@ -70,16 +68,6 @@ export default function BookingApprovals() {
       description: booking.event_description || 'Deskripsi tour tidak tersedia'
     }
   }
-
-  // Filter only pending bookings
-  const allPendingBookings = bookings.filter(booking => booking.status === 'pending')
-
-  // Apply client-side filtering based on booking type
-  const pendingBookings = allPendingBookings.filter(booking => {
-    if (bookingType === 'all') return true
-    const bookingTypeKey = getBookingType(booking)
-    return bookingTypeKey === bookingType
-  })
 
   const updateBookingStatus = (id: string, status: string) => {
     updateBookingStatusMutation.mutate({ id, status })
@@ -166,8 +154,10 @@ export default function BookingApprovals() {
       </div>
 
       <AnimatePresence>
-        {pendingBookings.map((booking, index) => {
-          const bookingTypeKey = getBookingType(booking)
+        {bookings.map((booking, index) => {
+          // Determine booking type from API response
+          const isTourBooking = booking.is_tour || false
+          const bookingTypeKey = isTourBooking ? 'tour' : 'room'
           const config = bookingTypeConfigs[bookingTypeKey]
           const Icon = config.icon
           const tourInfo = bookingTypeKey === 'tour' ? getTourInfo(booking) : null
@@ -300,7 +290,7 @@ export default function BookingApprovals() {
         })}
       </AnimatePresence>
 
-      {pendingBookings.length === 0 && (
+      {bookings.length === 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

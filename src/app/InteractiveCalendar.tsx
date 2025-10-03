@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 // Interactive Calendar Component
-const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time: string; end_time: string; rooms?: { name: string }; status: string; profiles?: { full_name?: string; email?: string } }> }) => {
+const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time: string; end_time: string; rooms?: { name: string }; status: string; is_tour?: boolean; profiles?: { full_name?: string; email?: string } }> }) => {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [bookedDates, setBookedDates] = useState<string[]>([])
@@ -35,7 +35,8 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
       start: new Date(booking.start_time),
       end: new Date(booking.end_time),
       room: booking.rooms?.name,
-      status: booking.status
+      status: booking.status,
+      isTour: booking.is_tour || false
     }))
   }
 
@@ -209,7 +210,9 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
                     : 'bg-yellow-100 text-yellow-800 border-l-4 border-yellow-400'
                 }`}
               >
-                <div className="font-medium">{booking.room}</div>
+                <div className="font-medium">
+                  {booking.isTour ? '🚌 Tour' : '🏢 Room'}: {booking.room}
+                </div>
                 <div className="text-xs">
                   🕐 {formatTime(booking.start)} - {formatTime(booking.end)}
                 </div>
