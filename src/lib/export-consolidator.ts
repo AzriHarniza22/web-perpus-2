@@ -9,6 +9,8 @@ import { Booking, User } from './types'
 /**
  * Generic configuration for tab data processing
  * Uses 'any' type for flexibility across different data types (Booking, User, etc.)
+ * This is necessary because the interface needs to handle different data structures
+ * dynamically based on the specific tab configuration being used.
  */
 export interface TabDataConfig<T = any> {
   title: string
