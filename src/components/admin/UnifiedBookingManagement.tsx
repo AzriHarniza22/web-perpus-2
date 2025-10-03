@@ -92,31 +92,31 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
     isTour: bookingView === 'tour' ? true : bookingView === 'room' ? false : undefined,
   })
 
-  const bookings = bookingsData?.bookings || []
-
   // Client-side search filtering
   const filteredBookings = React.useMemo(() => {
-    if (!search.trim()) return bookings
+    const currentBookings = bookingsData?.bookings || []
+    if (!search.trim()) return currentBookings
 
     const searchLower = search.toLowerCase().trim()
-    return bookings.filter(booking =>
+    return currentBookings.filter(booking =>
       booking.event_description?.toLowerCase().includes(searchLower) ||
       booking.notes?.toLowerCase().includes(searchLower) ||
       booking.profiles?.full_name?.toLowerCase().includes(searchLower) ||
       booking.profiles?.email?.toLowerCase().includes(searchLower) ||
       booking.rooms?.name?.toLowerCase().includes(searchLower)
     )
-  }, [bookings, search])
+  }, [bookingsData?.bookings, search])
 
   // Auto-complete expired approved bookings
   React.useEffect(() => {
-    if (bookings.length > 0) {
-      autoCompleteExpiredBookings(bookings).then(() => {
+    const currentBookings = bookingsData?.bookings || []
+    if (currentBookings.length > 0) {
+      autoCompleteExpiredBookings(currentBookings).then(() => {
         // Invalidate and refetch bookings after updating expired ones
         // This will be handled by React Query's cache invalidation
       }).catch(console.error)
     }
-  }, [bookings])
+  }, [bookingsData?.bookings])
 
   const { data: rooms = [] } = useRooms()
   const updateBookingStatusMutation = useUpdateBookingStatus()

@@ -17,6 +17,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Clock, Building, TrendingUp } from 'lucide-react'
+import { Booking, Room } from '@/lib/types'
+
+// Extended booking type for analytics that includes joined room data
+interface BookingWithRoom extends Booking {
+  rooms?: Room
+}
 
 ChartJS.register(
   CategoryScale,
@@ -28,8 +34,8 @@ ChartJS.register(
 )
 
 interface AverageReservationTimeChartProps {
-  bookings: any[]
-  rooms: any[]
+  bookings: BookingWithRoom[]
+  rooms: Room[]
   selectedRoom?: string
   isLoading?: boolean
 }
@@ -287,7 +293,7 @@ function getChartOptions() {
         cornerRadius: 8,
         padding: 12,
         callbacks: {
-          label: (context: any) => {
+          label: (context: { parsed: { x: number } }) => {
             return `Durasi: ${context.parsed.x} jam`
           }
         }
@@ -305,7 +311,7 @@ function getChartOptions() {
             size: 11
           },
           precision: 1,
-          callback: (value: any) => `${value}h`
+          callback: (value: string | number) => `${value}h`
         }
       },
       y: {
@@ -317,7 +323,7 @@ function getChartOptions() {
             size: 11
           },
           maxRotation: 0,
-          callback: (value: any) => {
+          callback: (value: string | number) => {
             // This will be handled by Chart.js internally
             return value
           }

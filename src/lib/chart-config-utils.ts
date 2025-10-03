@@ -184,7 +184,7 @@ export function getScatterChartOptions(overrides: Partial<ChartOptions> = {}): C
             size: 11
           },
           stepSize: 1,
-          callback: function(value: any) {
+          callback: function(value: string | number) {
             return `${value}:00`
           }
         }
@@ -228,7 +228,7 @@ export function getHorizontalBarChartOptions(overrides: Partial<ChartOptions> = 
             size: 11
           },
           precision: 1,
-          callback: (value: any) => `${value}h`
+          callback: (value: string | number) => `${value}h`
         }
       },
       y: {
@@ -340,7 +340,7 @@ export function getTimeRangeOptions(timeRange: string): Partial<ChartOptions> {
       scales: {
         x: {
           ticks: {
-            callback: function(value: any, index: number) {
+            callback: function(value: string | number, index: number) {
               return `${index}:00`
             }
           }
@@ -353,7 +353,7 @@ export function getTimeRangeOptions(timeRange: string): Partial<ChartOptions> {
     scales: {
       x: {
         ticks: {
-          callback: function(value: any, index: number) {
+          callback: function(value: string | number, index: number) {
             return index % 2 === 0 ? `${index}:00` : ''
           }
         }
@@ -364,17 +364,21 @@ export function getTimeRangeOptions(timeRange: string): Partial<ChartOptions> {
 
 // Tooltip formatters
 export const TOOLTIP_FORMATTERS = {
-  default: function(context: any) {
-    return `${context.dataset.label}: ${context.parsed.y}`
+  default: function(context: Record<string, unknown>) {
+    const ctx = context as any
+    return `${ctx.dataset.label}: ${ctx.parsed.y}`
   },
-  time: function(context: any) {
-    return `Jam ${context[0].label}: ${context.parsed.y} reservasi`
+  time: function(context: Record<string, unknown>[]) {
+    const ctx = context[0] as any
+    return `Jam ${ctx.label}: ${ctx.parsed.y} reservasi`
   },
-  duration: function(context: any) {
-    return `Durasi: ${context.parsed.x} jam`
+  duration: function(context: Record<string, unknown>) {
+    const ctx = context as any
+    return `Durasi: ${ctx.parsed.x} jam`
   },
-  percentage: function(context: any) {
-    return `${context.dataset.label}: ${context.parsed.y}%`
+  percentage: function(context: Record<string, unknown>) {
+    const ctx = context as any
+    return `${ctx.dataset.label}: ${ctx.parsed.y}%`
   }
 }
 

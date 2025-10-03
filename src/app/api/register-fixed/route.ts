@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseServer, getSupabaseAdmin, dbHelpers } from '@/lib/supabase'
 import { validateRegistrationData, sanitizeRegistrationData } from '@/lib/validation'
-import { handleError, formatErrorResponse, DatabaseError } from '@/lib/errors'
+import { handleError, formatErrorResponse } from '@/lib/errors'
 import { RegistrationData, ApiResponse, RegistrationResponse } from '@/lib/types'
 
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<RegistrationResponse>>> {
   try {
     const body = await request.json() as RegistrationData
-    const { email, password, fullName, institution, phone } = body
+    const { email } = body
 
     console.log('🔄 Starting registration for:', email)
 

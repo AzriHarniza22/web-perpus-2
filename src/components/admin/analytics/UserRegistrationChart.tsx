@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { UserPlus, TrendingUp, Calendar, Users } from 'lucide-react'
 import { aggregateUserAnalytics, getDailyUserRegistrations } from '@/lib/userAnalytics'
+import { Booking, User } from '@/lib/types'
 
 ChartJS.register(
   CategoryScale,
@@ -36,8 +37,8 @@ ChartJS.register(
 )
 
 interface UserRegistrationChartProps {
-  bookings: any[]
-  users: any[]
+  bookings: Booking[]
+  users: User[]
   isLoading?: boolean
   dateFilter?: { from?: Date; to?: Date }
 }
@@ -189,7 +190,7 @@ export function UserRegistrationChart({
   )
 }
 
-function processMonthlyData(users: any[], bookings: any[], dateFilter?: { from?: Date; to?: Date }) {
+function processMonthlyData(users: User[], bookings: Booking[], dateFilter?: { from?: Date; to?: Date }) {
   const monthlyData = new Map()
 
   // Process user registrations

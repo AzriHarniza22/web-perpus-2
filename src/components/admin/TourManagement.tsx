@@ -91,20 +91,19 @@ export default function TourManagement() {
      isTour: true, // Always filter for tour bookings in TourManagement
    })
 
-   const allBookings = bookingsData?.bookings || []
-
    // Client-side search filtering
    const bookings = React.useMemo(() => {
-     if (!search.trim()) return allBookings
+     const currentBookings = bookingsData?.bookings || []
+     if (!search.trim()) return currentBookings
 
      const searchLower = search.toLowerCase().trim()
-     return allBookings.filter(booking =>
+     return currentBookings.filter(booking =>
        booking.event_description?.toLowerCase().includes(searchLower) ||
        booking.notes?.toLowerCase().includes(searchLower) ||
        booking.profiles?.full_name?.toLowerCase().includes(searchLower) ||
        booking.profiles?.email?.toLowerCase().includes(searchLower)
      )
-   }, [allBookings, search])
+   }, [bookingsData?.bookings, search])
 
   // Auto-complete expired approved tour bookings
   React.useEffect(() => {

@@ -14,7 +14,6 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft, Sparkles, AlertCircle } from 'lucide-react'
 import { isValidEmail } from '@/lib/validation'
 import { handleError } from '@/lib/errors'
-import { User } from '@/lib/types'
 
 interface LoginFormData {
   email: string

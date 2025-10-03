@@ -1,27 +1,20 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
-import { TrendingUp, Users, BarChart3, LogOut, Filter, CalendarIcon, X, Download, FileText, FileImage, FileSpreadsheet, Clock } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
-import { Calendar } from '@/components/ui/calendar'
-import { DateRange } from 'react-day-picker'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import { format, subMonths, isWithinInterval } from 'date-fns'
-import { id } from 'date-fns/locale'
 import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard'
 import { useRooms, useBookings } from '@/lib/api'
+import { Booking } from '@/lib/types'
 
 interface Profile {
   id: string;
@@ -29,6 +22,7 @@ interface Profile {
   full_name: string | null;
   institution: string | null;
   phone: string | null;
+  profile_photo: string | null;
   role: 'user' | 'admin';
   created_at: string;
   updated_at: string;
@@ -209,10 +203,10 @@ export default function AnalyticsPage() {
 function AnalyticsContent() {
   const { data: rooms } = useRooms()
   const { data: bookingsData, isLoading: bookingsLoading, error: bookingsError } = useBookings()
-  const [users, setUsers] = useState<any[]>([])
+  const [users, setUsers] = useState<Profile[]>([])
   const [usersLoading, setUsersLoading] = useState(true)
 
-  const bookings = bookingsData?.bookings || []
+  const bookings = (bookingsData?.bookings || []) as Booking[]
 
   // Debug logging
   console.log('Analytics Debug:', {

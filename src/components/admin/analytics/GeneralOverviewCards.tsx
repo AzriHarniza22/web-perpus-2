@@ -2,21 +2,22 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Users, Building, MapPin, Clock, BarChart3 } from 'lucide-react'
+import { TrendingUp, Users, Building, MapPin, Clock, BarChart3, LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { Booking, Room, User } from '@/lib/types'
 
 interface GeneralOverviewCardsProps {
-  bookings: any[]
-  rooms: any[]
-  tours: any[]
-  users: any[]
+  bookings: Booking[]
+  rooms: Room[]
+  tours: Room[]
+  users: User[]
   isLoading?: boolean
 }
 
 interface StatCard {
   label: string
   value: number
-  icon: any
+  icon: LucideIcon
   color: string
   bgColor: string
   change?: number
@@ -69,29 +70,29 @@ export function GeneralOverviewCards({
     approvalRate: 0
   })
 
-  // Calculate stats
-  const stats = {
-    totalBookings: bookings.length,
-    approvedBookings: bookings.filter((b: any) => b.status === 'approved').length,
-    pendingBookings: bookings.filter((b: any) => b.status === 'pending').length,
-    rejectedBookings: bookings.filter((b: any) => b.status === 'rejected').length,
-    totalRooms: rooms.length,
-    totalTours: tours.length,
-    totalUsers: users.length,
-    approvalRate: bookings.length > 0 ? Math.round((bookings.filter((b: any) => b.status === 'approved').length / bookings.length) * 100) : 0
-  }
-
   // Animate numbers on change
   useEffect(() => {
+    // Calculate stats inside useEffect to avoid recreating on every render
+    const currentStats = {
+      totalBookings: bookings.length,
+      approvedBookings: bookings.filter((b: Booking) => b.status === 'approved').length,
+      pendingBookings: bookings.filter((b: Booking) => b.status === 'pending').length,
+      rejectedBookings: bookings.filter((b: Booking) => b.status === 'rejected').length,
+      totalRooms: rooms.length,
+      totalTours: tours.length,
+      totalUsers: users.length,
+      approvalRate: bookings.length > 0 ? Math.round((bookings.filter((b: Booking) => b.status === 'approved').length / bookings.length) * 100) : 0
+    }
+
     const currentValues = {
-      totalBookings: stats.totalBookings,
-      approvedBookings: stats.approvedBookings,
-      pendingBookings: stats.pendingBookings,
-      rejectedBookings: stats.rejectedBookings,
-      totalRooms: stats.totalRooms,
-      totalTours: stats.totalTours,
-      totalUsers: stats.totalUsers,
-      approvalRate: stats.approvalRate
+      totalBookings: currentStats.totalBookings,
+      approvedBookings: currentStats.approvedBookings,
+      pendingBookings: currentStats.pendingBookings,
+      rejectedBookings: currentStats.rejectedBookings,
+      totalRooms: currentStats.totalRooms,
+      totalTours: currentStats.totalTours,
+      totalUsers: currentStats.totalUsers,
+      approvalRate: currentStats.approvalRate
     }
 
     // Check if values changed
@@ -151,13 +152,13 @@ export function GeneralOverviewCards({
       animateValue('totalTours', currentValues.totalTours, animatedValues.totalTours)
       animateValue('totalUsers', currentValues.totalUsers, animatedValues.totalUsers)
       animateValue('approvalRate', currentValues.approvalRate, animatedValues.approvalRate)
-    }
-  }, [stats, animatedValues, prevValues])
+   }
+ }, [bookings, rooms, tours, users, animatedValues, prevValues])
 
   const statCards: StatCard[] = [
     {
       label: 'Total Reservasi',
-      value: animatedValues.totalBookings || stats.totalBookings,
+      value: animatedValues.totalBookings,
       icon: BarChart3,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100 dark:bg-blue-900/50',
@@ -166,7 +167,7 @@ export function GeneralOverviewCards({
     },
     {
       label: 'Disetujui',
-      value: animatedValues.approvedBookings || stats.approvedBookings,
+      value: animatedValues.approvedBookings,
       icon: TrendingUp,
       color: 'text-green-600',
       bgColor: 'bg-green-100 dark:bg-green-900/50',
@@ -175,7 +176,7 @@ export function GeneralOverviewCards({
     },
     {
       label: 'Menunggu',
-      value: animatedValues.pendingBookings || stats.pendingBookings,
+      value: animatedValues.pendingBookings,
       icon: Clock,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-100 dark:bg-yellow-900/50',
@@ -184,7 +185,7 @@ export function GeneralOverviewCards({
     },
     {
       label: 'Ditolak',
-      value: animatedValues.rejectedBookings || stats.rejectedBookings,
+      value: animatedValues.rejectedBookings,
       icon: Users,
       color: 'text-red-600',
       bgColor: 'bg-red-100 dark:bg-red-900/50',
@@ -193,28 +194,28 @@ export function GeneralOverviewCards({
     },
     {
       label: 'Total Ruangan',
-      value: animatedValues.totalRooms || stats.totalRooms,
+      value: animatedValues.totalRooms,
       icon: Building,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100 dark:bg-purple-900/50'
     },
     {
       label: 'Total Tour',
-      value: animatedValues.totalTours || stats.totalTours,
+      value: animatedValues.totalTours,
       icon: MapPin,
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-100 dark:bg-indigo-900/50'
     },
     {
       label: 'Total Pengguna',
-      value: animatedValues.totalUsers || stats.totalUsers,
+      value: animatedValues.totalUsers,
       icon: Users,
       color: 'text-cyan-600',
       bgColor: 'bg-cyan-100 dark:bg-cyan-900/50'
     },
     {
       label: 'Tingkat Persetujuan',
-      value: animatedValues.approvalRate || stats.approvalRate,
+      value: animatedValues.approvalRate,
       icon: TrendingUp,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-100 dark:bg-emerald-900/50',

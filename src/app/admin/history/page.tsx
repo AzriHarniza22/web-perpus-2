@@ -8,8 +8,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { History as HistoryIcon } from 'lucide-react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import UnifiedBookingManagement from '@/components/admin/UnifiedBookingManagement'
 

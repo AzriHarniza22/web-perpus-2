@@ -10,7 +10,8 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  TooltipItem
 } from 'chart.js'
 import { Line, Scatter } from 'react-chartjs-2'
 import { format, parseISO } from 'date-fns'
@@ -20,6 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Clock, TrendingUp, Activity } from 'lucide-react'
+import { Booking } from '@/lib/types'
 
 ChartJS.register(
   CategoryScale,
@@ -32,7 +34,7 @@ ChartJS.register(
 )
 
 interface PeakHoursChartProps {
-  bookings: any[]
+  bookings: Booking[]
   isLoading?: boolean
 }
 
@@ -173,7 +175,7 @@ export function PeakHoursChart({ bookings, isLoading = false }: PeakHoursChartPr
   )
 }
 
-function processPeakHoursData(bookings: any[], timeRange: TimeRange) {
+function processPeakHoursData(bookings: Booking[], timeRange: TimeRange) {
   const hoursData = new Map()
 
   // Initialize hours based on range
@@ -242,12 +244,13 @@ function getChartOptions(timeRange: TimeRange) {
         cornerRadius: 8,
         padding: 12,
         callbacks: {
-          title: function(context: any) {
-            const hour = context[0].label
+          title: function(tooltipItems: TooltipItem<'line'>[]) {
+            const tooltipItem = tooltipItems[0]
+            const hour = tooltipItem.label
             return `Jam ${hour}`
           },
-          label: function(context: any) {
-            return `Reservasi: ${context.parsed.y}`
+          label: function(tooltipItem: TooltipItem<'line'>) {
+            return `Reservasi: ${tooltipItem.parsed.y}`
           }
         }
       }

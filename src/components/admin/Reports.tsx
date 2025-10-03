@@ -229,7 +229,7 @@ export default function Reports() {
       facilitiesAnalytics,
       filteredBookings
     }
-  }, [bookings, stats, dateRange, notificationStats])
+  }, [bookings, stats, dateRange])
 
   // Prepare chart data
   const basicStatsChartData = useMemo(() => {

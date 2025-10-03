@@ -21,6 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { BarChart3, TrendingUp, Calendar, Building } from 'lucide-react'
+import { Booking, Room } from '@/lib/types'
 
 ChartJS.register(
   CategoryScale,
@@ -35,8 +36,8 @@ ChartJS.register(
 )
 
 interface RoomMonthlyChartProps {
-  bookings: any[]
-  rooms: any[]
+  bookings: Booking[]
+  rooms: Room[]
   isLoading?: boolean
 }
 
@@ -197,7 +198,7 @@ export function RoomMonthlyChart({
   )
 }
 
-function processMonthlyData(bookings: any[]) {
+function processMonthlyData(bookings: Booking[]) {
   const monthlyData = new Map()
 
   bookings.forEach(booking => {
@@ -270,7 +271,7 @@ function processMonthlyData(bookings: any[]) {
   }
 }
 
-function processDailyData(bookings: any[]) {
+function processDailyData(bookings: Booking[]) {
   const dailyData = new Map()
 
   bookings.forEach(booking => {

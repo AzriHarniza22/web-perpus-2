@@ -35,7 +35,10 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
 
   // Calculate real admin stats using useMemo to prevent infinite re-renders
   const adminStats = useMemo(() => {
-    if (bookings.length === 0 && rooms.length === 0) {
+    const currentBookings = bookings || []
+    const currentRooms = rooms || []
+
+    if (currentBookings.length === 0 && currentRooms.length === 0) {
       return {
         totalRooms: 0,
         totalUsers: 0,
@@ -45,22 +48,22 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
     }
 
     // Get unique users from bookings
-    const uniqueUsers = new Set(bookings.map(booking => booking.user_id)).size
+    const uniqueUsers = new Set(currentBookings.map(booking => booking.user_id)).size
 
     // Get current month bookings
     const currentMonth = new Date().getMonth()
     const currentYear = new Date().getFullYear()
-    const monthlyBookings = bookings.filter(booking => {
+    const monthlyBookings = currentBookings.filter(booking => {
       const bookingDate = new Date(booking.created_at)
       return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear
     }).length
 
     // Calculate occupancy rate (simplified - bookings vs available slots)
-    const totalPossibleBookings = rooms.length * 30 // Assuming 30 days in month
+    const totalPossibleBookings = currentRooms.length * 30 // Assuming 30 days in month
     const occupancyRate = totalPossibleBookings > 0 ? Math.round((monthlyBookings / totalPossibleBookings) * 100) : 0
 
     return {
-      totalRooms: rooms.length,
+      totalRooms: currentRooms.length,
       totalUsers: uniqueUsers,
       monthlyBookings,
       occupancyRate

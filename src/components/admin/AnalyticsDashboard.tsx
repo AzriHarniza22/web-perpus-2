@@ -52,18 +52,42 @@ import { InstitutionBookingsChart } from '@/components/admin/analytics/Instituti
 import { UserBookingDistributionChart } from '@/components/admin/analytics/UserBookingDistributionChart'
 import { ExportButton } from '@/components/admin/analytics/ExportButton'
 import { exportToCSV, exportToPDF, exportToExcel, ExportData } from '@/lib/exportUtils'
+import { Booking, Room, User } from '@/lib/types'
 
 interface AnalyticsDashboardProps {
-  bookings: any[]
-  rooms: any[]
-  tours: any[]
-  users: any[]
+  bookings: Booking[]
+  rooms: Room[]
+  tours: Room[]
+  users: User[]
   isLoading?: boolean
 }
 
 interface DateFilter {
   range: DateRange | undefined
   quickSelect: string | null
+}
+
+interface GeneralAnalyticsTabProps {
+  bookings: Booking[]
+  rooms: Room[]
+  tours: Room[]
+  users: User[]
+}
+
+interface RoomAnalyticsTabProps {
+  bookings: Booking[]
+  rooms: Room[]
+  selectedRooms: string[]
+}
+
+interface TourAnalyticsTabProps {
+  bookings: Booking[]
+  tours: Room[]
+}
+
+interface UserAnalyticsTabProps {
+  bookings: Booking[]
+  users: User[]
 }
 
 export function AnalyticsDashboard({
@@ -364,7 +388,7 @@ export function AnalyticsDashboard({
 }
 
 // General Analytics Tab Component
-function GeneralAnalyticsTab({ bookings, rooms, tours, users }: any) {
+function GeneralAnalyticsTab({ bookings, rooms, tours, users }: GeneralAnalyticsTabProps) {
   return (
     <div className="space-y-6">
       {/* Overview Stats */}
@@ -390,7 +414,7 @@ function GeneralAnalyticsTab({ bookings, rooms, tours, users }: any) {
 }
 
 // Room Analytics Tab Component
-function RoomAnalyticsTab({ bookings, rooms, selectedRooms }: any) {
+function RoomAnalyticsTab({ bookings, rooms, selectedRooms }: RoomAnalyticsTabProps) {
   const [roomFilter, setRoomFilter] = useState<string>(selectedRooms.length > 0 ? selectedRooms[0] : 'all')
 
   // Update local filter when global filter changes
@@ -447,7 +471,7 @@ function RoomAnalyticsTab({ bookings, rooms, selectedRooms }: any) {
 }
 
 // Tour Analytics Tab Component
-function TourAnalyticsTab({ bookings, tours }: any) {
+function TourAnalyticsTab({ bookings, tours }: TourAnalyticsTabProps) {
   return (
     <div className="space-y-6">
       {/* Tour Overview Cards */}
@@ -490,7 +514,7 @@ function TourAnalyticsTab({ bookings, tours }: any) {
 }
 
 // User Analytics Tab Component
-function UserAnalyticsTab({ bookings, users }: any) {
+function UserAnalyticsTab({ bookings, users }: UserAnalyticsTabProps) {
   return (
     <div className="space-y-6">
       {/* User Overview Cards */}

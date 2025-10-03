@@ -9,7 +9,8 @@ import {
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  TooltipItem
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,6 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Building, Search, Users, BookOpen, Award } from 'lucide-react'
 import { aggregateUserAnalytics } from '@/lib/userAnalytics'
+import { Booking, User } from '@/lib/types'
 
 ChartJS.register(
   CategoryScale,
@@ -29,8 +31,8 @@ ChartJS.register(
 )
 
 interface TopInstitutionsChartProps {
-  bookings: any[]
-  users: any[]
+  bookings: Booking[]
+  users: User[]
   isLoading?: boolean
   dateFilter?: { from?: Date; to?: Date }
 }
@@ -224,10 +226,10 @@ export function TopInstitutionsChart({
                       cornerRadius: 8,
                       padding: 12,
                       callbacks: {
-                        label: (context: any) => {
-                          const institution = filteredInstitutions[context.dataIndex]
-                          const isUsers = context.datasetIndex === 0
-                          return `${isUsers ? 'Users' : 'Bookings'}: ${context.parsed.x}`
+                        label: (tooltipItem: TooltipItem<'bar'>) => {
+                          const institution = filteredInstitutions[tooltipItem.dataIndex]
+                          const isUsers = tooltipItem.datasetIndex === 0
+                          return `${isUsers ? 'Users' : 'Bookings'}: ${tooltipItem.parsed.x}`
                         }
                       }
                     }
@@ -253,8 +255,8 @@ export function TopInstitutionsChart({
                         font: {
                           size: 11
                         },
-                        callback: function(value: any) {
-                          const label = this.getLabelForValue(value)
+                        callback: function(value: string | number) {
+                          const label = this.getLabelForValue(value as number)
                           return label.length > 20 ? label.substring(0, 20) + '...' : label
                         }
                       }

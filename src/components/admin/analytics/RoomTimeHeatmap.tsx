@@ -7,10 +7,11 @@ import { id } from 'date-fns/locale'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, Building } from 'lucide-react'
+import { Booking, Room } from '@/lib/types'
 
 interface RoomTimeHeatmapProps {
-  bookings: any[]
-  rooms: any[]
+  bookings: Booking[]
+  rooms: Room[]
   isLoading?: boolean
 }
 

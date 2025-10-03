@@ -7,9 +7,11 @@ import { BarChart3, TrendingUp, Calendar } from 'lucide-react'
 import { BaseChart, ChartType as BaseChartType, ViewMode } from './BaseChart'
 import { aggregateMonthlyBookings, aggregateDailyBookings, calculateStats } from '@/lib/chart-data-utils'
 import { getChartOptionsByType, createStatusDatasets, STATUS_COLORS } from '@/lib/chart-config-utils'
+import { Booking } from '@/lib/types'
+import { TooltipItem } from 'chart.js'
 
 interface MonthlyReservationsChartProps {
-  bookings: any[]
+  bookings: Booking[]
   isLoading?: boolean
 }
 
@@ -49,16 +51,17 @@ export function MonthlyReservationsChart({ bookings, isLoading = false }: Monthl
       plugins: {
         tooltip: {
           callbacks: {
-            title: function(context: any) {
-              return mode === 'monthly' ? `Bulan ${context[0].label}` : `Tanggal ${context[0].label}`
+            title: function(tooltipItems: TooltipItem<'line' | 'bar'>[]) {
+              const tooltipItem = tooltipItems[0]
+              return mode === 'monthly' ? `Bulan ${tooltipItem.label}` : `Tanggal ${tooltipItem.label}`
             },
-            label: function(context: any) {
-              return `${context.dataset.label}: ${context.parsed.y}`
+            label: function(tooltipItem: TooltipItem<'line' | 'bar'>) {
+              return `${tooltipItem.dataset.label}: ${tooltipItem.parsed.y}`
             }
           }
         }
       }
-    })
+    }) as any
   }
 
   return (

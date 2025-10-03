@@ -2,20 +2,21 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Users, Building, Clock, BarChart3 } from 'lucide-react'
+import { TrendingUp, Users, Building, Clock, BarChart3, LucideIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Booking, Room } from '@/lib/types'
 
 interface RoomOverviewCardsProps {
-  bookings: any[]
-  rooms: any[]
+  bookings: Booking[]
+  rooms: Room[]
   isLoading?: boolean
 }
 
 interface StatCard {
   label: string
   value: number
-  icon: any
+  icon: LucideIcon
   color: string
   bgColor: string
   change?: number
@@ -76,17 +77,17 @@ export function RoomOverviewCards({
   // Calculate room analytics
   const roomStats = useMemo(() => {
     const totalBookings = filteredBookings.length
-    const approvedBookings = filteredBookings.filter((b: any) => b.status === 'approved').length
-    const pendingBookings = filteredBookings.filter((b: any) => b.status === 'pending').length
-    const rejectedBookings = filteredBookings.filter((b: any) => b.status === 'rejected').length
+    const approvedBookings = filteredBookings.filter((b: Booking) => b.status === 'approved').length
+    const pendingBookings = filteredBookings.filter((b: Booking) => b.status === 'pending').length
+    const rejectedBookings = filteredBookings.filter((b: Booking) => b.status === 'rejected').length
 
     // Calculate total guests
-    const totalGuests = filteredBookings.reduce((sum: number, booking: any) => {
+    const totalGuests = filteredBookings.reduce((sum: number, booking: Booking) => {
       return sum + (booking.guest_count || 0)
     }, 0)
 
     // Calculate average duration in hours
-    const totalDuration = filteredBookings.reduce((sum: number, booking: any) => {
+    const totalDuration = filteredBookings.reduce((sum: number, booking: Booking) => {
       if (booking.start_time && booking.end_time) {
         const start = new Date(booking.start_time).getTime()
         const end = new Date(booking.end_time).getTime()
@@ -98,7 +99,7 @@ export function RoomOverviewCards({
     const avgDuration = totalBookings > 0 ? Math.round(totalDuration / totalBookings * 10) / 10 : 0
 
     // Calculate utilization rate based on total room capacity
-    const totalRoomCapacity = rooms.reduce((sum: number, room: any) => sum + (room.capacity || 0), 0)
+    const totalRoomCapacity = rooms.reduce((sum: number, room: Room) => sum + (room.capacity || 0), 0)
     const utilizationRate = totalRoomCapacity > 0
       ? Math.round((totalGuests / totalRoomCapacity) * 100)
       : 0
