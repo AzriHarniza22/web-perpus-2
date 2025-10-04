@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from './supabase'
 import useAuthStore from './authStore'
-import { retryService } from './retry-service'
 
 export interface Room {
   id: string
@@ -146,42 +145,33 @@ export const useBookings = (filters?: {
       params.set('sortBy', sortBy)
       params.set('sortOrder', sortOrder)
 
-      const result = await retryService.executeWithRetry(
-        async () => {
-          const response = await fetch(`/api/bookings?${params.toString()}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include', // Include cookies for authentication
-          })
-
-          if (!response.ok) {
-            const errorText = await response.text()
-            console.error('API Error Response:', { status: response.status, text: errorText })
-            try {
-              const error = JSON.parse(errorText)
-              throw new Error(error.error || 'Failed to fetch bookings')
-            } catch (parseError) {
-              throw new Error(`API Error ${response.status}: ${errorText}`)
-            }
-          }
-
-          const result = await response.json()
-          console.log('API Response:', result)
-          return {
-            bookings: result.bookings || [],
-            totalCount: result.totalCount || 0,
-            currentPage: result.currentPage || 1,
-            totalPages: result.totalPages || 1
-          }
+      const response = await fetch(`/api/bookings?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        'api',
-        'bookings-api',
-        { operation: 'fetchBookings', params: params.toString() }
-      )
+        credentials: 'include', // Include cookies for authentication
+      })
 
-      return result
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('API Error Response:', { status: response.status, text: errorText })
+        try {
+          const error = JSON.parse(errorText)
+          throw new Error(error.error || 'Failed to fetch bookings')
+        } catch (parseError) {
+          throw new Error(`API Error ${response.status}: ${errorText}`)
+        }
+      }
+
+      const result = await response.json()
+      console.log('API Response:', result)
+      return {
+        bookings: result.bookings || [],
+        totalCount: result.totalCount || 0,
+        currentPage: result.currentPage || 1,
+        totalPages: result.totalPages || 1
+      }
     },
   })
 }
@@ -263,35 +253,25 @@ export const useCreateBooking = () => {
   return useMutation({
     mutationFn: async (bookingData: Omit<Booking, 'id' | 'created_at' | 'user_id'>) => {
       console.log('Booking data:', bookingData)
-
-      const result = await retryService.executeWithRetry(
-        async () => {
-          const response = await fetch('/api/bookings', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(bookingData),
-          })
-
-          console.log('Response status:', response.status)
-          const responseText = await response.text()
-          console.log('Response text:', responseText)
-
-          if (!response.ok) {
-            const error = JSON.parse(responseText)
-            throw new Error(error.error || 'Failed to create booking')
-          }
-
-          const result = JSON.parse(responseText)
-          return result.booking
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        'api',
-        'bookings-api',
-        { operation: 'createBooking' }
-      )
+        body: JSON.stringify(bookingData),
+      })
 
-      return result
+      console.log('Response status:', response.status)
+      const responseText = await response.text()
+      console.log('Response text:', responseText)
+
+      if (!response.ok) {
+        const error = JSON.parse(responseText)
+        throw new Error(error.error || 'Failed to create booking')
+      }
+
+      const result = JSON.parse(responseText)
+      return result.booking
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] })

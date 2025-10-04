@@ -1,9 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 import { Booking } from '@/lib/types'
-import { logger, LogCategory } from '@/lib/logger'
-import { handleError } from '@/lib/errors'
-import { retryService } from '@/lib/retry-service'
 
 // Type for Supabase client (generic)
 type SupabaseClient = ReturnType<typeof createServerClient>
@@ -43,11 +40,6 @@ export interface ApiResponse<T = unknown> {
   error?: string
   details?: string
   debug?: Record<string, unknown>
-  // Metadata fields for unified response format
-  timestamp: string
-  requestId: string
-  version?: string
-  statusCode?: number
 }
 
 export interface PaginationParams {
@@ -95,88 +87,49 @@ export async function withAuth(
   request: NextRequest,
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ): Promise<NextResponse> {
-  const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  try {
+    console.log('withAuth called for:', request.url)
+    const supabase = createAuthenticatedClient(request)
 
-  const baseContext = {
-    requestId,
-    url: request.url,
-    method: request.method,
-    userAgent: request.headers.get('user-agent') || undefined,
-  }
+    // Get authenticated user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    console.log('Auth check result:', { hasUser: !!user, authError: authError?.message })
 
-  return logger.withDuration(LogCategory.AUTHENTICATION, 'API Authentication', async () => {
-
-    await logger.debug(LogCategory.AUTHENTICATION, 'Authentication request started', baseContext)
-
-    try {
-      const supabase = createAuthenticatedClient(request)
-
-      // Get authenticated user
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-      if (authError || !user) {
-        await logger.warn(LogCategory.AUTHENTICATION, 'Authentication failed', baseContext, undefined, {
-          authError: authError?.message,
-          hasUser: !!user,
-        })
-
-        return NextResponse.json(
-          {
-            error: 'Unauthorized',
-            success: false,
-            debug: { authError: authError?.message, hasUser: !!user },
-            timestamp: new Date().toISOString(),
-            requestId,
-            version: '1.0',
-            statusCode: 401
-          } as ApiResponse,
-          { status: 401 }
-        )
-      }
-
-      const userContext = {
-        ...baseContext,
-        userId: user.id,
-      }
-
-      await logger.info(LogCategory.AUTHENTICATION, 'Authentication successful', userContext, {
-        email: user.email,
-      })
-
-      // Create authenticated request object
-      const authenticatedRequest = Object.assign(request, {
-        supabase,
-        user: {
-          id: user.id,
-          email: user.email!,
-          user_metadata: user.user_metadata
-        }
-      }) as AuthenticatedRequest
-
-      const result = await handler(authenticatedRequest)
-
-      await logger.info(LogCategory.API, 'API request completed', userContext, {
-        statusCode: result.status,
-      })
-
-      return result
-    } catch (error) {
-      const appError = handleError(error)
-      await logger.error(LogCategory.AUTHENTICATION, 'Authentication middleware error', baseContext, appError)
-
+    if (authError || !user) {
+      console.error('Authentication failed:', { authError: authError?.message, user: !!user })
       return NextResponse.json(
         {
-          error: 'Internal server error',
+          error: 'Unauthorized',
           success: false,
-          timestamp: new Date().toISOString(),
-          requestId,
-          version: '1.0',
-          statusCode: 500
+          debug: { authError: authError?.message, hasUser: !!user }
         } as ApiResponse,
-        { status: 500 }
+        { status: 401 }
       )
     }
-  }, baseContext)
+
+    console.log('Authentication successful for user:', user.email)
+
+    // Create authenticated request object
+    const authenticatedRequest = Object.assign(request, {
+      supabase,
+      user: {
+        id: user.id,
+        email: user.email!,
+        user_metadata: user.user_metadata
+      }
+    }) as AuthenticatedRequest
+
+    console.log('Authenticated user:', { id: user.id, email: user.email })
+    const result = await handler(authenticatedRequest)
+    console.log('Handler result status:', result.status)
+    return result
+  } catch (error) {
+    console.error('Auth middleware error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error', success: false } as ApiResponse,
+      { status: 500 }
+    )
+  }
 }
 
 /**
@@ -276,16 +229,10 @@ export function successResponse<T>(
   message?: string,
   metadata?: Record<string, unknown>
 ): NextResponse<ApiResponse<T>> {
-  const timestamp = new Date().toISOString()
-  const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
   return NextResponse.json({
     success: true,
     message,
     data,
-    timestamp,
-    requestId,
-    version: '1.0',
     ...metadata
   } as ApiResponse<T>)
 }
@@ -299,28 +246,11 @@ export function errorResponse(
   details?: string,
   debug?: Record<string, unknown>
 ): NextResponse<ApiResponse> {
-  const timestamp = new Date().toISOString()
-  const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-  // Log the error response
-  logger.error(LogCategory.API, 'API Error Response', {
-    requestId,
-  }, undefined, {
-    error,
-    status,
-    details,
-    debug,
-  })
-
   const response: ApiResponse = {
     success: false,
     error,
     details,
-    debug,
-    timestamp,
-    requestId,
-    version: '1.0',
-    statusCode: status
+    debug
   }
 
   return NextResponse.json(response, { status })
@@ -333,55 +263,35 @@ export async function ensureProfileExists(
   supabase: SupabaseClient,
   user: AuthenticatedRequest['user']
 ): Promise<{ data: { id: string } | null } | { error: Error }> {
-  const context = {
-    userId: user.id,
-    operation: 'ensureProfileExists'
+  // Check if profile exists
+  const { data: existingProfile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', user.id)
+    .single()
+
+  if (!existingProfile) {
+    // Create profile if it doesn't exist
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || '',
+        institution: user.user_metadata?.institution || '',
+        phone: user.user_metadata?.phone || '',
+      })
+      .select()
+      .single()
+
+    if (error) {
+      return { error }
+    }
+
+    return { data }
   }
 
-  try {
-    return await retryService.executeWithRetry(
-      async () => {
-        // Check if profile exists
-        const { data: existingProfile, error: selectError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .single()
-
-        if (selectError && selectError.code !== 'PGRST116') {
-          throw selectError
-        }
-
-        if (!existingProfile) {
-          // Create profile if it doesn't exist
-          const { data, error } = await supabase
-            .from('profiles')
-            .insert({
-              id: user.id,
-              email: user.email,
-              full_name: user.user_metadata?.full_name || '',
-              institution: user.user_metadata?.institution || '',
-              phone: user.user_metadata?.phone || '',
-            })
-            .select()
-            .single()
-
-          if (error) {
-            throw error
-          }
-
-          return { data }
-        }
-
-        return { data: existingProfile }
-      },
-      'database',
-      'supabase-profiles',
-      context
-    )
-  } catch (error) {
-    return { error: error as Error }
-  }
+  return { data: existingProfile }
 }
 
 /**
@@ -411,42 +321,27 @@ export async function checkBookingConflicts(
   endTime: string,
   excludeBookingId?: string
 ): Promise<{ hasConflicts: boolean; conflicts?: Booking[] }> {
-  const context = {
-    roomId,
-    startTime,
-    endTime,
-    excludeBookingId,
-    operation: 'checkBookingConflicts'
+  let query = supabase
+    .from('bookings')
+    .select('id, status, start_time, end_time')
+    .eq('room_id', roomId)
+    .eq('status', 'approved')
+    .lt('start_time', endTime)
+    .gt('end_time', startTime)
+
+  // Exclude current booking if updating
+  if (excludeBookingId) {
+    query = query.neq('id', excludeBookingId)
   }
 
-  return retryService.executeWithRetry(
-    async () => {
-      let query = supabase
-        .from('bookings')
-        .select('id, status, start_time, end_time')
-        .eq('room_id', roomId)
-        .eq('status', 'approved')
-        .lt('start_time', endTime)
-        .gt('end_time', startTime)
+  const { data: conflicts, error } = await query
 
-      // Exclude current booking if updating
-      if (excludeBookingId) {
-        query = query.neq('id', excludeBookingId)
-      }
+  if (error) {
+    throw new Error('Failed to check for conflicts')
+  }
 
-      const { data: conflicts, error } = await query
-
-      if (error) {
-        throw error
-      }
-
-      return {
-        hasConflicts: conflicts && conflicts.length > 0,
-        conflicts
-      }
-    },
-    'database',
-    'supabase-bookings',
-    context
-  )
+  return {
+    hasConflicts: conflicts && conflicts.length > 0,
+    conflicts
+  }
 }

@@ -29,11 +29,6 @@ export interface ApiResponse<T = unknown> {
   error?: string
   details?: string
   debug?: Record<string, unknown>
-  // Metadata fields for unified response format
-  timestamp: string
-  requestId: string
-  version?: string
-  statusCode?: number
 }
 
 export interface AuthState {

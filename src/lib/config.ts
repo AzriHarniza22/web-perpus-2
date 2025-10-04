@@ -51,42 +51,6 @@ export const config = {
       maxRequests: 100,
     },
   },
-
-  // Session management configuration
-  session: {
-    // Session timeout periods (in milliseconds)
-    timeouts: {
-      regular: 8 * 60 * 60 * 1000, // 8 hours for regular users
-      admin: 30 * 60 * 1000, // 30 minutes for admin users
-      extended: 24 * 60 * 60 * 1000, // 24 hours for extended sessions
-    },
-
-    // Warning periods before session expiry (in milliseconds)
-    warnings: {
-      first: 10 * 60 * 1000, // 10 minutes before expiry
-      final: 2 * 60 * 1000, // 2 minutes before expiry
-    },
-
-    // Token refresh configuration
-    refresh: {
-      threshold: 5 * 60 * 1000, // Refresh if expires within 5 minutes
-      retryAttempts: 3,
-      retryDelay: 1000, // 1 second between retries
-    },
-
-    // Activity tracking
-    activity: {
-      idleThreshold: 30 * 60 * 1000, // 30 minutes of inactivity
-      checkInterval: 60 * 1000, // Check every minute
-      extendOnActivity: true,
-    },
-
-    // Storage configuration
-    storage: {
-      prefix: 'library_session_',
-      secure: true,
-    },
-  },
 }
 
 // Validate required environment variables

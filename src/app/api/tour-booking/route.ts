@@ -36,12 +36,7 @@ export async function POST(request: NextRequest) {
     if (!roomResult.success || !roomResult.roomId) {
       console.error('Library Tour room lookup failed:', roomResult.error)
       return NextResponse.json({
-        success: false,
-        error: roomResult.error || 'Library Tour room not found and could not be created',
-        timestamp: new Date().toISOString(),
-        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        version: '1.0',
-        statusCode: 500
+        error: roomResult.error || 'Library Tour room not found and could not be created'
       }, { status: 500 })
     }
 
@@ -55,14 +50,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({
-        success: false,
-        error: 'Unauthorized',
-        timestamp: new Date().toISOString(),
-        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        version: '1.0',
-        statusCode: 401
-      }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const rawBody = await request.text()
@@ -75,41 +63,20 @@ export async function POST(request: NextRequest) {
       body = JSON.parse(rawBody)
     } catch (error) {
       console.error('JSON parse error:', error)
-      return NextResponse.json({
-        success: false,
-        error: 'Invalid JSON',
-        timestamp: new Date().toISOString(),
-        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        version: '1.0',
-        statusCode: 400
-      }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
 
     const { start_time, end_time, event_description, proposal_file, notes, guest_count, special_requests } = body
 
     if (!start_time || !end_time) {
-      return NextResponse.json({
-        success: false,
-        error: 'Missing required fields: start_time and end_time are required',
-        timestamp: new Date().toISOString(),
-        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        version: '1.0',
-        statusCode: 400
-      }, { status: 400 })
+      return NextResponse.json({ error: 'Missing required fields: start_time and end_time are required' }, { status: 400 })
     }
 
     // Validate time range
     const start = new Date(start_time)
     const end = new Date(end_time)
     if (start >= end) {
-      return NextResponse.json({
-        success: false,
-        error: 'Invalid time range: start time must be before end time',
-        timestamp: new Date().toISOString(),
-        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        version: '1.0',
-        statusCode: 400
-      }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid time range: start time must be before end time' }, { status: 400 })
     }
 
     // Check for conflicting approved bookings for the Library Tour room
@@ -123,33 +90,18 @@ export async function POST(request: NextRequest) {
 
     if (conflictError) {
       console.error('Tour booking conflict check error:', conflictError)
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to check for conflicts',
-        timestamp: new Date().toISOString(),
-        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        version: '1.0',
-        statusCode: 500
-      }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to check for conflicts' }, { status: 500 })
     }
 
     if (conflicts && conflicts.length > 0) {
       return NextResponse.json({
-        success: false,
         error: 'Tour time slot is already booked',
-        details: 'Conflicting bookings exist',
-        debug: {
-          conflicts: conflicts.map(c => ({
-            id: c.id,
-            status: c.status,
-            start_time: c.start_time,
-            end_time: c.end_time
-          }))
-        },
-        timestamp: new Date().toISOString(),
-        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        version: '1.0',
-        statusCode: 409
+        conflicts: conflicts.map(c => ({
+          id: c.id,
+          status: c.status,
+          start_time: c.start_time,
+          end_time: c.end_time
+        }))
       }, { status: 409 })
     }
 
@@ -173,14 +125,7 @@ export async function POST(request: NextRequest) {
 
       if (profileError) {
         console.error('Profile creation error:', profileError)
-        return NextResponse.json({
-          success: false,
-          error: 'Failed to create profile',
-          timestamp: new Date().toISOString(),
-          requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          version: '1.0',
-          statusCode: 500
-        }, { status: 500 })
+        return NextResponse.json({ error: 'Failed to create profile' }, { status: 500 })
       }
     }
 
@@ -220,14 +165,7 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error('Tour booking insert error:', insertError)
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to create tour booking',
-        timestamp: new Date().toISOString(),
-        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        version: '1.0',
-        statusCode: 500
-      }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to create tour booking' }, { status: 500 })
     }
 
     console.log('Tour booking inserted successfully');
@@ -250,29 +188,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Tour booking created successfully',
-      data: {
-        booking,
-        tour_info: {
-          tour_name: TOUR_CONFIG.tour_name,
-          tour_guide: TOUR_CONFIG.tour_guide,
-          meeting_point: TOUR_CONFIG.tour_meeting_point
-        }
-      },
-      timestamp: new Date().toISOString(),
-      requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      version: '1.0',
-      statusCode: 201
+      booking,
+      tour_info: {
+        tour_name: TOUR_CONFIG.tour_name,
+        tour_guide: TOUR_CONFIG.tour_guide,
+        meeting_point: TOUR_CONFIG.tour_meeting_point
+      }
     }, { status: 201 })
   } catch (error) {
     console.error('Tour booking API error:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-      timestamp: new Date().toISOString(),
-      requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      version: '1.0',
-      statusCode: 500
-    }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
