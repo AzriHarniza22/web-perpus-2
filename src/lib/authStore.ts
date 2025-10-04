@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { supabase } from './supabase'
-import type { User } from '@supabase/supabase-js'
+import { sessionManager } from './sessionManager'
+import { config } from './config'
+import type { User, Session } from '@supabase/supabase-js'
 
 interface Profile {
   id: string
@@ -17,24 +19,67 @@ interface Profile {
 interface AuthState {
   user: User | null
   profile: Profile | null
+  session: Session | null
   isLoading: boolean
+  sessionWarning: {
+    show: boolean
+    type: 'first' | 'final' | null
+    timeRemaining: number
+  }
   fetchUser: () => Promise<void>
   fetchProfile: () => Promise<void>
   register: (email: string, password: string) => Promise<void>
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   updateProfile: (updates: Partial<Profile>) => void
+  trackActivity: () => void
+  extendSession: () => void
+  dismissWarning: () => void
+  handleSessionExpired: () => void
 }
 
 const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   profile: null,
+  session: null,
   isLoading: true,
+  sessionWarning: {
+    show: false,
+    type: null,
+    timeRemaining: 0
+  },
   fetchUser: async () => {
     set({ isLoading: true })
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user, session } } = await supabase.auth.getSession()
     console.log(`AuthStore: fetchUser, user=${user ? user.id : 'null'}`)
-    set({ user, isLoading: false })
+
+    // Initialize session manager with current session
+    sessionManager.initialize(session, {
+      onWarning: (type, timeRemaining) => {
+        set({
+          sessionWarning: {
+            show: true,
+            type,
+            timeRemaining
+          }
+        })
+      },
+      onExpired: () => {
+        get().handleSessionExpired()
+      },
+      onRefreshed: (newSession) => {
+        set({ session: newSession })
+      },
+      onRefreshFailed: (error) => {
+        console.error('AuthStore: Session refresh failed:', error)
+        get().handleSessionExpired()
+      },
+      onActivityDetected: () => {
+        // Optional: Handle activity detection if needed
+      }
+    })
+
+    set({ user, session, isLoading: false })
     if (user) {
       await get().fetchProfile()
     }
@@ -85,8 +130,38 @@ const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
+
       console.log(`AuthStore: login success, user=${data.user ? data.user.id : 'null'}`)
-      set({ user: data.user, isLoading: false })
+
+      // Initialize session manager with new session
+      if (data.session) {
+        sessionManager.initialize(data.session, {
+          onWarning: (type, timeRemaining) => {
+            set({
+              sessionWarning: {
+                show: true,
+                type,
+                timeRemaining
+              }
+            })
+          },
+          onExpired: () => {
+            get().handleSessionExpired()
+          },
+          onRefreshed: (newSession) => {
+            set({ session: newSession })
+          },
+          onRefreshFailed: (error) => {
+            console.error('AuthStore: Session refresh failed:', error)
+            get().handleSessionExpired()
+          },
+          onActivityDetected: () => {
+            // Optional: Handle activity detection if needed
+          }
+        })
+      }
+
+      set({ user: data.user, session: data.session, isLoading: false })
       if (data.user) {
         await get().fetchProfile()
       }
@@ -97,14 +172,57 @@ const useAuthStore = create<AuthState>((set, get) => ({
   },
   logout: async () => {
     console.log('AuthStore: logout called')
+
+    // Clean up session manager
+    sessionManager.destroy()
+
     await supabase.auth.signOut()
     console.log('AuthStore: signOut completed, setting user to null')
-    set({ user: null, profile: null, isLoading: false })
+
+    set({
+      user: null,
+      profile: null,
+      session: null,
+      isLoading: false,
+      sessionWarning: {
+        show: false,
+        type: null,
+        timeRemaining: 0
+      }
+    })
   },
   updateProfile: (updates: Partial<Profile>) => {
     set((state) => ({
       profile: state.profile ? { ...state.profile, ...updates } : null
     }))
+  },
+  trackActivity: () => {
+    sessionManager.trackActivity()
+  },
+  extendSession: () => {
+    sessionManager.extendSession()
+  },
+  dismissWarning: () => {
+    set({
+      sessionWarning: {
+        show: false,
+        type: null,
+        timeRemaining: 0
+      }
+    })
+  },
+  handleSessionExpired: () => {
+    console.log('AuthStore: Session expired, logging out user')
+    set({
+      user: null,
+      profile: null,
+      session: null,
+      sessionWarning: {
+        show: false,
+        type: null,
+        timeRemaining: 0
+      }
+    })
   }
 }))
 

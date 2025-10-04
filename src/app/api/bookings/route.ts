@@ -12,6 +12,7 @@ import {
   checkBookingConflicts,
   type AuthenticatedRequest
 } from '@/lib/api-middleware'
+import { retryService } from '@/lib/retry-service'
 
 export async function GET(request: NextRequest) {
   return withAuth(request, async (req: AuthenticatedRequest) => {
@@ -19,48 +20,61 @@ export async function GET(request: NextRequest) {
       // Parse query parameters using common utility
       const queryParams = parseQueryParams(request)
 
-      let query = req.supabase
-        .from('bookings')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            email,
-            institution,
-            role,
-            profile_photo
-          ),
-          rooms:room_id (
-            name,
-            capacity,
-            facilities
-          )
-        `, { count: 'exact' })
-
-      // Apply filters using common utility
-      query = applyFilters(query, queryParams)
-
-      // Apply pagination and sorting using common utility
-      query = applyPaginationAndSorting(query, queryParams)
-
-      const { data: bookings, error, count } = await query
-  
-      console.log('Supabase query result:', { bookingsCount: bookings?.length, error, count })
-  
-      if (error) {
-        console.error('Bookings fetch error:', error)
-        return errorResponse(`Failed to fetch bookings: ${error.message}`, 500)
+      const context = {
+        userId: req.user.id,
+        queryParams,
+        operation: 'fetchBookings'
       }
-  
-      const result = {
-        bookings: bookings || [],
-        totalCount: count || 0,
-        currentPage: queryParams.page || 1,
-        totalPages: Math.ceil((count || 0) / (queryParams.limit || 50))
-      }
-  
+
+      const result = await retryService.executeWithRetry(
+        async () => {
+          let query = req.supabase
+            .from('bookings')
+            .select(`
+              *,
+              profiles:user_id (
+                full_name,
+                email,
+                institution,
+                role,
+                profile_photo
+              ),
+              rooms:room_id (
+                name,
+                capacity,
+                facilities
+              )
+            `, { count: 'exact' })
+
+          // Apply filters using common utility
+          query = applyFilters(query, queryParams)
+
+          // Apply pagination and sorting using common utility
+          query = applyPaginationAndSorting(query, queryParams)
+
+          const { data: bookings, error, count } = await query
+
+          console.log('Supabase query result:', { bookingsCount: bookings?.length, error, count })
+
+          if (error) {
+            console.error('Bookings fetch error:', error)
+            throw new Error(`Failed to fetch bookings: ${error.message}`)
+          }
+
+          return {
+            bookings: bookings || [],
+            totalCount: count || 0,
+            currentPage: queryParams.page || 1,
+            totalPages: Math.ceil((count || 0) / (queryParams.limit || 50))
+          }
+        },
+        'database',
+        'supabase-bookings',
+        context
+      )
+
       console.log('API response:', result)
-      return NextResponse.json(result)
+      return successResponse(result, 'Bookings retrieved successfully')
     } catch (error) {
       console.error('API error:', error)
       return errorResponse('Internal server error', 500)
@@ -116,7 +130,7 @@ export async function POST(request: NextRequest) {
         return errorResponse('Failed to create profile', 500)
       }
 
-      // Insert booking
+      // Insert booking with retry mechanism
       const insertData = {
         user_id: req.user.id,
         room_id,
@@ -128,20 +142,39 @@ export async function POST(request: NextRequest) {
         status: 'pending'
       }
 
-      const { data: booking, error: insertError } = await req.supabase
-        .from('bookings')
-        .insert(insertData)
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            email
-          ),
-          rooms:room_id (
-            name
-          )
-        `)
-        .single()
+      const context = {
+        userId: req.user.id,
+        roomId: room_id,
+        operation: 'createBooking'
+      }
+
+      const { data: booking, error: insertError } = await retryService.executeWithRetry(
+        async () => {
+          const { data, error } = await req.supabase
+            .from('bookings')
+            .insert(insertData)
+            .select(`
+              *,
+              profiles:user_id (
+                full_name,
+                email
+              ),
+              rooms:room_id (
+                name
+              )
+            `)
+            .single()
+
+          if (error) {
+            throw error
+          }
+
+          return data
+        },
+        'database',
+        'supabase-bookings',
+        context
+      )
 
       if (insertError) {
         console.error('Booking insert error:', insertError)
@@ -150,7 +183,7 @@ export async function POST(request: NextRequest) {
 
       console.log('Booking inserted successfully');
 
-      // Send notification to admin
+      // Send notification to admin with retry mechanism for network operations
       try {
         console.log('About to send new booking notification to admin');
         const bookingDetails = {
@@ -158,7 +191,15 @@ export async function POST(request: NextRequest) {
           time: `${new Date(booking.start_time).toLocaleString()} - ${new Date(booking.end_time).toLocaleString()}`,
           userName: booking.profiles?.full_name || 'Unknown User'
         }
-        await sendNewBookingNotificationToAdmin(req.supabase, bookingDetails)
+
+        await retryService.executeWithRetry(
+          async () => {
+            await sendNewBookingNotificationToAdmin(req.supabase, bookingDetails)
+          },
+          'network',
+          'email-service',
+          { operation: 'sendBookingNotification' }
+        )
       } catch (emailError) {
         console.error('Email notification error:', emailError)
         // Don't fail the booking if email fails

@@ -17,7 +17,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       return NextResponse.json({
         success: false,
         error: 'Validation failed',
-        details: `Validation errors: ${validationErrors.map(e => e.message).join(', ')}`
+        details: `Validation errors: ${validationErrors.map(e => e.message).join(', ')}`,
+        timestamp: new Date().toISOString(),
+        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        version: '1.0',
+        statusCode: 400
       }, { status: 400 })
     }
 
@@ -34,7 +38,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       return NextResponse.json({
         success: false,
         error: 'Service role key not configured',
-        details: 'SUPABASE_SERVICE_ROLE_KEY is missing from environment variables'
+        details: 'SUPABASE_SERVICE_ROLE_KEY is missing from environment variables',
+        timestamp: new Date().toISOString(),
+        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        version: '1.0',
+        statusCode: 500
       } as ApiResponse<RegistrationResponse>, { status: 500 })
     }
 
@@ -49,7 +57,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     if (authError || !authData.user) {
       const error = handleError(authError || new Error('User creation failed'))
-      return NextResponse.json(formatErrorResponse(error) as ApiResponse<RegistrationResponse>, { status: error.statusCode })
+      const formattedError = formatErrorResponse(error)
+      return NextResponse.json({
+        ...formattedError,
+        timestamp: new Date().toISOString(),
+        requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        version: '1.0'
+      } as ApiResponse<RegistrationResponse>, { status: error.statusCode })
     }
 
     console.log('✅ User registered:', authData.user.id)
@@ -74,13 +88,23 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
         userId: authData.user.id,
         email: authData.user.email!,
         profile: profileData
-      }
+      },
+      timestamp: new Date().toISOString(),
+      requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      version: '1.0',
+      statusCode: 201
     }
 
     return NextResponse.json(response)
 
   } catch (error) {
     const appError = handleError(error)
-    return NextResponse.json(formatErrorResponse(appError) as ApiResponse<RegistrationResponse>, { status: appError.statusCode })
+    const formattedError = formatErrorResponse(appError)
+    return NextResponse.json({
+      ...formattedError,
+      timestamp: new Date().toISOString(),
+      requestId: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      version: '1.0'
+    } as ApiResponse<RegistrationResponse>, { status: appError.statusCode })
   }
 }
