@@ -36,7 +36,7 @@ export function RoomOverviewCards({
     rejectedBookings: number
     totalGuests: number
     avgDuration: number
-    utilizationRate: number
+    avgGuestsPerBooking: number
     peakHour: string
   }>({
     totalBookings: 0,
@@ -45,7 +45,7 @@ export function RoomOverviewCards({
     rejectedBookings: 0,
     totalGuests: 0,
     avgDuration: 0,
-    utilizationRate: 0,
+    avgGuestsPerBooking: 0,
     peakHour: '0'
   })
 
@@ -56,7 +56,7 @@ export function RoomOverviewCards({
     rejectedBookings: number
     totalGuests: number
     avgDuration: number
-    utilizationRate: number
+    avgGuestsPerBooking: number
     peakHour: string
   }>({
     totalBookings: 0,
@@ -65,7 +65,7 @@ export function RoomOverviewCards({
     rejectedBookings: 0,
     totalGuests: 0,
     avgDuration: 0,
-    utilizationRate: 0,
+    avgGuestsPerBooking: 0,
     peakHour: '0'
   })
 
@@ -77,7 +77,7 @@ export function RoomOverviewCards({
   // Calculate room analytics
   const roomStats = useMemo(() => {
     const totalBookings = filteredBookings.length
-    const approvedBookings = filteredBookings.filter((b: Booking) => b.status === 'approved').length
+    const approvedBookings = filteredBookings.filter((b: Booking) => b.status === 'approved' || b.status === 'completed').length
     const pendingBookings = filteredBookings.filter((b: Booking) => b.status === 'pending').length
     const rejectedBookings = filteredBookings.filter((b: Booking) => b.status === 'rejected').length
 
@@ -98,10 +98,9 @@ export function RoomOverviewCards({
     }, 0)
     const avgDuration = totalBookings > 0 ? Math.round(totalDuration / totalBookings * 10) / 10 : 0
 
-    // Calculate utilization rate based on total room capacity
-    const totalRoomCapacity = rooms.reduce((sum: number, room: Room) => sum + (room.capacity || 0), 0)
-    const utilizationRate = totalRoomCapacity > 0
-      ? Math.round((totalGuests / totalRoomCapacity) * 100)
+    // Calculate average guests per booking (whole number)
+    const avgGuestsPerBooking = totalBookings > 0
+      ? Math.round(totalGuests / totalBookings)
       : 0
 
     // Find peak hour
@@ -128,7 +127,7 @@ export function RoomOverviewCards({
       rejectedBookings,
       totalGuests,
       avgDuration,
-      utilizationRate,
+      avgGuestsPerBooking,
       peakHour: peakHour + ':00'
     }
   }, [filteredBookings, rooms])
@@ -142,7 +141,7 @@ export function RoomOverviewCards({
       rejectedBookings: roomStats.rejectedBookings,
       totalGuests: roomStats.totalGuests,
       avgDuration: roomStats.avgDuration,
-      utilizationRate: roomStats.utilizationRate,
+      avgGuestsPerBooking: roomStats.avgGuestsPerBooking,
       peakHour: roomStats.peakHour
     }
 
@@ -154,7 +153,7 @@ export function RoomOverviewCards({
       prevValues.rejectedBookings !== currentValues.rejectedBookings ||
       prevValues.totalGuests !== currentValues.totalGuests ||
       prevValues.avgDuration !== currentValues.avgDuration ||
-      prevValues.utilizationRate !== currentValues.utilizationRate ||
+      prevValues.avgGuestsPerBooking !== currentValues.avgGuestsPerBooking ||
       prevValues.peakHour !== currentValues.peakHour
 
     if (hasChanged) {
@@ -210,7 +209,7 @@ export function RoomOverviewCards({
       animateValue('rejectedBookings', currentValues.rejectedBookings, animatedValues.rejectedBookings)
       animateValue('totalGuests', currentValues.totalGuests, animatedValues.totalGuests)
       animateValue('avgDuration', currentValues.avgDuration, animatedValues.avgDuration)
-      animateValue('utilizationRate', currentValues.utilizationRate, animatedValues.utilizationRate)
+      animateValue('avgGuestsPerBooking', currentValues.avgGuestsPerBooking, animatedValues.avgGuestsPerBooking)
       animateValue('peakHour', currentValues.peakHour, animatedValues.peakHour)
     }
   }, [roomStats, animatedValues, prevValues])
@@ -269,12 +268,12 @@ export function RoomOverviewCards({
       subtitle: 'jam'
     },
     {
-      label: 'Tingkat Utilisasi',
-      value: animatedValues.utilizationRate || roomStats.utilizationRate,
-      icon: Building,
-      color: 'text-cyan-600',
-      bgColor: 'bg-cyan-100 dark:bg-cyan-900/50',
-      subtitle: '%'
+      label: 'Rata-rata Tamu',
+      value: animatedValues.avgGuestsPerBooking || roomStats.avgGuestsPerBooking,
+      icon: Users,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100 dark:bg-purple-900/50',
+      subtitle: 'orang/booking'
     },
     {
       label: 'Jam Puncak',

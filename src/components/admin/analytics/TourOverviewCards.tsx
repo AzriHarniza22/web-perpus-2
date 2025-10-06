@@ -38,7 +38,7 @@ export function TourOverviewCards({
     totalParticipants: number
     avgParticipants: number
     avgDuration: number
-    utilizationRate: number
+    peakHour: string
   }>({
     totalBookings: 0,
     approvedBookings: 0,
@@ -47,7 +47,7 @@ export function TourOverviewCards({
     totalParticipants: 0,
     avgParticipants: 0,
     avgDuration: 0,
-    utilizationRate: 0
+    peakHour: '0'
   })
 
   const [prevValues, setPrevValues] = useState<{
@@ -58,7 +58,7 @@ export function TourOverviewCards({
     totalParticipants: number
     avgParticipants: number
     avgDuration: number
-    utilizationRate: number
+    peakHour: string
   }>({
     totalBookings: 0,
     approvedBookings: 0,
@@ -67,7 +67,7 @@ export function TourOverviewCards({
     totalParticipants: 0,
     avgParticipants: 0,
     avgDuration: 0,
-    utilizationRate: 0
+    peakHour: '0'
   })
 
   // Filter tour bookings using the utility function
@@ -78,7 +78,7 @@ export function TourOverviewCards({
   // Calculate tour analytics
   const tourStats = useMemo(() => {
     const totalBookings = tourBookings.length
-    const approvedBookings = tourBookings.filter((b: Booking) => b.status === 'approved').length
+    const approvedBookings = tourBookings.filter((b: Booking) => b.status === 'approved' || b.status === 'completed').length
     const pendingBookings = tourBookings.filter((b: Booking) => b.status === 'pending').length
     const rejectedBookings = tourBookings.filter((b: Booking) => b.status === 'rejected').length
 
@@ -87,8 +87,8 @@ export function TourOverviewCards({
        return sum + (booking.guest_count || 0)
      }, 0)
 
-    // Calculate average participants per booking
-    const avgParticipants = totalBookings > 0 ? Math.round((totalParticipants / totalBookings) * 10) / 10 : 0
+    // Calculate average participants per booking (whole number)
+    const avgParticipants = totalBookings > 0 ? Math.round(totalParticipants / totalBookings) : 0
 
     // Calculate average duration in hours
     const totalDuration = tourBookings.reduce((sum: number, booking: Booking) => {
@@ -106,6 +106,23 @@ export function TourOverviewCards({
     const totalCapacity = tours.reduce((sum: number, tour: Tour) => sum + (tour.capacity || 0), 0)
     const utilizationRate = totalCapacity > 0 ? Math.round((totalParticipants / totalCapacity) * 100) : 0
 
+    // Find peak hour for tours
+    const hourCounts = new Map()
+    tourBookings.forEach(booking => {
+      if (booking.start_time) {
+        const hour = new Date(booking.start_time).getHours()
+        hourCounts.set(hour, (hourCounts.get(hour) || 0) + 1)
+      }
+    })
+    let peakHour = '0'
+    let maxCount = 0
+    hourCounts.forEach((count, hour) => {
+      if (count > maxCount) {
+        maxCount = count
+        peakHour = hour.toString()
+      }
+    })
+
     return {
       totalBookings,
       approvedBookings,
@@ -114,7 +131,8 @@ export function TourOverviewCards({
       totalParticipants,
       avgParticipants,
       avgDuration,
-      utilizationRate
+      utilizationRate,
+      peakHour: peakHour + ':00'
     }
   }, [tourBookings, tours])
 
@@ -128,7 +146,7 @@ export function TourOverviewCards({
       totalParticipants: tourStats.totalParticipants,
       avgParticipants: tourStats.avgParticipants,
       avgDuration: tourStats.avgDuration,
-      utilizationRate: tourStats.utilizationRate
+      peakHour: tourStats.peakHour
     }
 
     // Check if values changed
@@ -140,7 +158,7 @@ export function TourOverviewCards({
       prevValues.totalParticipants !== currentValues.totalParticipants ||
       prevValues.avgParticipants !== currentValues.avgParticipants ||
       prevValues.avgDuration !== currentValues.avgDuration ||
-      prevValues.utilizationRate !== currentValues.utilizationRate
+      prevValues.peakHour !== currentValues.peakHour
 
     if (hasChanged) {
       setPrevValues(currentValues)
@@ -148,36 +166,45 @@ export function TourOverviewCards({
       // Animate each value
       const animateValue = (
         key: keyof typeof currentValues,
-        targetValue: number,
-        startValue: number
+        targetValue: number | string,
+        startValue: number | string
       ) => {
         const duration = 1000 // 1 second
         const steps = 60
-        const increment = (targetValue - startValue) / steps
-        let currentStep = 0
+        const isNumber = typeof targetValue === 'number'
 
-        const animate = () => {
-          currentStep++
-          const progress = currentStep / steps
-          const easeOutQuart = 1 - Math.pow(1 - progress, 4)
-          const currentValue = Math.round(startValue + (increment * currentStep * easeOutQuart))
+        if (isNumber && typeof startValue === 'number') {
+          const increment = (Number(targetValue) - Number(startValue)) / steps
+          let currentStep = 0
 
-          setAnimatedValues(prev => ({
-            ...prev,
-            [key]: Math.min(currentValue, targetValue)
-          }))
+          const animate = () => {
+            currentStep++
+            const progress = currentStep / steps
+            const easeOutQuart = 1 - Math.pow(1 - progress, 4)
+            const currentValue = Math.round(Number(startValue) + (increment * currentStep * easeOutQuart))
 
-          if (currentStep < steps) {
-            requestAnimationFrame(animate)
-          } else {
             setAnimatedValues(prev => ({
               ...prev,
-              [key]: targetValue
+              [key]: Math.min(currentValue, Number(targetValue))
             }))
-          }
-        }
 
-        requestAnimationFrame(animate)
+            if (currentStep < steps) {
+              requestAnimationFrame(animate)
+            } else {
+              setAnimatedValues(prev => ({
+                ...prev,
+                [key]: targetValue
+              }))
+            }
+          }
+
+          requestAnimationFrame(animate)
+        } else {
+          setAnimatedValues(prev => ({
+            ...prev,
+            [key]: targetValue
+          }))
+        }
       }
 
       animateValue('totalBookings', currentValues.totalBookings, animatedValues.totalBookings)
@@ -187,7 +214,7 @@ export function TourOverviewCards({
       animateValue('totalParticipants', currentValues.totalParticipants, animatedValues.totalParticipants)
       animateValue('avgParticipants', currentValues.avgParticipants, animatedValues.avgParticipants)
       animateValue('avgDuration', currentValues.avgDuration, animatedValues.avgDuration)
-      animateValue('utilizationRate', currentValues.utilizationRate, animatedValues.utilizationRate)
+      animateValue('peakHour', currentValues.peakHour, animatedValues.peakHour)
     }
   }, [tourStats, animatedValues, prevValues])
 
@@ -253,12 +280,12 @@ export function TourOverviewCards({
       subtitle: 'jam'
     },
     {
-      label: 'Tingkat Utilisasi',
-      value: animatedValues.utilizationRate || tourStats.utilizationRate,
-      icon: MapPin,
+      label: 'Jam Puncak',
+      value: 0, // We'll handle this specially in the render
+      icon: TrendingUp,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-100 dark:bg-emerald-900/50',
-      subtitle: '%'
+      subtitle: animatedValues.peakHour || tourStats.peakHour
     }
   ]
 

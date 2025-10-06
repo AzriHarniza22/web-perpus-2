@@ -14,10 +14,10 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
 
     return bookings.filter(booking => {
       const bookingDate = new Date(booking.start_time)
-      // Only show future bookings or active bookings
+      // Only show upcoming bookings (start_time >= today) with approved or pending status
       return bookingDate.toDateString() === date.toDateString() &&
-             booking.status !== 'rejected' &&
-             (bookingDate >= now || booking.status === 'pending' || booking.status === 'approved')
+             bookingDate >= now &&
+             (booking.status === 'approved' || booking.status === 'pending')
     }).map(booking => ({
       start: new Date(booking.start_time),
       end: new Date(booking.end_time),
@@ -54,9 +54,10 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
     const now = new Date()
     const bookingsOnDate = bookings.filter(booking => {
       const bookingDate = new Date(booking.start_time)
-      // Only include future bookings or active bookings
+      // Only include upcoming bookings (start_time >= today) with approved or pending status
       return bookingDate.toDateString() === date.toDateString() &&
-             (bookingDate >= now || booking.status === 'pending' || booking.status === 'approved')
+             bookingDate >= now &&
+             (booking.status === 'approved' || booking.status === 'pending')
     })
 
     if (bookingsOnDate.some(b => b.status === 'approved')) return 'approved'

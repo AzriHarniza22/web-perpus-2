@@ -51,7 +51,7 @@ import { TopUsersChart } from '@/components/admin/analytics/TopUsersChart'
 import { InstitutionBookingsChart } from '@/components/admin/analytics/InstitutionBookingsChart'
 import { UserBookingDistributionChart } from '@/components/admin/analytics/UserBookingDistributionChart'
 import { ExportButton } from '@/components/admin/analytics/ExportButton'
-import { exportToCSV, exportToPDF, exportToExcel, ExportData } from '@/lib/exportUtils'
+import { exportToCSV, exportToPDF, exportToExcel, exportToEnhancedExcel, ExportData, ExtendedExportOptions } from '@/lib/exportUtils'
 import { Booking, Room, Tour, User } from '@/lib/types'
 
 interface AnalyticsDashboardProps {
@@ -205,6 +205,9 @@ export function AnalyticsDashboard({
         }
       }
 
+      // Collect chart data for enhanced export
+      const chartData = await collectChartData()
+
       switch (format) {
         case 'csv':
           await exportToCSV(exportData, {
@@ -223,12 +226,23 @@ export function AnalyticsDashboard({
           })
           break
         case 'excel':
-          await exportToExcel(exportData, {
-            includeCharts: true,
-            includeRawData: true,
-            dateFormat: 'dd/MM/yyyy',
-            includeMetadata: true
-          })
+          // Use enhanced Excel export with chart data
+          await exportToEnhancedExcel(
+            exportData,
+            {
+              includeCharts: true,
+              includeRawData: true,
+              includeStatisticalSummaries: true,
+              includeTrendAnalysis: true,
+              performanceOptimizations: true,
+              dateFormat: 'dd/MM/yyyy',
+              includeMetadata: true,
+              onProgress: (progress, status) => {
+                console.log(`Export progress: ${progress}% - ${status}`)
+              }
+            },
+            chartData
+          )
           break
       }
 
@@ -238,6 +252,37 @@ export function AnalyticsDashboard({
       onExportStatusChange?.('error', format)
       throw error // Re-throw to let ExportButton handle the error state
     }
+  }
+
+  // Collect chart data from all chart components
+  const collectChartData = async (): Promise<{
+    [chartKey: string]: {
+      title: string
+      data: any
+      type: string
+      viewMode?: string
+    }
+  }> => {
+    const chartDataMap: {
+      [chartKey: string]: {
+        title: string
+        data: any
+        type: string
+        viewMode?: string
+      }
+    } = {}
+
+    // This is a simplified implementation - in a real scenario, you would
+    // need to access the actual chart instances from the child components
+    // For now, we'll return an empty object and let the enhanced export
+    // service handle missing chart data gracefully
+
+    // TODO: Implement proper chart data collection by:
+    // 1. Adding refs to chart components
+    // 2. Using a context or callback system to collect chart data
+    // 3. Accessing chart instances through the component tree
+
+    return chartDataMap
   }
 
   if (isLoading) {

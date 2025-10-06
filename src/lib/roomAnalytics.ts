@@ -9,7 +9,7 @@ export interface RoomBooking {
   user_id: string
   start_time: string
   end_time: string
-  status: 'pending' | 'approved' | 'rejected'
+  status: 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled'
   guest_count?: number
   event_description?: string
   notes?: string
@@ -97,8 +97,10 @@ export function calculateRoomAnalytics(bookings: RoomBooking[], rooms: RoomData[
         break
     }
 
-    // Update guest count
-    analytics.totalGuests += booking.guest_count || 0
+    // Update guest count (only for approved bookings)
+    if (booking.status === 'approved') {
+      analytics.totalGuests += booking.guest_count || 0
+    }
   })
 
   // Calculate derived metrics for each room
@@ -106,8 +108,9 @@ export function calculateRoomAnalytics(bookings: RoomBooking[], rooms: RoomData[
     const roomBookings = bookings.filter(b => b.room_id === roomId)
     const room = rooms.find(r => r.id === roomId)
 
-    // Calculate average duration
-    const totalDuration = roomBookings.reduce((sum, booking) => {
+    // Calculate average duration (only for approved bookings)
+    const approvedBookings = roomBookings.filter(booking => booking.status === 'approved')
+    const totalDuration = approvedBookings.reduce((sum, booking) => {
       if (booking.start_time && booking.end_time) {
         const start = new Date(booking.start_time).getTime()
         const end = new Date(booking.end_time).getTime()
@@ -117,8 +120,8 @@ export function calculateRoomAnalytics(bookings: RoomBooking[], rooms: RoomData[
       return sum
     }, 0)
 
-    analytics.averageDuration = roomBookings.length > 0
-      ? Math.round((totalDuration / roomBookings.length) * 10) / 10
+    analytics.averageDuration = approvedBookings.length > 0
+      ? Math.round((totalDuration / approvedBookings.length) * 10) / 10
       : 0
 
     // Calculate utilization rate
@@ -159,7 +162,12 @@ export function getMonthlyRoomData(bookings: RoomBooking[]) {
   // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
   const roomBookings = bookings.filter(booking => booking.is_tour !== true)
 
-  roomBookings.forEach(booking => {
+  // Filter to only include approved and completed bookings, excluding rejected, cancelled, and pending
+  const approvedAndCompletedBookings = roomBookings.filter(booking =>
+    booking.status === 'approved' || booking.status === 'completed'
+  )
+
+  approvedAndCompletedBookings.forEach(booking => {
     const date = new Date(booking.created_at)
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 
@@ -195,7 +203,10 @@ export function getDailyRoomData(bookings: RoomBooking[]) {
   // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
   const roomBookings = bookings.filter(booking => booking.is_tour !== true)
 
-  roomBookings.forEach(booking => {
+  // Filter to only include approved bookings, excluding rejected, cancelled, and pending
+  const approvedBookings = roomBookings.filter(booking => booking.status === 'approved')
+
+  approvedBookings.forEach(booking => {
     const date = new Date(booking.created_at)
     const dayKey = date.toISOString().split('T')[0]
 
@@ -231,7 +242,12 @@ export function getGuestDistributionByRoom(bookings: RoomBooking[]) {
   // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
   const roomBookings = bookings.filter(booking => booking.is_tour !== true)
 
-  roomBookings.forEach(booking => {
+  // Filter to only include approved and completed bookings, excluding rejected, cancelled, and pending
+  const approvedAndCompletedBookings = roomBookings.filter(booking =>
+    booking.status === 'approved' || booking.status === 'completed'
+  )
+
+  approvedAndCompletedBookings.forEach(booking => {
     const roomId = booking.room_id
     const roomName = booking.rooms?.name || 'Unknown Room'
     const guestCount = booking.guest_count || 0
@@ -264,7 +280,12 @@ export function getRoomTimeHeatmapData(bookings: RoomBooking[]) {
   // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
   const roomBookings = bookings.filter(booking => booking.is_tour !== true)
 
-  roomBookings.forEach(booking => {
+  // Filter to only include approved and completed bookings, excluding rejected, cancelled, and pending
+  const approvedAndCompletedBookings = roomBookings.filter(booking =>
+    booking.status === 'approved' || booking.status === 'completed'
+  )
+
+  approvedAndCompletedBookings.forEach(booking => {
     if (booking.start_time) {
       const date = new Date(booking.start_time)
       const hour = date.getHours()
@@ -299,7 +320,12 @@ export function getAverageReservationDurationByRoom(bookings: RoomBooking[]) {
   // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
   const roomBookings = bookings.filter(booking => booking.is_tour !== true)
 
-  roomBookings.forEach(booking => {
+  // Filter to only include approved and completed bookings, excluding rejected, cancelled, and pending
+  const approvedAndCompletedBookings = roomBookings.filter(booking =>
+    booking.status === 'approved' || booking.status === 'completed'
+  )
+
+  approvedAndCompletedBookings.forEach(booking => {
     const roomId = booking.room_id
     const roomName = booking.rooms?.name || 'Unknown Room'
 
@@ -347,7 +373,12 @@ export function getAverageGuestsByRoom(bookings: RoomBooking[]) {
   // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
   const roomBookings = bookings.filter(booking => booking.is_tour !== true)
 
-  roomBookings.forEach(booking => {
+  // Filter to only include approved and completed bookings, excluding rejected, cancelled, and pending
+  const approvedAndCompletedBookings = roomBookings.filter(booking =>
+    booking.status === 'approved' || booking.status === 'completed'
+  )
+
+  approvedAndCompletedBookings.forEach(booking => {
     const roomId = booking.room_id
     const roomName = booking.rooms?.name || 'Unknown Room'
     const guestCount = booking.guest_count || 0

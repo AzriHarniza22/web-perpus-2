@@ -30,7 +30,7 @@ export function TourGuestsCard({
      }, 0)
 
     const approvedParticipants = tourBookings
-       .filter(booking => booking.status === 'approved')
+       .filter(booking => booking.status === 'approved' || booking.status === 'completed')
        .reduce((sum: number, booking: Booking) => sum + (booking.guest_count || 0), 0)
 
      const pendingParticipants = tourBookings

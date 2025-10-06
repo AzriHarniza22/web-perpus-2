@@ -10,6 +10,7 @@ import { calculateRoomAnalytics, filterBookingsByRoom } from './roomAnalytics'
 import { calculateTourAnalytics, filterTourBookings } from './tourAnalytics'
 import { aggregateUserAnalytics } from './userAnalytics'
 import { aggregateMonthlyBookings, calculateStats } from './chart-data-utils'
+import { EnhancedExcelExportService, EnhancedExportData, EnhancedExportOptions } from './enhanced-excel-export/EnhancedExcelExportService'
 
 
 export interface ExportData {
@@ -42,6 +43,13 @@ export interface ExportOptions {
   dateFormat?: string
   fileName?: string
   includeMetadata?: boolean
+}
+
+export interface ExtendedExportOptions extends ExportOptions {
+  includeStatisticalSummaries?: boolean
+  includeTrendAnalysis?: boolean
+  performanceOptimizations?: boolean
+  onProgress?: (progress: number, status: string) => void
 }
 
 // Utility function to format filename with timestamp and filters
@@ -322,6 +330,57 @@ export async function exportToExcel(
 
   // Save Excel file
   XLSX.writeFile(workbook, fileName)
+}
+
+// Enhanced Excel Export Function
+export async function exportToEnhancedExcel(
+  data: ExportData,
+  options: ExtendedExportOptions = {},
+  chartData?: {
+    [chartKey: string]: {
+      title: string
+      data: any
+      type: string
+      viewMode?: string
+    }
+  }
+): Promise<void> {
+  try {
+    // Convert existing ExportData to EnhancedExportData format
+    const enhancedData: EnhancedExportData = {
+      ...data,
+      chartData
+    }
+
+    // Initialize the enhanced export service
+    const enhancedExportService = new EnhancedExcelExportService()
+
+    // Set progress callback if provided
+    if (options.onProgress) {
+      enhancedExportService.setProgressCallback(options.onProgress)
+    }
+
+    // Perform enhanced export
+    await enhancedExportService.exportToExcel(enhancedData, {
+      includeCharts: options.includeCharts !== false,
+      includeRawData: options.includeRawData !== false,
+      includeStatisticalSummaries: options.includeStatisticalSummaries !== false,
+      includeTrendAnalysis: options.includeTrendAnalysis !== false,
+      performanceOptimizations: options.performanceOptimizations !== false,
+      fileName: options.fileName,
+      dateFormat: options.dateFormat || 'dd/MM/yyyy',
+      includeMetadata: options.includeMetadata !== false
+    })
+
+  } catch (error) {
+    console.error('Enhanced Excel export failed:', error)
+    throw new Error(`Enhanced export failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
+}
+
+// Export service factory for external use
+export function createEnhancedExportService(): EnhancedExcelExportService {
+  return new EnhancedExcelExportService()
 }
 
 // Helper functions for CSV data preparation

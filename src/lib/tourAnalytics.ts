@@ -107,15 +107,18 @@ export function calculateTourAnalytics(
   const pendingBookings = tourBookings.filter(b => b.status === 'pending').length
   const rejectedBookings = tourBookings.filter(b => b.status === 'rejected').length
 
-  const totalParticipants = tourBookings.reduce((sum, booking) => {
-    return sum + (booking.guest_count || 0)
-  }, 0)
+  const totalParticipants = tourBookings
+    .filter(booking => booking.status === 'approved' || booking.status === 'completed')
+    .reduce((sum, booking) => {
+      return sum + (booking.guest_count || 0)
+    }, 0)
 
   const avgParticipants = totalBookings > 0 ? Math.round((totalParticipants / totalBookings) * 10) / 10 : 0
 
   // Calculate average duration
   const bookingsWithDuration = tourBookings.filter(
-    booking => booking.start_time && booking.end_time
+    booking => booking.start_time && booking.end_time &&
+    (booking.status === 'approved' || booking.status === 'completed')
   )
 
   const totalDuration = bookingsWithDuration.reduce((sum, booking) => {
@@ -190,7 +193,11 @@ export function calculateMonthlyTrends(bookings: Booking[]): MonthlyTrend[] {
 
     const data = monthlyData.get(monthKey)!
     data.total += 1
-    data.participants += booking.guest_count || 0
+
+    // Only count participants for approved and completed bookings
+    if (booking.status === 'approved' || booking.status === 'completed') {
+      data.participants += booking.guest_count || 0
+    }
 
     switch (booking.status) {
       case 'approved':
@@ -231,7 +238,11 @@ export function calculateDailyDistribution(bookings: Booking[]): DailyDistributi
 
     const data = dailyData.get(dayKey)!
     data.total += 1
-    data.participants += booking.guest_count || 0
+
+    // Only count participants for approved and completed bookings
+    if (booking.status === 'approved' || booking.status === 'completed') {
+      data.participants += booking.guest_count || 0
+    }
 
     switch (booking.status) {
       case 'approved':
@@ -279,17 +290,19 @@ export function calculateTimeHeatmap(
   }
 
   // Process bookings within time range
-  bookings
-    .filter(booking => new Date(booking.created_at) >= startDate)
-    .forEach(booking => {
-      const date = new Date(booking.created_at)
-      const dayOfWeek = (date.getDay() + 6) % 7 // Convert Sunday=0 to Monday=0
-      const hour = date.getHours()
+  // Only include approved and completed bookings, exclude rejected, cancelled, and pending
+   bookings
+     .filter(booking => new Date(booking.created_at) >= startDate)
+     .filter(booking => booking.status === 'approved' || booking.status === 'completed')
+     .forEach(booking => {
+       const date = new Date(booking.created_at)
+       const dayOfWeek = (date.getDay() + 6) % 7 // Convert Sunday=0 to Monday=0
+       const hour = date.getHours()
 
-      if (dayOfWeek >= 0 && dayOfWeek < 7 && hour >= 0 && hour < 24) {
-        grid[dayOfWeek][hour] += booking.guest_count || 1
-      }
-    })
+       if (dayOfWeek >= 0 && dayOfWeek < 7 && hour >= 0 && hour < 24) {
+         grid[dayOfWeek][hour] += booking.guest_count || 1
+       }
+     })
 
   // Find max value for scaling
   const maxValue = Math.max(...grid.flat())
@@ -312,9 +325,14 @@ export function calculateTourCapacityUtilization(
   // Filter tour bookings using the utility function
   const tourBookings = bookings.filter(isTourBooking)
 
+  // Filter to only include approved and completed bookings, excluding rejected, cancelled, and pending
+  const approvedAndCompletedBookings = tourBookings.filter(
+    booking => booking.status === 'approved' || booking.status === 'completed'
+  )
+
   return tours.map(tour => {
-    // For each tour (room), calculate utilization based on tour bookings
-    const totalParticipants = tourBookings.reduce((sum, booking) => sum + (booking.guest_count || 0), 0)
+    // For each tour (room), calculate utilization based on approved and completed tour bookings only
+    const totalParticipants = approvedAndCompletedBookings.reduce((sum, booking) => sum + (booking.guest_count || 0), 0)
     const utilization = tour.capacity > 0 ? Math.round((totalParticipants / tour.capacity) * 100) : 0
 
     return {
@@ -322,7 +340,7 @@ export function calculateTourCapacityUtilization(
       name: tour.name,
       capacity: tour.capacity,
       utilization,
-      bookings: tourBookings.length
+      bookings: approvedAndCompletedBookings.length
     }
   })
 }
@@ -398,7 +416,10 @@ export function getTourParticipantTrends(
       }
 
       const data = trends.get(periodKey)!
-      data.participants += booking.guest_count || 0
+      // Only count participants for approved and completed bookings
+      if (booking.status === 'approved' || booking.status === 'completed') {
+        data.participants += booking.guest_count || 0
+      }
       data.bookings += 1
     })
 

@@ -196,7 +196,7 @@ export const AnalyticsReportPDF: React.FC<AnalyticsReportPDFProps> = ({
 
   // Calculate metrics
   const totalBookings = bookings.length;
-  const approvedBookings = bookings.filter(b => b.status === 'approved').length;
+  const approvedBookings = bookings.filter(b => b.status === 'approved' || b.status === 'completed').length;
   const approvedRate = totalBookings > 0 ? ((approvedBookings / totalBookings) * 100).toFixed(1) : '0';
 
   const totalGuests = bookings.reduce((sum, b) => sum + (b.guest_count || 1), 0);

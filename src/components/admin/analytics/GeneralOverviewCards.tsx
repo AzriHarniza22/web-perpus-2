@@ -72,16 +72,59 @@ export function GeneralOverviewCards({
 
   // Animate numbers on change
   useEffect(() => {
+    // Debug logging for guest count calculation
+    console.log('=== GUEST COUNT DEBUG ===')
+    console.log('Total bookings:', bookings.length)
+
+    // Analyze bookings by status
+    const statusBreakdown = {
+      pending: bookings.filter((b: Booking) => b.status === 'pending').length,
+      approved: bookings.filter((b: Booking) => b.status === 'approved' || b.status === 'completed').length,
+      rejected: bookings.filter((b: Booking) => b.status === 'rejected').length,
+      completed: bookings.filter((b: Booking) => b.status === 'completed').length,
+      cancelled: bookings.filter((b: Booking) => b.status === 'cancelled').length,
+    }
+    console.log('Status breakdown:', statusBreakdown)
+
+    // Analyze guest counts by status
+    const guestBreakdown = {
+      pending: bookings.filter((b: Booking) => b.status === 'pending').reduce((sum, booking) => sum + (booking.guest_count || 0), 0),
+      approved: bookings.filter((b: Booking) => b.status === 'approved' || b.status === 'completed').reduce((sum, booking) => sum + (booking.guest_count || 0), 0),
+      rejected: bookings.filter((b: Booking) => b.status === 'rejected').reduce((sum, booking) => sum + (booking.guest_count || 0), 0),
+      completed: bookings.filter((b: Booking) => b.status === 'completed').reduce((sum, booking) => sum + (booking.guest_count || 0), 0),
+      cancelled: bookings.filter((b: Booking) => b.status === 'cancelled').reduce((sum, booking) => sum + (booking.guest_count || 0), 0),
+    }
+    console.log('Guest count by status:', guestBreakdown)
+
+    // Show bookings with null guest_count
+    const nullGuestCount = bookings.filter((b: Booking) => b.guest_count === null || b.guest_count === undefined)
+    console.log('Bookings with null/undefined guest_count:', nullGuestCount.length)
+    if (nullGuestCount.length > 0) {
+      console.log('Sample bookings with null guest_count:', nullGuestCount.slice(0, 3).map(b => ({ id: b.id, status: b.status, guest_count: b.guest_count })))
+    }
+
+    // Current calculation (approved and completed bookings only)
+    const currentTotalTours = bookings.filter((b: Booking) => b.status === 'approved' || b.status === 'completed').reduce((sum, booking) => sum + (booking.guest_count || 0), 0)
+    console.log('Current calculation (approved only):', currentTotalTours)
+
+    // Proposed calculation (approved + completed)
+    const proposedTotalTours = bookings.filter((b: Booking) => b.status === 'approved' || b.status === 'completed').reduce((sum, booking) => sum + (booking.guest_count || 0), 0)
+    console.log('Proposed calculation (approved + completed):', proposedTotalTours)
+
+    // All bookings calculation
+    const allBookingsTotal = bookings.reduce((sum, booking) => sum + (booking.guest_count || 0), 0)
+    console.log('All bookings total:', allBookingsTotal)
+
     // Calculate stats inside useEffect to avoid recreating on every render
     const currentStats = {
       totalBookings: bookings.length,
-      approvedBookings: bookings.filter((b: Booking) => b.status === 'approved').length,
-      pendingBookings: bookings.filter((b: Booking) => b.status === 'pending').length,
-      rejectedBookings: bookings.filter((b: Booking) => b.status === 'rejected').length,
+      approvedBookings: statusBreakdown.approved,
+      pendingBookings: statusBreakdown.pending,
+      rejectedBookings: statusBreakdown.rejected,
       totalRooms: rooms.length,
-      totalTours: tours.length,
+      totalTours: currentTotalTours, // Keep current calculation for now
       totalUsers: users.length,
-      approvalRate: bookings.length > 0 ? Math.round((bookings.filter((b: Booking) => b.status === 'approved').length / bookings.length) * 100) : 0
+      approvalRate: bookings.length > 0 ? Math.round((statusBreakdown.approved / bookings.length) * 100) : 0
     }
 
     const currentValues = {
@@ -200,7 +243,7 @@ export function GeneralOverviewCards({
       bgColor: 'bg-purple-100 dark:bg-purple-900/50'
     },
     {
-      label: 'Total Tour',
+      label: 'Total Tamu',
       value: animatedValues.totalTours,
       icon: MapPin,
       color: 'text-indigo-600',
