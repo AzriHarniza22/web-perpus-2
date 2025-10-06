@@ -12,6 +12,17 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // Configure allowed image hostnames for Next.js Image component
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'gccfauxgqyfxoxqwcaia.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

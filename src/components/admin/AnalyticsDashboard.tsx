@@ -60,6 +60,7 @@ interface AnalyticsDashboardProps {
   tours: Tour[]
   users: User[]
   isLoading?: boolean
+  onExportStatusChange?: (status: 'idle' | 'loading' | 'success' | 'error', format?: string) => void
 }
 
 interface DateFilter {
@@ -95,7 +96,8 @@ export function AnalyticsDashboard({
   rooms,
   tours,
   users,
-  isLoading = false
+  isLoading = false,
+  onExportStatusChange
 }: AnalyticsDashboardProps) {
   const [dateFilter, setDateFilter] = useState<DateFilter>({
     range: undefined,
@@ -156,45 +158,84 @@ export function AnalyticsDashboard({
 
   // Export functionality
   const handleExport = async (format: 'csv' | 'pdf' | 'excel') => {
-    if (!bookings.length) return
-
-    // Prepare export data
-    const exportData: ExportData = {
-      bookings,
-      rooms,
-      tours,
-      users,
-      currentTab: activeTab as 'general' | 'room' | 'tour' | 'user',
-      filters: {
-        dateRange: dateFilter.range?.from && dateFilter.range?.to ? {
-          from: dateFilter.range.from,
-          to: dateFilter.range.to
-        } : undefined,
-        selectedRooms,
-        quickSelect: dateFilter.quickSelect || undefined
-      },
-      metadata: {
-        exportDate: new Date(),
-        totalBookings: bookings.length,
-        totalRooms: rooms.length,
-        totalUsers: users.length
-      }
-    }
+    onExportStatusChange?.('loading', format)
 
     try {
+      // Use current filters for export
+      const exportDateRange = dateFilter.range?.from && dateFilter.range?.to ? {
+        from: dateFilter.range.from,
+        to: dateFilter.range.to
+      } : undefined
+
+      let exportBookings = bookings
+      let exportRooms = rooms
+      let exportUsers = users
+
+      // Filter current bookings based on export date range
+      if (exportDateRange?.from && exportDateRange?.to) {
+        exportBookings = bookings.filter(booking => {
+          const bookingDate = new Date(booking.created_at)
+          return isWithinInterval(bookingDate, {
+            start: exportDateRange.from!,
+            end: exportDateRange.to!
+          })
+        })
+      }
+
+      // Prepare export data
+      const exportData: ExportData = {
+        bookings: exportBookings,
+        rooms: exportRooms,
+        tours, // tours are derived from rooms
+        users: exportUsers,
+        currentTab: activeTab as 'general' | 'room' | 'tour' | 'user',
+        filters: {
+          dateRange: exportDateRange?.from && exportDateRange?.to ? {
+            from: exportDateRange.from,
+            to: exportDateRange.to
+          } : undefined,
+          selectedRooms,
+          quickSelect: dateFilter.quickSelect || undefined
+        },
+        metadata: {
+          exportDate: new Date(),
+          totalBookings: exportBookings.length,
+          totalRooms: exportRooms.length,
+          totalUsers: exportUsers.length
+        }
+      }
+
       switch (format) {
         case 'csv':
-          await exportToCSV(exportData)
+          await exportToCSV(exportData, {
+            includeCharts: true,
+            includeRawData: true,
+            dateFormat: 'dd/MM/yyyy',
+            includeMetadata: true
+          })
           break
         case 'pdf':
-          await exportToPDF(exportData)
+          await exportToPDF(exportData, {
+            includeCharts: true,
+            includeRawData: true,
+            dateFormat: 'dd/MM/yyyy',
+            includeMetadata: true
+          })
           break
         case 'excel':
-          await exportToExcel(exportData)
+          await exportToExcel(exportData, {
+            includeCharts: true,
+            includeRawData: true,
+            dateFormat: 'dd/MM/yyyy',
+            includeMetadata: true
+          })
           break
       }
+
+      onExportStatusChange?.('success', format)
     } catch (error) {
       console.error(`Export ${format} failed:`, error)
+      onExportStatusChange?.('error', format)
       throw error // Re-throw to let ExportButton handle the error state
     }
   }
@@ -305,7 +346,7 @@ export function AnalyticsDashboard({
           </CardContent>
         </Card>
 
-        {/* Export Button */}
+        {/* Export Section */}
         <ExportButton
           currentTab={activeTab as 'general' | 'room' | 'tour' | 'user'}
           filters={{

@@ -111,6 +111,8 @@ export function generateMetadataSection(data: ExportData, options: ExportOptions
 
   if (options.includeMetadata !== false) {
     sections.push(['LAPORAN ANALYTICS PERPUSTAKAAN ACEH'])
+    sections.push(['Sistem Reservasi Ruangan'])
+    sections.push([''])
     sections.push(['Tab:', data.currentTab.charAt(0).toUpperCase() + data.currentTab.slice(1)])
     sections.push(['Tanggal Export:', format(metadata.exportDate, 'dd/MM/yyyy HH:mm', { locale: id })])
 

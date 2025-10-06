@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Settings, Calendar, FileText, Eye, EyeOff } from 'lucide-react'
+import { Settings, Calendar, FileText, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -18,8 +18,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { format } from 'date-fns'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { DateRangePicker } from '@/components/ui/date-range-picker'
+import { format, isAfter, isBefore, startOfDay, endOfDay, differenceInDays } from 'date-fns'
 import { id } from 'date-fns/locale'
+import { DateRange } from 'react-day-picker'
 
 export interface ExportConfig {
   includeCharts: boolean
@@ -27,6 +30,7 @@ export interface ExportConfig {
   includeMetadata: boolean
   dateFormat: 'dd/MM/yyyy' | 'yyyy-MM-dd' | 'MM/dd/yyyy'
   fileNameTemplate: string
+  exportDateRange?: DateRange
   selectedDataTypes: {
     bookings: boolean
     rooms: boolean
@@ -61,6 +65,7 @@ const defaultConfig: ExportConfig = {
   includeMetadata: true,
   dateFormat: 'dd/MM/yyyy',
   fileNameTemplate: 'analytics_{tab}_{date}_{time}',
+  exportDateRange: undefined,
   selectedDataTypes: {
     bookings: true,
     rooms: true,
@@ -86,8 +91,53 @@ export function ExportConfigDialog({
 }: ExportConfigDialogProps) {
   const [config, setConfig] = useState<ExportConfig>(defaultConfig)
   const [isOpen, setIsOpen] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
+
+  const validateConfig = (): string[] => {
+    const errors: string[] = []
+
+    // Validate date range
+    if (config.exportDateRange?.from && config.exportDateRange?.to) {
+      const from = startOfDay(config.exportDateRange.from)
+      const to = endOfDay(config.exportDateRange.to)
+      const now = new Date()
+
+      // Check if start date is after end date
+      if (isAfter(from, to)) {
+        errors.push('Tanggal mulai tidak boleh setelah tanggal akhir')
+      }
+
+      // Check if date range is too large (more than 2 years)
+      const daysDifference = differenceInDays(to, from)
+      if (daysDifference > 730) { // 2 years
+        errors.push('Rentang tanggal tidak boleh lebih dari 2 tahun')
+      }
+
+      // Check if start date is too far in the past (more than 5 years ago)
+      const fiveYearsAgo = new Date()
+      fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5)
+      if (isBefore(from, fiveYearsAgo)) {
+        errors.push('Tanggal mulai tidak boleh lebih dari 5 tahun yang lalu')
+      }
+
+      // Check if end date is in the future (allow up to end of current month)
+      const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      if (isAfter(to, endOfCurrentMonth)) {
+        errors.push('Tanggal akhir tidak boleh melebihi akhir bulan ini')
+      }
+    }
+
+    return errors
+  }
 
   const handleSave = () => {
+    const errors = validateConfig()
+    setValidationErrors(errors)
+
+    if (errors.length > 0) {
+      return
+    }
+
     onConfigChange(config)
     setIsOpen(false)
   }
@@ -273,6 +323,39 @@ export function ExportConfigDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <Separator />
+
+          {/* Export Date Range Selection */}
+          <div className="space-y-4">
+            <h4 className="font-medium">Rentang Tanggal Export</h4>
+            <div className="space-y-2">
+              <Label>Rentang Tanggal untuk Data Export</Label>
+              <DateRangePicker
+                date={config.exportDateRange}
+                onDateChange={(dateRange) => updateConfig({ exportDateRange: dateRange })}
+                placeholder="Pilih rentang tanggal untuk export (opsional)"
+                className="w-full"
+              />
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Jika tidak dipilih, akan menggunakan semua data yang tersedia. Maksimal 2 tahun rentang tanggal.
+              </p>
+            </div>
+
+            {/* Validation Errors */}
+            {validationErrors.length > 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  <ul className="list-disc list-inside space-y-1">
+                    {validationErrors.map((error, index) => (
+                      <li key={index}>{error}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
 
           <Separator />

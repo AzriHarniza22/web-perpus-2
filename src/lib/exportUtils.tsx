@@ -1,10 +1,16 @@
 import * as XLSX from 'xlsx'
-import jsPDF from 'jspdf'
-import html2canvas from 'html2canvas'
+import { pdf } from '@react-pdf/renderer'
 import Papa from 'papaparse'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
+import React from 'react'
+import { AnalyticsReportPDF } from '@/components/admin/analytics/pdf/AnalyticsReportPDF'
 import { Booking, Room, Tour, User } from './types'
+import { calculateRoomAnalytics, filterBookingsByRoom } from './roomAnalytics'
+import { calculateTourAnalytics, filterTourBookings } from './tourAnalytics'
+import { aggregateUserAnalytics } from './userAnalytics'
+import { aggregateMonthlyBookings, calculateStats } from './chart-data-utils'
+
 
 export interface ExportData {
   bookings: (Booking & {
@@ -128,84 +134,35 @@ export async function exportToPDF(
   data: ExportData,
   options: ExportOptions = {}
 ): Promise<void> {
-  const { currentTab, filters, metadata } = data
-  const fileName = options.fileName || generateFileName('pdf', currentTab, filters)
+  const { bookings, rooms, tours, users, filters, metadata } = data
+  const fileName = options.fileName || generateFileName('pdf', 'analytics', filters)
 
-  const pdf = new jsPDF('p', 'mm', 'a4')
-  const pageWidth = pdf.internal.pageSize.getWidth()
-  const pageHeight = pdf.internal.pageSize.getHeight()
-  let yPosition = 20
-
-  // Helper function to add new page if needed
-  const checkPageBreak = (requiredHeight: number) => {
-    if (yPosition + requiredHeight > pageHeight - 20) {
-      pdf.addPage()
-      yPosition = 20
-      return true
-    }
-    return false
+  // Prepare data for the PDF component
+  const pdfData = {
+    bookings,
+    rooms,
+    tours,
+    users,
+    dateRange: filters.dateRange ? {
+      start: filters.dateRange.from,
+      end: filters.dateRange.to
+    } : undefined,
+    exportDate: metadata.exportDate,
+    userName: metadata.userName || 'Unknown User'
   }
 
-  // Title and metadata
-  pdf.setFontSize(18)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text('LAPORAN ANALYTICS PERPUSTAKAAN ACEH', pageWidth / 2, yPosition, { align: 'center' })
-  yPosition += 15
+  // Generate PDF using react-pdf
+  const blob = await pdf(<AnalyticsReportPDF {...pdfData} />).toBlob()
 
-  pdf.setFontSize(12)
-  pdf.setFont('helvetica', 'normal')
-  pdf.text(`Tab: ${currentTab.charAt(0).toUpperCase() + currentTab.slice(1)}`, 20, yPosition)
-  yPosition += 7
-  pdf.text(`Tanggal Export: ${format(metadata.exportDate, 'dd/MM/yyyy HH:mm', { locale: id })}`, 20, yPosition)
-  yPosition += 7
-  if (metadata.userName) {
-    pdf.text(`Diexport oleh: ${metadata.userName}`, 20, yPosition)
-    yPosition += 7
-  }
-  if (filters.dateRange) {
-    pdf.text(
-      `Periode: ${format(filters.dateRange.from, 'dd/MM/yyyy', { locale: id })} - ${format(filters.dateRange.to, 'dd/MM/yyyy', { locale: id })}`,
-      20,
-      yPosition
-    )
-    yPosition += 7
-  }
-  yPosition += 10
-
-  // Add summary statistics
-  checkPageBreak(40)
-  pdf.setFontSize(14)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text('RINGKASAN STATISTIK', 20, yPosition)
-  yPosition += 10
-
-  pdf.setFontSize(10)
-  pdf.setFont('helvetica', 'normal')
-  pdf.text(`Total Booking: ${metadata.totalBookings}`, 20, yPosition)
-  yPosition += 6
-  pdf.text(`Total Ruangan: ${metadata.totalRooms}`, 20, yPosition)
-  yPosition += 6
-  pdf.text(`Total Pengguna: ${metadata.totalUsers}`, 20, yPosition)
-  yPosition += 15
-
-  // Add data based on current tab
-  switch (currentTab) {
-    case 'general':
-      await addGeneralTabPDFData(pdf, data, yPosition)
-      break
-    case 'room':
-      await addRoomTabPDFData(pdf, data, yPosition)
-      break
-    case 'tour':
-      await addTourTabPDFData(pdf, data, yPosition)
-      break
-    case 'user':
-      await addUserTabPDFData(pdf, data, yPosition)
-      break
-  }
-
-  // Save PDF
-  pdf.save(fileName)
+  // Create download link
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = fileName
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 }
 
 // Excel Export Function
@@ -218,30 +175,136 @@ export async function exportToExcel(
 
   const workbook = XLSX.utils.book_new()
 
-  // Metadata sheet
-  if (options.includeMetadata !== false) {
-    const metadataSheet = [
-      ['LAPORAN ANALYTICS PERPUSTAKAAN ACEH'],
-      ['Tab', currentTab.charAt(0).toUpperCase() + currentTab.slice(1)],
-      ['Tanggal Export', format(metadata.exportDate, 'dd/MM/yyyy HH:mm', { locale: id })],
-      ...(metadata.userName ? [['Diexport oleh', metadata.userName]] : []),
-      ...(filters.dateRange ? [[
-        'Periode',
-        `${format(filters.dateRange.from, 'dd/MM/yyyy', { locale: id })} - ${format(filters.dateRange.to, 'dd/MM/yyyy', { locale: id })}`
-      ]] : []),
-      [''],
-      ['RINGKASAN STATISTIK'],
-      ['Total Booking', metadata.totalBookings],
-      ['Total Ruangan', metadata.totalRooms],
-      ['Total Pengguna', metadata.totalUsers],
-      ['']
-    ]
+  // Cover sheet
+  const coverSheet = [
+    ['LAPORAN ANALYTICS PERPUSTAKAAN ACEH'],
+    ['Sistem Reservasi Ruangan'],
+    [''],
+    ['Tab', currentTab.charAt(0).toUpperCase() + currentTab.slice(1)],
+    ['Tanggal Export', format(metadata.exportDate, 'dd/MM/yyyy HH:mm', { locale: id })],
+    ...(metadata.userName ? [['Diexport oleh', metadata.userName]] : []),
+    ...(filters.dateRange ? [
+      ['Periode Mulai', format(filters.dateRange.from, 'dd/MM/yyyy', { locale: id })],
+      ['Periode Akhir', format(filters.dateRange.to, 'dd/MM/yyyy', { locale: id })],
+      ['Total Hari', Math.ceil((filters.dateRange.to.getTime() - filters.dateRange.from.getTime()) / (1000 * 60 * 60 * 24))]
+    ] : []),
+    [''],
+    ['RINGKASAN STATISTIK'],
+    ['Total Booking', metadata.totalBookings],
+    ['Total Ruangan', metadata.totalRooms],
+    ['Total Pengguna', metadata.totalUsers]
+  ]
+  const coverWS = XLSX.utils.aoa_to_sheet(coverSheet)
+  XLSX.utils.book_append_sheet(workbook, coverWS, 'Cover')
 
-    const metadataWS = XLSX.utils.aoa_to_sheet(metadataSheet)
-    XLSX.utils.book_append_sheet(workbook, metadataWS, 'Metadata')
-  }
+  // Table of Contents
+  const tocSheet = [
+    ['DAFTAR ISI'],
+    [''],
+    ['1', 'Cover', 'Halaman 1'],
+    ['2', 'Ringkasan Statistik', 'Halaman 2'],
+    ['3', 'Data Ruangan', 'Halaman 3'],
+    ['4', 'Data Tour', 'Halaman 4'],
+    ['5', 'Data Pengguna', 'Halaman 5'],
+    ['6', 'Data Detail', 'Halaman 6']
+  ]
+  const tocWS = XLSX.utils.aoa_to_sheet(tocSheet)
+  XLSX.utils.book_append_sheet(workbook, tocWS, 'Daftar Isi')
 
-  // Add data sheets based on current tab
+  // General Info sheet
+  const generalInfoSheet = [
+    ['INFORMASI UMUM'],
+    [''],
+    ['Ringkasan Statistik'],
+    ['Total Booking', metadata.totalBookings],
+    ['Total Ruangan', metadata.totalRooms],
+    ['Total Pengguna', metadata.totalUsers],
+    [''],
+    ['Distribusi Status Booking']
+  ]
+
+  // Add status distribution
+  const statusCounts = data.bookings.reduce((acc, booking) => {
+    acc[booking.status] = (acc[booking.status] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  Object.entries(statusCounts).forEach(([status, count]) => {
+    generalInfoSheet.push([status.charAt(0).toUpperCase() + status.slice(1), count])
+  })
+
+  const generalInfoWS = XLSX.utils.aoa_to_sheet(generalInfoSheet)
+  XLSX.utils.book_append_sheet(workbook, generalInfoWS, 'Info Umum')
+
+  // Rooms sheet
+  const roomsSheet = [
+    ['DATA RUANGAN'],
+    ['ID', 'Nama Ruangan', 'Kapasitas', 'Fasilitas', 'Status', 'Total Booking']
+  ]
+
+  data.rooms.forEach(room => {
+    const roomBookings = data.bookings.filter(b => b.room_id === room.id).length
+    roomsSheet.push([
+      room.id,
+      room.name,
+      String(room.capacity || 'N/A'),
+      room.facilities?.join(', ') || 'N/A',
+      room.is_active ? 'Aktif' : 'Tidak Aktif',
+      String(roomBookings)
+    ])
+  })
+
+  const roomsWS = XLSX.utils.aoa_to_sheet(roomsSheet)
+  XLSX.utils.book_append_sheet(workbook, roomsWS, 'Ruangan')
+
+  // Tours sheet
+  const toursSheet = [
+    ['DATA TOUR'],
+    ['Nama Tour', 'Total Booking', 'Total Peserta']
+  ]
+
+  const tourStats = data.bookings
+    .filter(b => b.tours)
+    .reduce((acc, booking) => {
+      const tourName = booking.tours?.name || 'Unknown'
+      if (!acc[tourName]) {
+        acc[tourName] = { bookings: 0, participants: 0 }
+      }
+      acc[tourName].bookings++
+      acc[tourName].participants += booking.guest_count || 0
+      return acc
+    }, {} as Record<string, { bookings: number; participants: number }>)
+
+  Object.entries(tourStats).forEach(([tourName, stats]) => {
+    toursSheet.push([tourName, String(stats.bookings), String(stats.participants)])
+  })
+
+  const toursWS = XLSX.utils.aoa_to_sheet(toursSheet)
+  XLSX.utils.book_append_sheet(workbook, toursWS, 'Tour')
+
+  // Users sheet
+  const usersSheet = [
+    ['DATA PENGGUNA'],
+    ['ID', 'Nama Lengkap', 'Email', 'Institusi', 'Role', 'Total Booking', 'Tanggal Dibuat']
+  ]
+
+  data.users.forEach(user => {
+    const userBookings = data.bookings.filter(b => b.user_id === user.id).length
+    usersSheet.push([
+      user.id,
+      user.full_name || 'N/A',
+      user.email,
+      user.institution || 'N/A',
+      user.role,
+      String(userBookings),
+      format(new Date(user.created_at), 'dd/MM/yyyy')
+    ])
+  })
+
+  const usersWS = XLSX.utils.aoa_to_sheet(usersSheet)
+  XLSX.utils.book_append_sheet(workbook, usersWS, 'Pengguna')
+
+  // Add detailed data sheets based on current tab
   switch (currentTab) {
     case 'general':
       addGeneralTabExcelSheets(workbook, data)
@@ -307,7 +370,7 @@ function getGeneralTabCSVData(data: ExportData): (string | number | string[])[][
 
 function getRoomTabCSVData(data: ExportData): (string | number)[][] {
   const { bookings, rooms, filters } = data
-  const filteredBookings = filterBookingsByRoom(bookings, filters.selectedRooms)
+  const filteredBookings = filterBookingsByRoomLocal(bookings, filters.selectedRooms)
 
   return [
     ['=== DATA BOOKING PER RUANGAN ==='],
@@ -372,124 +435,6 @@ function getUserTabCSVData(data: ExportData): (string | number)[][] {
   ]
 }
 
-// Helper functions for PDF data preparation
-async function addGeneralTabPDFData(pdf: jsPDF, data: ExportData, startY: number): Promise<void> {
-  let yPosition = startY
-  const { bookings, rooms, users } = data
-
-  const checkPageBreak = (requiredHeight: number) => {
-    if (yPosition + requiredHeight > pdf.internal.pageSize.getHeight() - 20) {
-      pdf.addPage()
-      yPosition = 20
-      return true
-    }
-    return false
-  }
-
-  // Recent bookings table
-  checkPageBreak(50)
-  pdf.setFontSize(12)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text('BOOKING TERKINI', 20, yPosition)
-  yPosition += 10
-
-  pdf.setFontSize(8)
-  pdf.setFont('helvetica', 'normal')
-
-  // Table headers
-  const headers = ['Pengguna', 'Ruangan', 'Tanggal', 'Status']
-  const colWidth = (pdf.internal.pageSize.getWidth() - 40) / headers.length
-
-  headers.forEach((header, i) => {
-    pdf.text(header, 20 + (i * colWidth), yPosition)
-  })
-  yPosition += 6
-
-  // Table rows (last 10 bookings)
-  const recentBookings = bookings.slice(-10)
-  recentBookings.forEach(booking => {
-    checkPageBreak(6)
-    const row = [
-      booking.profiles?.full_name || 'Unknown',
-      booking.rooms?.name || 'Unknown',
-      format(new Date(booking.start_time), 'dd/MM'),
-      booking.status
-    ]
-
-    row.forEach((cell, i) => {
-      pdf.text(String(cell), 20 + (i * colWidth), yPosition)
-    })
-    yPosition += 5
-  })
-}
-
-async function addRoomTabPDFData(pdf: jsPDF, data: ExportData, startY: number): Promise<void> {
-  let yPosition = startY
-  const { bookings, rooms, filters } = data
-  const filteredBookings = filterBookingsByRoom(bookings, filters.selectedRooms)
-
-  // Room utilization summary
-  pdf.setFontSize(12)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text('UTILISASI RUANGAN', 20, yPosition)
-  yPosition += 10
-
-  pdf.setFontSize(8)
-  pdf.setFont('helvetica', 'normal')
-
-  rooms.forEach(room => {
-    const roomBookings = filteredBookings.filter(b => b.room_id === room.id)
-    if (roomBookings.length > 0) {
-      pdf.text(`${room.name}: ${roomBookings.length} booking`, 20, yPosition)
-      yPosition += 5
-    }
-  })
-}
-
-async function addTourTabPDFData(pdf: jsPDF, data: ExportData, startY: number): Promise<void> {
-  let yPosition = startY
-  const { bookings, tours } = data
-
-  pdf.setFontSize(12)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text('STATISTIK TOUR', 20, yPosition)
-  yPosition += 10
-
-  pdf.setFontSize(8)
-  pdf.setFont('helvetica', 'normal')
-
-  const tourBookings = bookings.filter(b => b.tours)
-  pdf.text(`Total Booking Tour: ${tourBookings.length}`, 20, yPosition)
-  yPosition += 5
-
-  if (tours.length > 0) {
-    pdf.text(`Tour Tersedia: ${tours.length}`, 20, yPosition)
-    yPosition += 5
-  }
-}
-
-async function addUserTabPDFData(pdf: jsPDF, data: ExportData, startY: number): Promise<void> {
-  let yPosition = startY
-  const { users } = data
-
-  pdf.setFontSize(12)
-  pdf.setFont('helvetica', 'bold')
-  pdf.text('STATISTIK PENGGUNA', 20, yPosition)
-  yPosition += 10
-
-  pdf.setFontSize(8)
-  pdf.setFont('helvetica', 'normal')
-
-  const adminCount = users.filter(u => u.role === 'admin').length
-  const userCount = users.filter(u => u.role === 'user').length
-
-  pdf.text(`Total Pengguna: ${users.length}`, 20, yPosition)
-  yPosition += 5
-  pdf.text(`Admin: ${adminCount}`, 20, yPosition)
-  yPosition += 5
-  pdf.text(`User: ${userCount}`, 20, yPosition)
-  yPosition += 5
-}
 
 // Helper functions for Excel sheets
 function addGeneralTabExcelSheets(workbook: XLSX.WorkBook, data: ExportData): void {
@@ -547,7 +492,7 @@ function addGeneralTabExcelSheets(workbook: XLSX.WorkBook, data: ExportData): vo
 
 function addRoomTabExcelSheets(workbook: XLSX.WorkBook, data: ExportData): void {
   const { bookings, filters } = data
-  const filteredBookings = filterBookingsByRoom(bookings, filters.selectedRooms)
+  const filteredBookings = filterBookingsByRoomLocal(bookings, filters.selectedRooms)
 
   const sheet = XLSX.utils.aoa_to_sheet([
     ['DATA BOOKING PER RUANGAN'],
@@ -616,7 +561,7 @@ function addUserTabExcelSheets(workbook: XLSX.WorkBook, data: ExportData): void 
 }
 
 // Utility functions
-function filterBookingsByRoom(bookings: (Booking & { profiles?: User; rooms?: Room; tours?: Tour })[], selectedRooms?: string[]): (Booking & { profiles?: User; rooms?: Room; tours?: Tour })[] {
+function filterBookingsByRoomLocal(bookings: (Booking & { profiles?: User; rooms?: Room; tours?: Tour })[], selectedRooms?: string[]): (Booking & { profiles?: User; rooms?: Room; tours?: Tour })[] {
   if (!selectedRooms || selectedRooms.length === 0) return bookings
   return bookings.filter(booking => selectedRooms.includes(booking.room_id))
 }
