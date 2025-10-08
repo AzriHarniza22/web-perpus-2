@@ -334,10 +334,6 @@ export function TourOverviewCards({
               Statistik dan analisis aktivitas tour
             </p>
           </div>
-          <Badge variant="outline" className="flex items-center gap-1">
-            <Calendar className="w-3 h-3" />
-            {tours?.length || 0} Tours Available
-          </Badge>
         </div>
       </CardHeader>
       <CardContent>

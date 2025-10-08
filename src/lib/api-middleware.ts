@@ -325,7 +325,7 @@ export async function checkBookingConflicts(
     .from('bookings')
     .select('id, status, start_time, end_time')
     .eq('room_id', roomId)
-    .eq('status', 'approved')
+    .in('status', ['approved'])
     .lt('start_time', endTime)
     .gt('end_time', startTime)
 

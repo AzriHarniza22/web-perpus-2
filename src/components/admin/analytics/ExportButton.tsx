@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Download, FileSpreadsheet, FileImage, FileText, Loader2, Check, AlertCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Download, FileSpreadsheet, FileImage, FileText, Loader2, Check, AlertCircle, Zap, History, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -22,7 +22,8 @@ export interface ExportButtonProps {
     selectedRooms?: string[]
     quickSelect?: string
   }
-  onExport: (format: 'csv' | 'pdf' | 'excel') => Promise<void>
+  chartData?: { [chartKey: string]: { title: string; data: any; type: string; viewMode?: string } }
+  onExport: (format: 'csv' | 'pdf' | 'excel', selectedCharts?: string[]) => Promise<void>
   disabled?: boolean
   className?: string
 }
@@ -33,9 +34,19 @@ interface ExportState {
   excel: 'idle' | 'loading' | 'success' | 'error'
 }
 
+interface ExportHistory {
+  id: string
+  format: 'csv' | 'pdf' | 'excel'
+  timestamp: Date
+  fileName: string
+  status: 'success' | 'error'
+  fileSize?: string
+}
+
 export function ExportButton({
   currentTab,
   filters,
+  chartData = {},
   onExport,
   disabled = false,
   className
@@ -46,28 +57,88 @@ export function ExportButton({
     excel: 'idle'
   })
 
-  const handleExport = async (format: 'csv' | 'pdf' | 'excel') => {
+  const [exportHistory, setExportHistory] = useState<ExportHistory[]>([])
+  const [showHistory, setShowHistory] = useState(false)
+
+  const handleExport = async (exportFormat: 'csv' | 'pdf' | 'excel', selectedCharts?: string[]) => {
     // Set loading state
-    setExportState(prev => ({ ...prev, [format]: 'loading' }))
+    setExportState(prev => ({ ...prev, [exportFormat]: 'loading' }))
+
+    // Generate filename for history
+    const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss')
+    const tabName = currentTab.charAt(0).toUpperCase() + currentTab.slice(1)
+    const fileName = `analytics_${tabName}_${timestamp}.${exportFormat === 'excel' ? 'xlsx' : exportFormat}`
 
     try {
-      await onExport(format)
+      await onExport(exportFormat, selectedCharts)
+
       // Set success state
-      setExportState(prev => ({ ...prev, [format]: 'success' }))
+      setExportState(prev => ({ ...prev, [exportFormat]: 'success' }))
+
+      // Add to export history
+      const historyItem: ExportHistory = {
+        id: `${exportFormat}_${Date.now()}`,
+        format: exportFormat,
+        timestamp: new Date(),
+        fileName,
+        status: 'success',
+        fileSize: '~2.5 MB' // This would be calculated from actual file size
+      }
+      setExportHistory(prev => [historyItem, ...prev.slice(0, 9)]) // Keep last 10 items
 
       // Reset to idle after 2 seconds
       setTimeout(() => {
-        setExportState(prev => ({ ...prev, [format]: 'idle' }))
+        setExportState(prev => ({ ...prev, [exportFormat]: 'idle' }))
       }, 2000)
     } catch (error) {
-      console.error(`Export ${format} failed:`, error)
-      // Set error state
-      setExportState(prev => ({ ...prev, [format]: 'error' }))
+      console.error(`Export ${exportFormat} failed:`, error)
 
-      // Reset to idle after 3 seconds
+      // Enhanced error handling with specific error types
+      let errorMessage = 'Export gagal'
+      let userFriendlyMessage = 'Terjadi kesalahan saat mengekspor data'
+
+      if (error instanceof Error) {
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'Network Error'
+          userFriendlyMessage = 'Koneksi internet bermasalah. Periksa koneksi Anda dan coba lagi.'
+        } else if (error.message.includes('permission') || error.message.includes('denied')) {
+          errorMessage = 'Permission Error'
+          userFriendlyMessage = 'Tidak memiliki izin untuk mengekspor file. Hubungi administrator.'
+        } else if (error.message.includes('quota') || error.message.includes('storage')) {
+          errorMessage = 'Storage Error'
+          userFriendlyMessage = 'Penyimpanan tidak mencukupi. Kosongkan ruang penyimpanan dan coba lagi.'
+        } else if (error.message.includes('timeout')) {
+          errorMessage = 'Timeout Error'
+          userFriendlyMessage = 'Proses ekspor terlalu lama. Coba dengan filter yang lebih spesifik.'
+        } else if (error.message.includes('data') || error.message.includes('empty')) {
+          errorMessage = 'Data Error'
+          userFriendlyMessage = 'Tidak ada data yang sesuai dengan filter yang dipilih.'
+        } else {
+          errorMessage = 'Export Error'
+          userFriendlyMessage = `Terjadi kesalahan: ${error.message}`
+        }
+      }
+
+      // Set error state
+      setExportState(prev => ({ ...prev, [exportFormat]: 'error' }))
+
+      // Add detailed error to history
+      const historyItem: ExportHistory = {
+        id: `${exportFormat}_error_${Date.now()}`,
+        format: exportFormat,
+        timestamp: new Date(),
+        fileName,
+        status: 'error'
+      }
+      setExportHistory(prev => [historyItem, ...prev.slice(0, 9)])
+
+      // Show user-friendly error message (you could integrate with a toast system here)
+      console.warn(`Export failed: ${userFriendlyMessage}`)
+
+      // Reset to idle after 4 seconds for errors (longer than success)
       setTimeout(() => {
-        setExportState(prev => ({ ...prev, [format]: 'idle' }))
-      }, 3000)
+        setExportState(prev => ({ ...prev, [exportFormat]: 'idle' }))
+      }, 4000)
     }
   }
 
@@ -109,10 +180,24 @@ export function ExportButton({
       case 'success':
         return `${format.toUpperCase()} Berhasil`
       case 'error':
-        return `${format.toUpperCase()} Gagal`
+        return `${format.toUpperCase()} Error`
       default:
         return format.toUpperCase()
     }
+  }
+
+  const getErrorTooltip = (format: keyof ExportState) => {
+    if (exportState[format] !== 'error') return undefined
+
+    // Find the latest error for this format in history
+    const latestError = exportHistory
+      .filter(h => h.format === format && h.status === 'error')
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())[0]
+
+    if (!latestError) return 'Export gagal'
+
+    const minutesAgo = Math.floor((Date.now() - latestError.timestamp.getTime()) / (1000 * 60))
+    return `Export gagal ${minutesAgo} menit yang lalu. Klik untuk coba lagi.`
   }
 
   const hasActiveFilters = filters.dateRange || (filters.selectedRooms && filters.selectedRooms.length > 0) || filters.quickSelect
@@ -139,20 +224,37 @@ export function ExportButton({
         </div>
       )}
 
-      {/* Export Dropdown */}
+
+      {/* Enhanced Export Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="outline"
+            variant="default"
             size="sm"
             disabled={disabled}
-            className="flex items-center gap-2"
+            className={cn(
+              "flex items-center gap-2 shadow-sm transition-all duration-200",
+              "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800",
+              "text-white border-0 font-medium",
+              hasActiveFilters && "ring-2 ring-blue-300 dark:ring-blue-600"
+            )}
           >
             <Download className="w-4 h-4" />
-            Export
+            <span className="hidden sm:inline">Export Data</span>
+            <span className="sm:hidden">Export</span>
+            {hasActiveFilters && (
+              <Badge variant="secondary" className="ml-1 bg-white/20 text-white text-xs">
+                Filtered
+              </Badge>
+            )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent align="end" className="w-64">
+          {/* Quick Export Options */}
+          <div className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
+            Quick Export
+          </div>
+
           <DropdownMenuItem className="p-0">
             <Button
               variant={getButtonVariant('csv')}
@@ -179,8 +281,6 @@ export function ExportButton({
             </Button>
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
-
           <DropdownMenuItem className="p-0">
             <Button
               variant={getButtonVariant('excel')}
@@ -193,6 +293,48 @@ export function ExportButton({
               <span className="ml-2">{getButtonText('excel')}</span>
             </Button>
           </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          {/* Advanced Options */}
+          <div className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
+            Advanced
+          </div>
+
+
+          {/* Export History */}
+          {exportHistory.length > 0 && (
+            <DropdownMenuItem className="p-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start"
+                onClick={() => setShowHistory(!showHistory)}
+              >
+                <History className="w-4 h-4 mr-2" />
+                <span>Export History ({exportHistory.length})</span>
+              </Button>
+            </DropdownMenuItem>
+          )}
+
+          <DropdownMenuSeparator />
+
+          {/* Export Summary */}
+          <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex justify-between">
+              <span>Total Exports:</span>
+              <span>{exportHistory.length}</span>
+            </div>
+            <div className="flex justify-between mt-1">
+              <span>Success Rate:</span>
+              <span>
+                {exportHistory.length > 0
+                  ? Math.round((exportHistory.filter(h => h.status === 'success').length / exportHistory.length) * 100)
+                  : 0
+                }%
+              </span>
+            </div>
+          </div>
         </DropdownMenuContent>
       </DropdownMenu>
 

@@ -2,11 +2,12 @@
 
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, getDay, startOfWeek } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Clock, Building } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Calendar, Activity, Flame } from 'lucide-react'
 import { Booking, Room } from '@/lib/types'
 
 interface RoomTimeHeatmapProps {
@@ -15,11 +16,13 @@ interface RoomTimeHeatmapProps {
   isLoading?: boolean
 }
 
+type TimeRange = '30' | '60' | '90'
+
 interface HeatmapData {
+  day: number
   hour: number
-  day: string
   count: number
-  intensity: number
+  date: string
 }
 
 export function RoomTimeHeatmap({
@@ -27,7 +30,7 @@ export function RoomTimeHeatmap({
   rooms,
   isLoading = false
 }: RoomTimeHeatmapProps) {
-  // No longer need local room filter state
+  const [timeRange, setTimeRange] = useState<TimeRange>('30')
 
   // Filter room bookings (non-tour bookings)
   const filteredBookings = useMemo(() => {
@@ -36,59 +39,33 @@ export function RoomTimeHeatmap({
 
   // Process heatmap data
   const heatmapData = useMemo(() => {
-    const timeData = new Map()
+    return processHeatmapData(filteredBookings, parseInt(timeRange))
+  }, [filteredBookings, timeRange])
 
-    filteredBookings.forEach(booking => {
-      if (booking.start_time) {
-        const date = parseISO(booking.start_time)
-        const hour = date.getHours()
-        const dayOfWeek = format(date, 'EEEE', { locale: id })
-
-        const key = `${hour}-${dayOfWeek}`
-
-        if (!timeData.has(key)) {
-          timeData.set(key, {
-            hour,
-            day: dayOfWeek,
-            count: 0
-          })
-        }
-
-        timeData.get(key).count += 1
-      }
-    })
-
-    const data = Array.from(timeData.values())
-
-    // Calculate intensity (0-100)
-    const maxCount = Math.max(...data.map(d => d.count), 1)
-    return data.map(d => ({
-      ...d,
-      intensity: Math.round((d.count / maxCount) * 100)
-    }))
-  }, [filteredBookings])
-
-  const totalBookings = useMemo(() => {
-    return filteredBookings.length
-  }, [filteredBookings])
-
-  const peakHour = useMemo(() => {
-    if (heatmapData.length === 0) return 'N/A'
-
-    const maxData = heatmapData.reduce((max, current) =>
-      current.count > max.count ? current : max
-    )
-
-    return `${maxData.hour}:00`
+  const maxCount = useMemo(() => {
+    return Math.max(...heatmapData.map(d => d.count), 1)
   }, [heatmapData])
 
-  const selectedRoomName = 'Semua Ruangan'
+  const totalBookings = useMemo(() => {
+    return heatmapData.reduce((sum, d) => sum + d.count, 0)
+  }, [heatmapData])
 
-  // Days of week in Indonesian
-  const daysOfWeek = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
+  const getIntensityColor = (count: number) => {
+    if (count === 0) return 'bg-gray-100 dark:bg-gray-800'
 
-  // Hours of day
-  const hoursOfDay = Array.from({ length: 24 }, (_, i) => i)
+    const intensity = count / maxCount
+    if (intensity <= 0.25) return 'bg-green-200 dark:bg-green-900/30'
+    if (intensity <= 0.5) return 'bg-green-300 dark:bg-green-800/50'
+    if (intensity <= 0.75) return 'bg-yellow-300 dark:bg-yellow-800/50'
+    return 'bg-red-400 dark:bg-red-700/70'
+  }
+
+  const getIntensityTextColor = (count: number) => {
+    if (count === 0) return 'text-gray-400'
+    const intensity = count / maxCount
+    if (intensity <= 0.5) return 'text-gray-700 dark:text-gray-300'
+    return 'text-white'
+  }
 
   if (isLoading) {
     return (
@@ -98,14 +75,14 @@ export function RoomTimeHeatmap({
             <Calendar className="w-5 h-5" />
             Room Time Heatmap
           </CardTitle>
-          <CardDescription>Pola waktu penggunaan ruangan</CardDescription>
+          <CardDescription>Heatmap pola waktu penggunaan ruangan</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="h-10 w-[200px] bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            <div className="grid grid-cols-8 gap-1">
-              {[...Array(56)].map((_, index) => (
-                <div key={index} className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="grid grid-cols-25 gap-1">
+              {[...Array(168)].map((_, i) => (
+                <div key={i} className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
               ))}
             </div>
           </div>
@@ -121,30 +98,39 @@ export function RoomTimeHeatmap({
           <div>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="w-5 h-5" />
-              Room Time Patterns
+              Room Time Heatmap
             </CardTitle>
             <CardDescription>
-              Heatmap pola waktu penggunaan ruangan
+              Heatmap pola waktu penggunaan ruangan seperti GitHub
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="flex items-center gap-1">
-              <Building className="w-3 h-3" />
-              {selectedRoomName}
-            </Badge>
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              Peak: {peakHour}
-            </Badge>
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
+              <Activity className="w-3 h-3" />
               Total: {totalBookings}
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Flame className="w-3 h-3" />
+              Max: {maxCount}
             </Badge>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          {/* Controls */}
+          <div className="flex items-center gap-2">
+            <Select value={timeRange} onValueChange={(value: TimeRange) => setTimeRange(value)}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Periode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="30">30 Hari</SelectItem>
+                <SelectItem value="60">60 Hari</SelectItem>
+                <SelectItem value="90">90 Hari</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Heatmap */}
           <motion.div
@@ -155,11 +141,11 @@ export function RoomTimeHeatmap({
             <div className="space-y-2">
               {/* Hour labels */}
               <div className="flex">
-                <div className="w-16"></div> {/* Empty corner */}
-                <div className="flex-1 grid grid-cols-7 gap-1 text-xs text-center">
-                  {daysOfWeek.map(day => (
-                    <div key={day} className="py-1 font-medium text-gray-600 dark:text-gray-400">
-                      {day}
+                <div className="w-8"></div> {/* Empty corner */}
+                <div className="flex-1 grid grid-cols-24 gap-1 text-xs text-gray-500">
+                  {Array.from({ length: 24 }, (_, i) => (
+                    <div key={i} className="text-center">
+                      {i % 4 === 0 ? i : ''}
                     </div>
                   ))}
                 </div>
@@ -167,34 +153,33 @@ export function RoomTimeHeatmap({
 
               {/* Heatmap grid */}
               <div className="flex">
-                {/* Hour labels column */}
-                <div className="w-16 space-y-1">
-                  {hoursOfDay.map(hour => (
-                    <div key={hour} className="h-8 flex items-center justify-end pr-2 text-xs text-gray-600 dark:text-gray-400">
-                      {hour}:00
-                    </div>
+                <div className="w-8 flex flex-col justify-between text-xs text-gray-500 pr-2">
+                  {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((day, i) => (
+                    <div key={i} className="h-8 flex items-center">{day}</div>
                   ))}
                 </div>
-
-                {/* Heatmap cells */}
-                <div className="flex-1 grid grid-cols-7 gap-1">
-                  {hoursOfDay.map(hour =>
-                    daysOfWeek.map(day => {
-                      const dayKey = day
-                      const data = heatmapData.find(d => d.hour === hour && d.day === dayKey)
+                <div className="flex-1 grid grid-cols-24 gap-1">
+                  {Array.from({ length: 7 }, (_, dayIndex) =>
+                    Array.from({ length: 24 }, (_, hourIndex) => {
+                      const data = heatmapData.find(d => d.day === dayIndex && d.hour === hourIndex)
+                      const count = data?.count || 0
 
                       return (
-                        <div
-                          key={`${hour}-${day}`}
+                        <motion.div
+                          key={`${dayIndex}-${hourIndex}`}
                           className={`
-                            h-8 rounded cursor-pointer transition-all duration-200 hover:scale-110
-                            ${data?.intensity > 0
-                              ? getIntensityColor(data.intensity)
-                              : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
-                            }
+                            h-8 rounded-sm cursor-pointer transition-all duration-200
+                            ${getIntensityColor(count)}
+                            hover:ring-2 hover:ring-blue-400 hover:ring-opacity-50
                           `}
-                          title={`${day} ${hour}:00 - ${data?.count || 0} bookings`}
-                        />
+                          title={`${count} bookings pada hari ${['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][dayIndex]}, jam ${hourIndex}:00`}
+                          whileHover={{ scale: 1.2 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <div className={`w-full h-full flex items-center justify-center text-xs font-medium ${getIntensityTextColor(count)}`}>
+                            {count > 0 ? count : ''}
+                          </div>
+                        </motion.div>
                       )
                     })
                   )}
@@ -202,17 +187,17 @@ export function RoomTimeHeatmap({
               </div>
 
               {/* Legend */}
-              <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-                <span>Lebih Sedikit</span>
+              <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t">
+                <span>Lebih sedikit</span>
                 <div className="flex gap-1">
-                  {[0, 25, 50, 75, 100].map(intensity => (
+                  {[0, 1, 2, 3, 4].map(level => (
                     <div
-                      key={intensity}
-                      className={`w-4 h-4 rounded ${getIntensityColor(intensity)}`}
+                      key={level}
+                      className={`w-3 h-3 rounded-sm ${getIntensityColor((level / 4) * maxCount)}`}
                     />
                   ))}
                 </div>
-                <span>Lebih Banyak</span>
+                <span>Lebih banyak</span>
               </div>
             </div>
           </motion.div>
@@ -222,16 +207,40 @@ export function RoomTimeHeatmap({
   )
 }
 
-function getIntensityColor(intensity: number): string {
-  if (intensity === 0) {
-    return 'bg-gray-100 dark:bg-gray-800'
-  } else if (intensity <= 25) {
-    return 'bg-blue-200 dark:bg-blue-900/30'
-  } else if (intensity <= 50) {
-    return 'bg-blue-300 dark:bg-blue-800/50'
-  } else if (intensity <= 75) {
-    return 'bg-blue-400 dark:bg-blue-700/70'
-  } else {
-    return 'bg-blue-500 dark:bg-blue-600'
-  }
+function processHeatmapData(bookings: Booking[], daysBack: number): HeatmapData[] {
+  const endDate = new Date()
+  const startDate = new Date()
+  startDate.setDate(endDate.getDate() - daysBack)
+
+  // Filter bookings by date range
+  const filteredBookings = bookings.filter(booking => {
+    const bookingDate = parseISO(booking.created_at)
+    return bookingDate >= startDate && bookingDate <= endDate
+  })
+
+  // Initialize heatmap data structure
+  const heatmapData: HeatmapData[] = []
+
+  // Process bookings into day/hour grid
+  filteredBookings.forEach(booking => {
+    const bookingDate = parseISO(booking.created_at)
+    const dayOfWeek = getDay(bookingDate) // 0 = Sunday, 1 = Monday, etc.
+    const hour = bookingDate.getHours()
+
+    // Find existing data point or create new one
+    const dataPoint = heatmapData.find(d => d.day === dayOfWeek && d.hour === hour)
+
+    if (dataPoint) {
+      dataPoint.count += 1
+    } else {
+      heatmapData.push({
+        day: dayOfWeek,
+        hour: hour,
+        count: 1,
+        date: format(bookingDate, 'yyyy-MM-dd')
+      })
+    }
+  })
+
+  return heatmapData
 }

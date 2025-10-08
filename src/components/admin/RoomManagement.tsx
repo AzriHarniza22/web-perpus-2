@@ -111,6 +111,25 @@ export default function RoomManagement() {
     return <div>Loading...</div>
   }
 
+  // Debug logging to investigate room count issue
+  console.log('=== ROOM MANAGEMENT DEBUG INFO ===')
+  console.log('Total rooms received by RoomManagement:', rooms?.length || 0)
+  console.log('All rooms data:', rooms?.map((room: Room) => ({
+    id: room.id,
+    name: room.name,
+    is_active: room.is_active,
+    capacity: room.capacity
+  })))
+
+  // Check for inactive rooms
+  const activeRooms = rooms?.filter((room: Room) => room.is_active) || []
+  const inactiveRooms = rooms?.filter((room: Room) => !room.is_active) || []
+
+  console.log('Active rooms count:', activeRooms.length)
+  console.log('Inactive rooms count:', inactiveRooms.length)
+  console.log('Inactive rooms:', inactiveRooms.map((room: Room) => ({ id: room.id, name: room.name })))
+  console.log('================================')
+
   return (
     <div className="space-y-6">
       {/* Add Room Button */}

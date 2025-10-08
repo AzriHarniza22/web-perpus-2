@@ -29,13 +29,31 @@ export async function GET(request: NextRequest) {
     const { data: rooms, error } = await supabase
       .from('rooms')
       .select('*')
-      .neq('name', 'Library Tour')
       .order('name')
 
     if (error) {
       console.error('Rooms fetch error:', error)
       return NextResponse.json({ error: 'Failed to fetch rooms' }, { status: 500 })
     }
+
+    // Debug logging to investigate room count issue
+    console.log('=== ROOMS DEBUG INFO ===')
+    console.log('Total rooms in database:', rooms?.length || 0)
+    console.log('All rooms data:', rooms?.map(room => ({
+      id: room.id,
+      name: room.name,
+      is_active: room.is_active,
+      capacity: room.capacity
+    })))
+
+    // Check for inactive rooms
+    const activeRooms = rooms?.filter(room => room.is_active) || []
+    const inactiveRooms = rooms?.filter(room => !room.is_active) || []
+
+    console.log('Active rooms count:', activeRooms.length)
+    console.log('Inactive rooms count:', inactiveRooms.length)
+    console.log('Inactive rooms:', inactiveRooms.map(room => ({ id: room.id, name: room.name })))
+    console.log('=======================')
 
     return NextResponse.json({ rooms: rooms || [] })
   } catch (error) {

@@ -2,10 +2,12 @@
 
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { format, parseISO, getDay, startOfWeek } from 'date-fns'
+import { id } from 'date-fns/locale'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Calendar, Clock, MapPin } from 'lucide-react'
+import { Calendar, Activity, Flame } from 'lucide-react'
 import { isTourBooking } from '@/lib/tourAnalytics'
 import { Booking, Tour } from '@/lib/types'
 
@@ -15,7 +17,14 @@ interface TourTimeHeatmapProps {
   isLoading?: boolean
 }
 
-type TimeRange = 'week' | 'month' | '3months'
+type TimeRange = '30' | '60' | '90'
+
+interface HeatmapData {
+  day: number
+  hour: number
+  count: number
+  date: string
+}
 
 export function TourTimeHeatmap({
   bookings,
@@ -27,70 +36,36 @@ export function TourTimeHeatmap({
     return bookings.filter(isTourBooking)
   }, [bookings])
 
-  const [timeRange, setTimeRange] = useState<TimeRange>('month')
+  const [timeRange, setTimeRange] = useState<TimeRange>('30')
 
   // Process heatmap data
   const heatmapData = useMemo(() => {
-    const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
-    const hours = Array.from({ length: 24 }, (_, i) => i)
-
-    // Initialize heatmap grid
-    const grid = days.map(() => Array(24).fill(0))
-
-    // Filter bookings based on time range
-    const now = new Date()
-    let startDate: Date
-
-    switch (timeRange) {
-      case 'week':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-        break
-      case 'month':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-        break
-      case '3months':
-        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
-        break
-    }
-
-    // Process bookings within time range
-    tourBookings
-      .filter(booking => new Date(booking.created_at) >= startDate)
-      .forEach(booking => {
-        const date = new Date(booking.created_at)
-        const dayOfWeek = (date.getDay() + 6) % 7 // Convert Sunday=0 to Monday=0
-        const hour = date.getHours()
-
-        if (dayOfWeek >= 0 && dayOfWeek < 7 && hour >= 0 && hour < 24) {
-           grid[dayOfWeek][hour] += booking.guest_count || 1
-         }
-      })
-
-    // Find max value for color scaling
-    const maxValue = Math.max(...grid.flat())
-
-    return {
-      days,
-      hours,
-      grid,
-      maxValue
-    }
+    return processTourHeatmapData(tourBookings, parseInt(timeRange))
   }, [tourBookings, timeRange])
 
-  const getIntensityColor = (value: number, maxValue: number) => {
-    if (value === 0) return 'bg-gray-100 dark:bg-gray-800'
+  const maxCount = useMemo(() => {
+    return Math.max(...heatmapData.map(d => d.count), 1)
+  }, [heatmapData])
 
-    const intensity = value / maxValue
-    if (intensity <= 0.25) return 'bg-blue-200 dark:bg-blue-900'
-    if (intensity <= 0.5) return 'bg-blue-300 dark:bg-blue-800'
-    if (intensity <= 0.75) return 'bg-blue-400 dark:bg-blue-700'
-    return 'bg-blue-600 dark:bg-blue-600'
+  const totalBookings = useMemo(() => {
+    return heatmapData.reduce((sum, d) => sum + d.count, 0)
+  }, [heatmapData])
+
+  const getIntensityColor = (count: number) => {
+    if (count === 0) return 'bg-gray-100 dark:bg-gray-800'
+
+    const intensity = count / maxCount
+    if (intensity <= 0.25) return 'bg-green-200 dark:bg-green-900/30'
+    if (intensity <= 0.5) return 'bg-green-300 dark:bg-green-800/50'
+    if (intensity <= 0.75) return 'bg-yellow-300 dark:bg-yellow-800/50'
+    return 'bg-red-400 dark:bg-red-700/70'
   }
 
-  const getTextColor = (value: number, maxValue: number) => {
-    if (value === 0) return 'text-gray-400'
-    const intensity = value / maxValue
-    return intensity > 0.5 ? 'text-white' : 'text-gray-900 dark:text-gray-100'
+  const getIntensityTextColor = (count: number) => {
+    if (count === 0) return 'text-gray-400'
+    const intensity = count / maxCount
+    if (intensity <= 0.5) return 'text-gray-700 dark:text-gray-300'
+    return 'text-white'
   }
 
   if (isLoading) {
@@ -101,13 +76,13 @@ export function TourTimeHeatmap({
             <Calendar className="w-5 h-5" />
             Tour Time Heatmap
           </CardTitle>
-          <CardDescription>Pola reservasi tour berdasarkan waktu</CardDescription>
+          <CardDescription>Heatmap pola waktu tour</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            <div className="grid grid-cols-8 gap-1">
-              {[...Array(56)].map((_, i) => (
+            <div className="grid grid-cols-25 gap-1">
+              {[...Array(168)].map((_, i) => (
                 <div key={i} className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
               ))}
             </div>
@@ -115,6 +90,44 @@ export function TourTimeHeatmap({
         </CardContent>
       </Card>
     )
+  }
+  
+  function processTourHeatmapData(bookings: Booking[], daysBack: number): HeatmapData[] {
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setDate(endDate.getDate() - daysBack)
+  
+    // Filter bookings by date range
+    const filteredBookings = bookings.filter(booking => {
+      const bookingDate = parseISO(booking.created_at)
+      return bookingDate >= startDate && bookingDate <= endDate
+    })
+  
+    // Initialize heatmap data structure
+    const heatmapData: HeatmapData[] = []
+  
+    // Process bookings into day/hour grid
+    filteredBookings.forEach(booking => {
+      const bookingDate = parseISO(booking.created_at)
+      const dayOfWeek = getDay(bookingDate) // 0 = Sunday, 1 = Monday, etc.
+      const hour = bookingDate.getHours()
+  
+      // Find existing data point or create new one
+      const dataPoint = heatmapData.find(d => d.day === dayOfWeek && d.hour === hour)
+  
+      if (dataPoint) {
+        dataPoint.count += booking.guest_count || 1
+      } else {
+        heatmapData.push({
+          day: dayOfWeek,
+          hour: hour,
+          count: booking.guest_count || 1,
+          date: format(bookingDate, 'yyyy-MM-dd')
+        })
+      }
+    })
+  
+    return heatmapData
   }
 
   return (
@@ -127,113 +140,106 @@ export function TourTimeHeatmap({
               Tour Time Heatmap
             </CardTitle>
             <CardDescription>
-              Pola reservasi tour berdasarkan hari dan jam
+              Heatmap pola waktu tour seperti GitHub
             </CardDescription>
           </div>
-
           <div className="flex items-center gap-2">
-            <Select value={timeRange} onValueChange={(value: TimeRange) => setTimeRange(value)}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="week">7 Hari</SelectItem>
-                <SelectItem value="month">30 Hari</SelectItem>
-                <SelectItem value="3months">90 Hari</SelectItem>
-              </SelectContent>
-            </Select>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Activity className="w-3 h-3" />
+              Total: {totalBookings}
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Flame className="w-3 h-3" />
+              Max: {maxCount}
+            </Badge>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* Legend */}
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Intensitas:</span>
-            <div className="flex gap-1">
-              <div className="w-4 h-4 bg-gray-100 dark:bg-gray-800 rounded-sm" />
-              <div className="w-4 h-4 bg-blue-200 dark:bg-blue-900 rounded-sm" />
-              <div className="w-4 h-4 bg-blue-400 dark:bg-blue-700 rounded-sm" />
-              <div className="w-4 h-4 bg-blue-600 dark:bg-blue-600 rounded-sm" />
-            </div>
-            <span className="text-gray-600 dark:text-gray-400 ml-2">
-              0 - {heatmapData.maxValue}+ peserta
-            </span>
+          {/* Controls */}
+          <div className="flex items-center gap-2">
+            <Select value={timeRange} onValueChange={(value: TimeRange) => setTimeRange(value)}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Periode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="30">30 Hari</SelectItem>
+                <SelectItem value="60">60 Hari</SelectItem>
+                <SelectItem value="90">90 Hari</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Heatmap Grid */}
+          {/* Heatmap */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="overflow-x-auto"
           >
-            <div className="min-w-[600px]">
-              {/* Header with hours */}
-              <div className="grid grid-cols-8 gap-1 mb-2">
-                <div></div> {/* Empty corner */}
-                {heatmapData.hours.filter((_, i) => i % 4 === 0).map(hour => (
-                  <div key={hour} className="text-center text-xs text-gray-600 dark:text-gray-400 py-1">
-                    {hour}:00
-                  </div>
-                ))}
+            <div className="space-y-2">
+              {/* Hour labels */}
+              <div className="flex">
+                <div className="w-8"></div> {/* Empty corner */}
+                <div className="flex-1 grid grid-cols-24 gap-1 text-xs text-gray-500">
+                  {Array.from({ length: 24 }, (_, i) => (
+                    <div key={i} className="text-center">
+                      {i % 4 === 0 ? i : ''}
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* Days and data */}
-              {heatmapData.days.map((day, dayIndex) => (
-                <div key={day} className="grid grid-cols-8 gap-1 mb-1">
-                  {/* Day label */}
-                  <div className="flex items-center justify-end pr-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {day}
-                  </div>
-
-                  {/* Hour cells */}
-                  {heatmapData.hours.map((hour) => {
-                    const value = heatmapData.grid[dayIndex][hour]
-                    return (
-                      <motion.div
-                        key={`${dayIndex}-${hour}`}
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: (dayIndex * 24 + hour) * 0.01 }}
-                        className={`
-                          h-8 rounded-sm flex items-center justify-center text-xs font-medium cursor-pointer
-                          hover:ring-2 hover:ring-blue-300 transition-all
-                          ${getIntensityColor(value, heatmapData.maxValue)}
-                          ${getTextColor(value, heatmapData.maxValue)}
-                        `}
-                        title={`${day} ${hour}:00 - ${value} peserta`}
-                      >
-                        {value > 0 ? value : ''}
-                      </motion.div>
-                    )
-                  })}
+              {/* Heatmap grid */}
+              <div className="flex">
+                <div className="w-8 flex flex-col justify-between text-xs text-gray-500 pr-2">
+                  {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((day, i) => (
+                    <div key={i} className="h-8 flex items-center">{day}</div>
+                  ))}
                 </div>
-              ))}
+                <div className="flex-1 grid grid-cols-24 gap-1">
+                  {Array.from({ length: 7 }, (_, dayIndex) =>
+                    Array.from({ length: 24 }, (_, hourIndex) => {
+                      const data = heatmapData.find(d => d.day === dayIndex && d.hour === hourIndex)
+                      const count = data?.count || 0
+
+                      return (
+                        <motion.div
+                          key={`${dayIndex}-${hourIndex}`}
+                          className={`
+                            h-8 rounded-sm cursor-pointer transition-all duration-200
+                            ${getIntensityColor(count)}
+                            hover:ring-2 hover:ring-blue-400 hover:ring-opacity-50
+                          `}
+                          title={`${count} peserta pada hari ${['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][dayIndex]}, jam ${hourIndex}:00`}
+                          whileHover={{ scale: 1.2 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <div className={`w-full h-full flex items-center justify-center text-xs font-medium ${getIntensityTextColor(count)}`}>
+                            {count > 0 ? count : ''}
+                          </div>
+                        </motion.div>
+                      )
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t">
+                <span>Lebih sedikit</span>
+                <div className="flex gap-1">
+                  {[0, 1, 2, 3, 4].map(level => (
+                    <div
+                      key={level}
+                      className={`w-3 h-3 rounded-sm ${getIntensityColor((level / 4) * maxCount)}`}
+                    />
+                  ))}
+                </div>
+                <span>Lebih banyak</span>
+              </div>
             </div>
           </motion.div>
-
-          {/* Summary Stats */}
-          <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-            <div className="text-center">
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {heatmapData.maxValue}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Peak Hour</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {tourBookings.length}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Total Bookings</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                {tourBookings.reduce((sum, booking) => sum + (booking.guest_count || 0), 0)}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Total Participants</p>
-            </div>
-          </div>
         </div>
       </CardContent>
     </Card>

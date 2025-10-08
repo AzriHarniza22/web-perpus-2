@@ -78,6 +78,11 @@ export function aggregateUserAnalytics(
   // Aggregate user booking data
   const userBookingData = new Map()
 
+  // Debug: Log unique status values to understand what statuses exist
+  const uniqueStatuses = new Set(filteredBookings.map(b => b.status))
+  console.log('DEBUG: Unique booking statuses found:', Array.from(uniqueStatuses))
+  console.log('DEBUG: Total bookings being processed:', filteredBookings.length)
+
   filteredBookings.forEach(booking => {
     const userId = booking.user_id
     if (!userBookingData.has(userId)) {
@@ -98,8 +103,13 @@ export function aggregateUserAnalytics(
     const userData = userBookingData.get(userId)
     userData.bookingCount += 1
 
-    if (booking.status === 'approved') {
+    // Debug: Log each booking status for troubleshooting
+    console.log(`DEBUG: Processing booking ${booking.id} with status: "${booking.status}"`)
+
+    // Treat both 'approved' and 'completed' as approved bookings for analytics
+    if (booking.status === 'approved' || booking.status === 'completed') {
       userData.approvedBookingCount += 1
+      console.log(`DEBUG: Incremented approved count for user ${userId} (status: ${booking.status})`)
     }
 
     // Update last booking date
@@ -191,6 +201,7 @@ function calculateUserRegistrationTrend(users: User[], bookings: Booking[]): Reg
       const data = monthlyData.get(monthKey)
       switch (booking.status) {
         case 'approved':
+        case 'completed':
           data.approved += 1
           break
         case 'pending':

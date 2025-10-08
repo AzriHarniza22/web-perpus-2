@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   Chart as ChartJS,
@@ -21,6 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { LucideIcon } from 'lucide-react'
+import { useChartData } from './ChartDataContext'
 
 // Using Chart.js types directly
 
@@ -83,6 +84,23 @@ export function BaseChart<T extends ChartType = ChartType>({
 
   const currentChartType = onChartTypeChange ? chartType : internalChartType
   const currentViewMode = onViewModeChange ? viewMode : internalViewMode
+
+  // Register chart data for export functionality
+  const { registerChartData } = useChartData()
+
+  useEffect(() => {
+    if (chartData && chartData.labels && chartData.datasets) {
+      // Generate a unique chart key based on title and type
+      const chartKey = `${title.replace(/\s+/g, '_').toLowerCase()}_${currentChartType}`
+
+      registerChartData(chartKey, {
+        title,
+        data: chartData,
+        type: currentChartType,
+        viewMode: currentViewMode
+      })
+    }
+  }, [chartData, title, currentChartType, currentViewMode, registerChartData])
 
   const handleChartTypeChange = (type: ChartType) => {
     if (onChartTypeChange) {

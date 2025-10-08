@@ -193,7 +193,7 @@ export function UserRegistrationChart({
 function processMonthlyData(users: User[], bookings: Booking[], dateFilter?: { from?: Date; to?: Date }) {
   const monthlyData = new Map()
 
-  // Process user registrations
+  // Process user registrations only
   users.forEach(user => {
     if (dateFilter?.from && dateFilter?.to) {
       const regDate = parseISO(user.created_at)
@@ -207,34 +207,11 @@ function processMonthlyData(users: User[], bookings: Booking[], dateFilter?: { f
 
     if (!monthlyData.has(monthKey)) {
       monthlyData.set(monthKey, {
-        total: 0,
-        withBookings: 0
+        total: 0
       })
     }
 
     monthlyData.get(monthKey).total += 1
-  })
-
-  // Process bookings for users who registered in each month
-  bookings.forEach(booking => {
-    if (dateFilter?.from && dateFilter?.to) {
-      const bookingDate = parseISO(booking.created_at)
-      if (bookingDate < dateFilter.from || bookingDate > dateFilter.to) {
-        return // Skip bookings outside date range
-      }
-    }
-
-    const user = users.find(u => u.id === booking.user_id)
-    if (user) {
-      const userRegDate = parseISO(user.created_at)
-      const bookingDate = parseISO(booking.created_at)
-      const monthKey = format(userRegDate, 'yyyy-MM')
-
-      if (monthlyData.has(monthKey) &&
-          format(userRegDate, 'yyyy-MM') === format(bookingDate, 'yyyy-MM')) {
-        monthlyData.get(monthKey).withBookings += 1
-      }
-    }
   })
 
   const sortedMonths = Array.from(monthlyData.keys()).sort()
@@ -248,14 +225,6 @@ function processMonthlyData(users: User[], bookings: Booking[], dateFilter?: { f
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         fill: true,
-        tension: 0.4
-      },
-      {
-        label: 'With Bookings',
-        data: sortedMonths.map(month => monthlyData.get(month).withBookings),
-        borderColor: 'rgb(34, 197, 94)',
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-        fill: false,
         tension: 0.4
       }
     ]

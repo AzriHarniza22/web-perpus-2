@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback, useEffect, memo } from 'react'
 import { motion } from 'framer-motion'
 import { DateRange } from 'react-day-picker'
 import { format, isWithinInterval } from 'date-fns'
@@ -17,7 +17,10 @@ import {
   Building,
   MapPin,
   Clock,
-  BarChart3
+  BarChart3,
+  Check,
+  ChevronDown,
+  Loader2
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -43,7 +46,6 @@ import { TourMonthlyChart } from '@/components/admin/analytics/TourMonthlyChart'
 import { TourGuestsCard } from '@/components/admin/analytics/TourGuestsCard'
 import { TourTimeHeatmap } from '@/components/admin/analytics/TourTimeHeatmap'
 import { TourAverageTimeChart } from '@/components/admin/analytics/TourAverageTimeChart'
-import { TourAverageGuestsChart } from '@/components/admin/analytics/TourAverageGuestsChart'
 import { UserOverviewCards } from '@/components/admin/analytics/UserOverviewCards'
 import { UserRegistrationChart } from '@/components/admin/analytics/UserRegistrationChart'
 import { TopInstitutionsChart } from '@/components/admin/analytics/TopInstitutionsChart'
@@ -51,6 +53,8 @@ import { TopUsersChart } from '@/components/admin/analytics/TopUsersChart'
 import { InstitutionBookingsChart } from '@/components/admin/analytics/InstitutionBookingsChart'
 import { UserBookingDistributionChart } from '@/components/admin/analytics/UserBookingDistributionChart'
 import { ExportButton } from '@/components/admin/analytics/ExportButton'
+import { ChartDataProvider, useChartData } from '@/components/admin/analytics/ChartDataContext'
+import { useFilterState } from '@/hooks/useFilterState'
 import { exportToCSV, exportToPDF, exportToExcel, exportToEnhancedExcel, ExportData, ExtendedExportOptions } from '@/lib/exportUtils'
 import { Booking, Room, Tour, User } from '@/lib/types'
 
@@ -91,7 +95,7 @@ interface UserAnalyticsTabProps {
   users: User[]
 }
 
-export function AnalyticsDashboard({
+function AnalyticsDashboardContent({
   bookings,
   rooms,
   tours,
@@ -99,72 +103,59 @@ export function AnalyticsDashboard({
   isLoading = false,
   onExportStatusChange
 }: AnalyticsDashboardProps) {
-  const [dateFilter, setDateFilter] = useState<DateFilter>({
-    range: undefined,
-    quickSelect: null
-  })
-  const [selectedRooms, setSelectedRooms] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState('general')
+
+  // Enhanced filter state management with URL persistence
+  const {
+    filterState,
+    hasActiveFilters,
+    activeFilterCount,
+    setQuickSelect,
+    setDateRange,
+    setSelectedRooms,
+    setSearchQuery,
+    clearAllFilters,
+    validation
+  } = useFilterState({
+    debounceMs: 300,
+    validateOnChange: true,
+    persistToUrl: true
+  })
 
   // Global date filter logic
   const filteredBookings = useMemo(() => {
-    if (!dateFilter.range?.from || !dateFilter.range?.to) return bookings
+    if (!filterState.dateRange?.from || !filterState.dateRange?.to) return bookings
 
     return bookings.filter(booking => {
       const bookingDate = new Date(booking.created_at)
       return isWithinInterval(bookingDate, {
-        start: dateFilter.range!.from!,
-        end: dateFilter.range!.to!
+        start: filterState.dateRange!.from!,
+        end: filterState.dateRange!.to!
       })
     })
-  }, [bookings, dateFilter.range])
+  }, [bookings, filterState.dateRange])
 
-  // Quick date filter handlers
-  const handleQuickSelect = (period: string) => {
-    const now = new Date()
-    let from: Date
-    let to: Date = now
+  // Quick date filter handlers - Optimized with useCallback
+  const handleQuickSelect = useCallback((period: string) => {
+    setQuickSelect(period)
+  }, [setQuickSelect])
 
-    switch (period) {
-      case 'this-week':
-        from = new Date(now.setDate(now.getDate() - now.getDay()))
-        to = new Date(from)
-        to.setDate(from.getDate() + 6)
-        break
-      case 'this-month':
-        from = new Date(now.getFullYear(), now.getMonth(), 1)
-        to = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-        break
-      case 'this-year':
-        from = new Date(now.getFullYear(), 0, 1)
-        to = new Date(now.getFullYear(), 11, 31)
-        break
-      default:
-        return
-    }
+  const clearDateFilter = useCallback(() => {
+    setDateRange(undefined)
+    setQuickSelect(null)
+  }, [setDateRange, setQuickSelect])
 
-    setDateFilter({
-      range: { from, to },
-      quickSelect: period
-    })
-  }
-
-  const clearDateFilter = () => {
-    setDateFilter({
-      range: undefined,
-      quickSelect: null
-    })
-  }
+  // clearAllFilters is now provided by useFilterState hook
 
   // Export functionality
-  const handleExport = async (format: 'csv' | 'pdf' | 'excel') => {
+  const handleExport = async (format: 'csv' | 'pdf' | 'excel', selectedCharts?: string[]) => {
     onExportStatusChange?.('loading', format)
 
     try {
       // Use current filters for export
-      const exportDateRange = dateFilter.range?.from && dateFilter.range?.to ? {
-        from: dateFilter.range.from,
-        to: dateFilter.range.to
+      const exportDateRange = filterState.dateRange?.from && filterState.dateRange?.to ? {
+        from: filterState.dateRange.from,
+        to: filterState.dateRange.to
       } : undefined
 
       let exportBookings = bookings
@@ -194,8 +185,8 @@ export function AnalyticsDashboard({
             from: exportDateRange.from,
             to: exportDateRange.to
           } : undefined,
-          selectedRooms,
-          quickSelect: dateFilter.quickSelect || undefined
+          selectedRooms: filterState.selectedRooms,
+          quickSelect: filterState.quickSelect || undefined
         },
         metadata: {
           exportDate: new Date(),
@@ -206,7 +197,17 @@ export function AnalyticsDashboard({
       }
 
       // Collect chart data for enhanced export
-      const chartData = await collectChartData()
+      const allChartData = await collectChartData()
+
+      // Filter chart data by selected charts if provided
+      const chartData = selectedCharts && selectedCharts.length > 0
+        ? Object.keys(allChartData)
+            .filter(key => selectedCharts.includes(key))
+            .reduce((filtered, key) => {
+              filtered[key] = allChartData[key]
+              return filtered
+            }, {} as typeof allChartData)
+        : allChartData
 
       switch (format) {
         case 'csv':
@@ -254,8 +255,11 @@ export function AnalyticsDashboard({
     }
   }
 
+  // Chart data collection using context
+  const { chartDataMap, registerChartData, clearChartData, getChartData } = useChartData()
+
   // Collect chart data from all chart components
-  const collectChartData = async (): Promise<{
+  const collectChartData = useCallback(async (): Promise<{
     [chartKey: string]: {
       title: string
       data: any
@@ -263,128 +267,183 @@ export function AnalyticsDashboard({
       viewMode?: string
     }
   }> => {
-    const chartDataMap: {
-      [chartKey: string]: {
-        title: string
-        data: any
-        type: string
-        viewMode?: string
-      }
-    } = {}
+    // Return the collected chart data
+    return getChartData()
+  }, [getChartData])
 
-    // This is a simplified implementation - in a real scenario, you would
-    // need to access the actual chart instances from the child components
-    // For now, we'll return an empty object and let the enhanced export
-    // service handle missing chart data gracefully
-
-    // TODO: Implement proper chart data collection by:
-    // 1. Adding refs to chart components
-    // 2. Using a context or callback system to collect chart data
-    // 3. Accessing chart instances through the component tree
-
-    return chartDataMap
-  }
+  // Clear chart data when filters change - moved before early return to follow Rules of Hooks
+  useEffect(() => {
+    clearChartData()
+  }, [filterState.dateRange, filterState.selectedRooms, clearChartData])
 
   if (isLoading) {
     return <AnalyticsDashboardSkeleton />
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Global Filters and Export Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
+        role="region"
+        aria-label="Analytics filters and export controls"
       >
-        {/* Global Date Filter */}
-        <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-          <CardContent className="p-4">
+        {/* Enhanced Global Filters */}
+        <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-2">
+          <CardContent className="p-3">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter Global:</span>
+                <Filter className="w-4 h-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300" id="global-filters-label">Filter Global:</span>
               </div>
 
-              {/* Quick Date Filters */}
-              <div className="flex gap-2">
+              {/* Enhanced Quick Date Filters */}
+              <div className="flex gap-1.5" role="group" aria-labelledby="global-filters-label">
                 {[
-                  { key: 'this-week', label: 'Minggu Ini' },
-                  { key: 'this-month', label: 'Bulan Ini' },
-                  { key: 'this-year', label: 'Tahun Ini' }
+                  { key: 'this-week', label: 'Minggu Ini', active: filterState.quickSelect === 'this-week' },
+                  { key: 'this-month', label: 'Bulan Ini', active: filterState.quickSelect === 'this-month' },
+                  { key: 'this-year', label: 'Tahun Ini', active: filterState.quickSelect === 'this-year' }
                 ].map((period) => (
                   <Button
                     key={period.key}
-                    variant={dateFilter.quickSelect === period.key ? "default" : "outline"}
+                    variant={period.active ? "default" : "outline"}
                     size="sm"
                     onClick={() => handleQuickSelect(period.key)}
-                    className="text-xs"
+                    className={cn(
+                      "text-xs font-medium transition-all duration-200",
+                      period.active
+                        ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                        : "hover:bg-gray-50 dark:hover:bg-gray-700"
+                    )}
+                    aria-pressed={period.active}
+                    aria-label={`${period.active ? 'Active: ' : ''}Filter periode ${period.label}`}
                   >
+                    {period.active && <Check className="w-3 h-3 mr-1" aria-hidden="true" />}
                     {period.label}
                   </Button>
                 ))}
               </div>
 
-              {/* Custom Date Range */}
+              {/* Enhanced Custom Date Range */}
               <div className="flex items-center gap-2">
                 <DateRangePicker
-                  date={dateFilter.range}
-                  onDateChange={(range) => setDateFilter({ range, quickSelect: null })}
+                  date={filterState.dateRange}
+                  onDateChange={(range) => setDateRange(range)}
                   placeholder="Pilih rentang tanggal"
-                  className="w-[240px]"
+                  className="w-[220px]"
                 />
-                {dateFilter.range && (
+                {filterState.dateRange && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={clearDateFilter}
-                    className="h-8 w-8 p-0"
+                    className="h-8 w-8 p-0 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    aria-label="Clear date filter"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-4 w-4 text-red-500" />
                   </Button>
                 )}
               </div>
 
-              {/* Room Filter */}
-              <div className="flex items-center gap-2">
-                <Select
-                  value={selectedRooms.length > 0 ? selectedRooms[0] : 'all'}
-                  onValueChange={(value) => {
-                    if (value === 'all') {
-                      setSelectedRooms([])
-                    } else {
-                      setSelectedRooms([value])
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Pilih ruangan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Semua Ruangan</SelectItem>
-                    {rooms?.map((room) => (
-                      <SelectItem key={room.id} value={room.id}>
-                        {room.name}
-                      </SelectItem>
-                    )) || []}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Enhanced Multi-Room Filter - Only show on room tab */}
+              {activeTab === 'room' && (
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={filterState.selectedRooms.length > 0 ? filterState.selectedRooms.join(',') : 'all'}
+                    onValueChange={(value) => {
+                      if (value === 'all') {
+                        setSelectedRooms([])
+                      } else if (value.startsWith('room-')) {
+                        const roomId = value.replace('room-', '')
+                        if (filterState.selectedRooms.includes(roomId)) {
+                          setSelectedRooms(filterState.selectedRooms.filter((id: string) => id !== roomId))
+                        } else {
+                          setSelectedRooms([...filterState.selectedRooms, roomId])
+                        }
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Pilih ruangan">
+                        {filterState.selectedRooms.length === 0
+                          ? "Semua Ruangan"
+                          : `${filterState.selectedRooms.length} ruangan dipilih`
+                        }
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Ruangan</SelectItem>
+                      {rooms?.map((room) => (
+                        <SelectItem key={room.id} value={`room-${room.id}`}>
+                          <div className="flex items-center gap-2">
+                            {filterState.selectedRooms.includes(room.id) && <Check className="w-3 h-3" />}
+                            {room.name}
+                          </div>
+                        </SelectItem>
+                      )) || []}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
-              {/* Active Filters Display */}
-              <div className="flex flex-wrap gap-2">
-                {dateFilter.range && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
+              {/* Enhanced Active Filters Display */}
+              <div className="flex flex-wrap gap-2 ml-2">
+                {filterState.dateRange && (
+                  <Badge
+                    variant="default"
+                    className="flex items-center gap-1.5 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                  >
                     <CalendarIcon className="w-3 h-3" />
-                    {format(dateFilter.range.from!, "dd/MM/yyyy", { locale: id })}
-                    {dateFilter.range.to && ` - ${format(dateFilter.range.to, "dd/MM/yyyy", { locale: id })}`}
+                    <span className="font-medium">
+                      {format(filterState.dateRange.from!, "dd/MM/yyyy", { locale: id })}
+                      {filterState.dateRange.to && ` - ${format(filterState.dateRange.to, "dd/MM/yyyy", { locale: id })}`}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearDateFilter}
+                      className="h-4 w-4 p-0 ml-1 hover:bg-blue-200 dark:hover:bg-blue-800"
+                      aria-label="Remove date filter"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
                   </Badge>
                 )}
-                {selectedRooms.length > 0 && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
+                {filterState.selectedRooms.length > 0 && (
+                  <Badge
+                    variant="default"
+                    className="flex items-center gap-1.5 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                  >
                     <Building className="w-3 h-3" />
-                    {rooms?.find((r) => r.id === selectedRooms[0])?.name || 'Ruangan Dipilih'}
+                    <span className="font-medium">
+                      {filterState.selectedRooms.length === 1
+                        ? rooms?.find((r) => r.id === filterState.selectedRooms[0])?.name
+                        : `${filterState.selectedRooms.length} ruangan`
+                      }
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedRooms([])}
+                      className="h-4 w-4 p-0 ml-1 hover:bg-green-200 dark:hover:bg-green-800"
+                      aria-label="Remove room filter"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
                   </Badge>
+                )}
+                {(filterState.dateRange || filterState.selectedRooms.length > 0) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearAllFilters}
+                    className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+                    aria-label="Clear all filters"
+                  >
+                    Clear All
+                  </Button>
                 )}
               </div>
             </div>
@@ -395,77 +454,110 @@ export function AnalyticsDashboard({
         <ExportButton
           currentTab={activeTab as 'general' | 'room' | 'tour' | 'user'}
           filters={{
-            dateRange: dateFilter.range?.from && dateFilter.range?.to ? {
-              from: dateFilter.range.from,
-              to: dateFilter.range.to
+            dateRange: filterState.dateRange?.from && filterState.dateRange?.to ? {
+              from: filterState.dateRange.from,
+              to: filterState.dateRange.to
             } : undefined,
-            selectedRooms,
-            quickSelect: dateFilter.quickSelect || undefined
+            selectedRooms: filterState.selectedRooms,
+            quickSelect: filterState.quickSelect || undefined
           }}
+          chartData={chartDataMap}
           onExport={handleExport}
           disabled={isLoading}
         />
       </motion.div>
 
-      {/* Tabbed Analytics Content */}
+      {/* Enhanced Tabbed Analytics Content */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
+        role="region"
+        aria-label="Analytics dashboard content"
       >
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="general" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              General
-            </TabsTrigger>
-            <TabsTrigger value="room" className="flex items-center gap-2">
-              <Building className="w-4 h-4" />
-              Room
-            </TabsTrigger>
-            <TabsTrigger value="tour" className="flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
-              Tour
-            </TabsTrigger>
-            <TabsTrigger value="user" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              User
-            </TabsTrigger>
-          </TabsList>
+          <div className="mb-4">
+            <TabsList
+              className="grid w-full grid-cols-4 h-12 bg-gray-50 dark:bg-gray-800/50 p-1"
+              role="tablist"
+              aria-label="Analytics categories"
+            >
+              <TabsTrigger
+                value="general"
+                className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all duration-200"
+                aria-label="General analytics tab"
+              >
+                <BarChart3 className="w-4 h-4" aria-hidden="true" />
+                <span className="hidden sm:inline">General</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="room"
+                className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all duration-200"
+                aria-label="Room analytics tab"
+              >
+                <Building className="w-4 h-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Room</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="tour"
+                className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all duration-200"
+                aria-label="Tour analytics tab"
+              >
+                <MapPin className="w-4 h-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Tour</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="user"
+                className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all duration-200"
+                aria-label="User analytics tab"
+              >
+                <Users className="w-4 h-4" aria-hidden="true" />
+                <span className="hidden sm:inline">User</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* General Analytics Tab */}
-          <TabsContent value="general" className="space-y-6">
-            <GeneralAnalyticsTab
-              bookings={filteredBookings}
-              rooms={rooms}
-              tours={tours}
-              users={users}
-            />
+          <TabsContent value="general" className="space-y-4 mt-2" role="tabpanel" aria-labelledby="general-tab">
+            <div aria-label="General analytics content">
+              <GeneralAnalyticsTab
+                bookings={filteredBookings}
+                rooms={rooms}
+                tours={tours}
+                users={users}
+              />
+            </div>
           </TabsContent>
 
           {/* Room Analytics Tab */}
-          <TabsContent value="room" className="space-y-6">
-            <RoomAnalyticsTab
-              bookings={filteredBookings}
-              rooms={rooms}
-              selectedRooms={selectedRooms}
-            />
+          <TabsContent value="room" className="space-y-4 mt-2" role="tabpanel" aria-labelledby="room-tab">
+            <div aria-label="Room analytics content">
+              <RoomAnalyticsTab
+                bookings={filteredBookings}
+                rooms={rooms}
+                selectedRooms={filterState.selectedRooms}
+              />
+            </div>
           </TabsContent>
 
           {/* Tour Analytics Tab */}
-          <TabsContent value="tour" className="space-y-6">
-            <TourAnalyticsTab
-              bookings={filteredBookings}
-              tours={tours}
-            />
+          <TabsContent value="tour" className="space-y-4 mt-2" role="tabpanel" aria-labelledby="tour-tab">
+            <div aria-label="Tour analytics content">
+              <TourAnalyticsTab
+                bookings={filteredBookings}
+                tours={tours}
+              />
+            </div>
           </TabsContent>
 
           {/* User Analytics Tab */}
-          <TabsContent value="user" className="space-y-6">
-            <UserAnalyticsTab
-              bookings={filteredBookings}
-              users={users}
-            />
+          <TabsContent value="user" className="space-y-4 mt-2" role="tabpanel" aria-labelledby="user-tab">
+            <div aria-label="User analytics content">
+              <UserAnalyticsTab
+                bookings={filteredBookings}
+                users={users}
+              />
+            </div>
           </TabsContent>
         </Tabs>
       </motion.div>
@@ -473,10 +565,43 @@ export function AnalyticsDashboard({
   )
 }
 
-// General Analytics Tab Component
-function GeneralAnalyticsTab({ bookings, rooms, tours, users }: GeneralAnalyticsTabProps) {
+export function AnalyticsDashboard({
+  bookings,
+  rooms,
+  tours,
+  users,
+  isLoading = false,
+  onExportStatusChange
+}: AnalyticsDashboardProps) {
   return (
-    <div className="space-y-6">
+    <ChartDataProvider>
+      <AnalyticsDashboardContent
+        bookings={bookings}
+        rooms={rooms}
+        tours={tours}
+        users={users}
+        isLoading={isLoading}
+        onExportStatusChange={onExportStatusChange}
+      />
+    </ChartDataProvider>
+  )
+}
+
+// General Analytics Tab Component
+const GeneralAnalyticsTab = memo<GeneralAnalyticsTabProps>(({ bookings, rooms, tours, users }) => {
+  const [chartLoadingStates, setChartLoadingStates] = useState<Record<string, boolean>>({
+    monthly: false,
+    daily: false,
+    peak: false,
+    heatmap: false
+  })
+
+  const handleChartLoad = useCallback((chartKey: string, loading: boolean) => {
+    setChartLoadingStates(prev => ({ ...prev, [chartKey]: loading }))
+  }, [])
+
+  return (
+    <div className="space-y-4">
       {/* Overview Stats */}
       <GeneralOverviewCards
         bookings={bookings}
@@ -485,22 +610,34 @@ function GeneralAnalyticsTab({ bookings, rooms, tours, users }: GeneralAnalytics
         users={users}
       />
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MonthlyReservationsChart bookings={bookings} />
-        <DailyDistributionChart bookings={bookings} />
+      {/* Charts Grid - Enhanced responsive layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <MonthlyReservationsChart
+          bookings={bookings}
+          isLoading={chartLoadingStates.monthly}
+        />
+        <DailyDistributionChart
+          bookings={bookings}
+          isLoading={chartLoadingStates.daily}
+        />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <PeakHoursChart bookings={bookings} />
-        <ReservationHeatmap bookings={bookings} />
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <PeakHoursChart
+          bookings={bookings}
+          isLoading={chartLoadingStates.peak}
+        />
+        <ReservationHeatmap
+          bookings={bookings}
+          isLoading={chartLoadingStates.heatmap}
+        />
       </div>
     </div>
   )
-}
+})
 
 // Room Analytics Tab Component
-function RoomAnalyticsTab({ bookings, rooms, selectedRooms }: RoomAnalyticsTabProps) {
+const RoomAnalyticsTab = memo<RoomAnalyticsTabProps>(({ bookings, rooms, selectedRooms }) => {
   const [roomFilter, setRoomFilter] = useState<string>(selectedRooms.length > 0 ? selectedRooms[0] : 'all')
 
   // Update local filter when global filter changes
@@ -513,15 +650,15 @@ function RoomAnalyticsTab({ bookings, rooms, selectedRooms }: RoomAnalyticsTabPr
   }, [selectedRooms])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Room Overview Cards */}
       <RoomOverviewCards
         bookings={bookings}
         rooms={rooms}
       />
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Charts Grid - Enhanced responsive layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <RoomMonthlyChart
           bookings={bookings}
           rooms={rooms}
@@ -533,7 +670,7 @@ function RoomAnalyticsTab({ bookings, rooms, selectedRooms }: RoomAnalyticsTabPr
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <RoomTimeHeatmap
           bookings={bookings}
           rooms={rooms}
@@ -545,7 +682,7 @@ function RoomAnalyticsTab({ bookings, rooms, selectedRooms }: RoomAnalyticsTabPr
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 gap-4">
         <AverageGuestsChart
           bookings={bookings}
           rooms={rooms}
@@ -554,20 +691,20 @@ function RoomAnalyticsTab({ bookings, rooms, selectedRooms }: RoomAnalyticsTabPr
       </div>
     </div>
   )
-}
+})
 
 // Tour Analytics Tab Component
-function TourAnalyticsTab({ bookings, tours }: TourAnalyticsTabProps) {
+const TourAnalyticsTab = memo<TourAnalyticsTabProps>(({ bookings, tours }) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Tour Overview Cards */}
       <TourOverviewCards
         bookings={bookings}
         tours={tours}
       />
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Charts Grid - Enhanced responsive layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <TourMonthlyChart
           bookings={bookings}
           tours={tours}
@@ -578,7 +715,7 @@ function TourAnalyticsTab({ bookings, tours }: TourAnalyticsTabProps) {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <TourTimeHeatmap
           bookings={bookings}
           tours={tours}
@@ -588,41 +725,34 @@ function TourAnalyticsTab({ bookings, tours }: TourAnalyticsTabProps) {
           tours={tours}
         />
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-        <TourAverageGuestsChart
-          bookings={bookings}
-          tours={tours}
-        />
-      </div>
     </div>
   )
-}
+})
 
 // User Analytics Tab Component
-function UserAnalyticsTab({ bookings, users }: UserAnalyticsTabProps) {
+const UserAnalyticsTab = memo<UserAnalyticsTabProps>(({ bookings, users }) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* User Overview Cards */}
       <UserOverviewCards
         bookings={bookings}
         users={users}
       />
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Charts Grid - Enhanced responsive layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <UserRegistrationChart
           bookings={bookings}
           users={users}
         />
-        <TopInstitutionsChart
+        <TopUsersChart
           bookings={bookings}
           users={users}
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TopUsersChart
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <TopInstitutionsChart
           bookings={bookings}
           users={users}
         />
@@ -632,7 +762,7 @@ function UserAnalyticsTab({ bookings, users }: UserAnalyticsTabProps) {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 gap-4">
         <UserBookingDistributionChart
           bookings={bookings}
           users={users}
@@ -640,24 +770,35 @@ function UserAnalyticsTab({ bookings, users }: UserAnalyticsTabProps) {
       </div>
     </div>
   )
-}
+})
 
-// Loading Skeleton Component
+// Enhanced Loading Skeleton Component
 function AnalyticsDashboardSkeleton() {
   return (
-    <div className="space-y-6">
-      {/* Filter Header Skeleton */}
+    <div className="space-y-4">
+      {/* Enhanced Filter Header Skeleton */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-          <CardContent className="p-4">
+        <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-2">
+          <CardContent className="p-3">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              </div>
+
+              <div className="flex gap-1.5">
                 {[...Array(3)].map((_, i) => (
                   <div key={i} className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                 ))}
               </div>
-              <div className="h-10 w-[240px] bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-              <div className="h-10 w-[180px] bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+
+              <div className="h-10 w-[220px] bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-10 w-[200px] bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+
+              <div className="flex gap-2">
+                <div className="h-6 w-24 bg-blue-100 dark:bg-blue-900/30 rounded-full animate-pulse" />
+                <div className="h-6 w-20 bg-green-100 dark:bg-green-900/30 rounded-full animate-pulse" />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -669,17 +810,20 @@ function AnalyticsDashboardSkeleton() {
         </div>
       </div>
 
-      {/* Tabs Skeleton */}
+      {/* Enhanced Tabs Skeleton */}
       <div className="w-full">
-        <div className="flex gap-2 mb-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-10 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-          ))}
+        <div className="mb-4">
+          <div className="h-12 w-full bg-gray-50 dark:bg-gray-800/50 rounded-lg p-1 flex gap-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-10 flex-1 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            ))}
+          </div>
         </div>
 
-        {/* Content Skeleton */}
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Enhanced Content Skeleton */}
+        <div className="space-y-4">
+          {/* Overview Cards Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
               <Card key={i} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                 <CardContent className="p-4">
@@ -693,6 +837,50 @@ function AnalyticsDashboardSkeleton() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+
+          {/* Charts Grid Skeleton */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {[...Array(2)].map((_, i) => (
+              <Card key={i} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-2">
+                        <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        <div className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mb-4">
+                      <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    </div>
+                    <div className="bg-gray-200 dark:bg-gray-700 rounded animate-pulse" style={{ height: '256px' }} />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Additional Chart Skeleton */}
+          <div className="grid grid-cols-1 gap-4">
+            <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+              <CardContent className="p-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-2">
+                      <div className="h-5 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      <div className="h-4 w-56 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    </div>
+                  </div>
+                  <div className="bg-gray-200 dark:bg-gray-700 rounded animate-pulse" style={{ height: '256px' }} />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

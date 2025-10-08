@@ -65,6 +65,16 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
+-- Login events table for tracking user logins
+CREATE TABLE IF NOT EXISTS public.login_events (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  login_timestamp TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  ip_address INET,
+  user_agent TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
 -- Insert sample rooms (idempotent)
 DO $$
 BEGIN
@@ -85,6 +95,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.login_events ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
 -- Profiles: Users can read/update/insert their own profile, admins can read all
@@ -131,6 +142,16 @@ CREATE POLICY "Admins can manage all bookings" ON public.bookings FOR ALL USING 
 -- Notifications: Admins can manage
 DROP POLICY IF EXISTS "Admins can manage notifications" ON public.notifications;
 CREATE POLICY "Admins can manage notifications" ON public.notifications FOR ALL USING (
+  auth.uid() IS NOT NULL
+);
+
+-- Login events: Users can view their own, admins can view all
+DROP POLICY IF EXISTS "Users can view own login events" ON public.login_events;
+CREATE POLICY "Users can view own login events" ON public.login_events FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own login events" ON public.login_events;
+CREATE POLICY "Users can insert own login events" ON public.login_events FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Admins can view all login events" ON public.login_events;
+CREATE POLICY "Admins can view all login events" ON public.login_events FOR SELECT USING (
   auth.uid() IS NOT NULL
 );
 

@@ -101,157 +101,80 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
   if (bookingsLoading || roomsLoading) {
     return (
       <Loading variant="skeleton">
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+        <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 overflow-hidden">
           {/* Sidebar */}
           <AdminSidebar onToggle={setSidebarCollapsed} />
 
-          {/* Header */}
+          {/* Header - Fixed */}
           <motion.header
             initial={{ y: -100 }}
             animate={{ y: 0 }}
-            className={`bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
+            className={`flex-shrink-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
               sidebarCollapsed ? 'ml-16' : 'ml-64'
             }`}
           >
-            <div className="px-6 py-4 flex justify-between items-center">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <Skeleton className="h-8 w-48 mb-1" />
-                <Skeleton className="h-4 w-64" />
+            <div className="px-4 py-3 flex justify-between items-center">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <Skeleton className="h-7 w-40 mb-1" />
+                <Skeleton className="h-3 w-48" />
               </motion.div>
-              <div className="flex items-center space-x-4">
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-gray-600 dark:text-gray-300 hidden md:block"
-                >
-                  <Skeleton className="h-4 w-32" />
-                </motion.span>
+              <div className="flex items-center space-x-3">
+                <Skeleton className="h-3 w-24 hidden md:block" />
                 <ThemeToggle />
-                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-8 w-16" />
               </div>
             </div>
           </motion.header>
 
-          <main className={`p-6 transition-all duration-300 ${
+          {/* Main Content - Scrollable */}
+          <main className={`flex-1 overflow-auto transition-all duration-300 ${
             sidebarCollapsed ? 'ml-16' : 'ml-64'
           }`}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-8"
-            >
-              <Skeleton className="h-10 w-64 mb-2" />
-              <Skeleton className="h-5 w-96" />
-            </motion.div>
+            <div className="p-4 h-full flex flex-col">
+              {/* Title */}
+              <div className="flex-shrink-0 mb-3">
+                <Skeleton className="h-8 w-48 mb-1" />
+                <Skeleton className="h-4 w-64" />
+              </div>
 
-            {/* Stats Cards */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-            >
-              {[
-                { icon: Building, label: 'Total Ruangan', value: '0', color: 'from-blue-500 to-cyan-400' },
-                { icon: Users, label: 'Total Pengguna', value: '0', color: 'from-purple-500 to-pink-400' },
-                { icon: Calendar, label: 'Reservasi Hari Ini', value: '0', color: 'from-green-500 to-emerald-400' },
-                { icon: Clock, label: 'Reservasi Besok', value: '0', color: 'from-orange-500 to-red-400' }
-              ].map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2 + index * 0.1, type: "spring", stiffness: 200 }}
-                >
-                  <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all cursor-pointer group">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.label}</p>
-                          <Skeleton className="h-6 w-12 mt-1" />
-                        </div>
-                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                          <stat.icon className="w-6 h-6 text-white" />
-                        </div>
-                      </div>
+              {/* Stats Cards */}
+              <div className="flex-shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                {[...Array(4)].map((_, i) => (
+                  <Card key={i} className="bg-white/90 dark:bg-gray-800/90">
+                    <CardContent className="p-3">
+                      <Skeleton className="h-4 w-20 mb-2" />
+                      <Skeleton className="h-6 w-12" />
                     </CardContent>
                   </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Main Content Grid Skeleton */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
-              {/* Calendar Skeleton */}
-              <div className="xl:col-span-2">
-                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-                  <CardHeader>
-                    <Skeleton className="h-6 w-48 mb-2" />
-                    <Skeleton className="h-4 w-64" />
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <Skeleton className="h-96 w-full rounded-3xl" />
-                  </CardContent>
-                </Card>
+                ))}
               </div>
 
-              {/* Pending Approvals Skeleton */}
-              <div className="xl:col-span-1">
-                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-                  <CardHeader>
-                    <Skeleton className="h-6 w-40 mb-2" />
-                    <Skeleton className="h-4 w-56" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
+              {/* Main Grid - Flexible */}
+              <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0">
+                <div className="lg:col-span-2">
+                  <Card className="h-full flex flex-col">
+                    <CardHeader className="flex-shrink-0 pb-2">
+                      <Skeleton className="h-5 w-32" />
+                    </CardHeader>
+                    <CardContent className="flex-1 min-h-0">
+                      <Skeleton className="h-full w-full rounded-lg" />
+                    </CardContent>
+                  </Card>
+                </div>
+                <div className="flex flex-col gap-4">
+                  <Card className="flex-1 min-h-0">
+                    <CardHeader className="flex-shrink-0 pb-2">
+                      <Skeleton className="h-5 w-28" />
+                    </CardHeader>
+                    <CardContent className="overflow-auto">
                       {[...Array(3)].map((_, i) => (
-                        <div key={i} className="p-3 border rounded-lg">
-                          <Skeleton className="h-4 w-32 mb-2" />
-                          <Skeleton className="h-3 w-24 mb-1" />
-                          <Skeleton className="h-3 w-40" />
-                        </div>
+                        <Skeleton key={i} className="h-16 w-full mb-2" />
                       ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </div>
-
-            {/* Recent Activity */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="mt-8"
-            >
-              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
-                    Aktivitas Terbaru
-                  </CardTitle>
-                  <CardDescription>
-                    Reservasi terbaru yang perlu perhatian
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {[...Array(5)].map((_, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <div>
-                          <Skeleton className="h-4 w-32 mb-1" />
-                          <Skeleton className="h-3 w-48" />
-                        </div>
-                        <Skeleton className="h-6 w-16 rounded-full" />
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
           </main>
         </div>
       </Loading>
@@ -259,332 +182,296 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 overflow-hidden">
       {/* Sidebar */}
       <AdminSidebar onToggle={setSidebarCollapsed} />
 
-      {/* Header */}
+      {/* Header - Fixed at top */}
       <motion.header
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className={`bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
+        className={`flex-shrink-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 z-10 ${
           sidebarCollapsed ? 'ml-16' : 'ml-64'
         }`}
       >
-        <div className="px-6 py-4 flex justify-between items-center">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <div className="px-4 lg:px-6 py-3 flex justify-between items-center">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Dashboard
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Kelola ruangan dan reservasi dengan efisien</p>
+            <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400">Kelola ruangan dan reservasi</p>
           </motion.div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 lg:space-x-4">
             <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-gray-600 dark:text-gray-300 hidden md:block"
+              className="text-sm text-gray-600 dark:text-gray-300 hidden md:block"
             >
-              Selamat datang, {profile?.full_name}
+              {profile?.full_name}
             </motion.span>
             <ThemeToggle />
             <form action="/auth/signout" method="post">
               <Button variant="outline" size="sm" type="submit">
-                <LogOut className="w-4 h-4 mr-2" />
-                Keluar
+                <LogOut className="w-4 h-4 lg:mr-2" />
+                <span className="hidden lg:inline">Keluar</span>
               </Button>
             </form>
           </div>
         </div>
       </motion.header>
 
-      <main className={`p-4 transition-all duration-300 min-h-screen flex flex-col ${
+      {/* Main Content - Scrollable area */}
+      <main className={`flex-1 overflow-auto transition-all duration-300 ${
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-4 flex-shrink-0"
-        >
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-            Admin Dashboard
-          </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            Kelola ruangan dan reservasi dengan efisien
-          </p>
-        </motion.div>
-
-        {/* Stats Cards - Compact Layout */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 flex-shrink-0"
-        >
-          {[
-            { icon: Building, label: 'Total Ruangan', value: adminStats.totalRooms.toString(), color: 'from-blue-500 to-cyan-400' },
-            { icon: Users, label: 'Total Pengguna', value: adminStats.totalUsers.toString(), color: 'from-purple-500 to-pink-400' },
-            { icon: Calendar, label: 'Reservasi Hari Ini', value: adminStats.todayBookings.toString(), color: 'from-green-500 to-emerald-400' },
-            { icon: Clock, label: 'Reservasi Besok', value: adminStats.tomorrowBookings.toString(), color: 'from-orange-500 to-red-400' }
-          ].map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2 + index * 0.1, type: "spring", stiffness: 200 }}
-            >
-              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all cursor-pointer group">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-gray-600 dark:text-gray-400 truncate">{stat.label}</p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+        <div className="p-3 lg:p-4 h-full flex flex-col">
+          {/* Stats Cards - Fixed height, no grow */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex-shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-3 lg:mb-4"
+          >
+            {[
+              { icon: Building, label: 'Total Ruangan', value: adminStats.totalRooms.toString(), color: 'from-blue-500 to-cyan-400' },
+              { icon: Users, label: 'Total Pengguna', value: adminStats.totalUsers.toString(), color: 'from-purple-500 to-pink-400' },
+              { icon: Calendar, label: 'Hari Ini', value: adminStats.todayBookings.toString(), color: 'from-green-500 to-emerald-400' },
+              { icon: Clock, label: 'Besok', value: adminStats.tomorrowBookings.toString(), color: 'from-orange-500 to-red-400' }
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2 + index * 0.05, type: "spring", stiffness: 200 }}
+              >
+                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all">
+                  <CardContent className="p-2.5 lg:p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] lg:text-xs font-medium text-gray-600 dark:text-gray-400 truncate">{stat.label}</p>
+                        <p className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                      </div>
+                      <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center flex-shrink-0`}>
+                        <stat.icon className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+                      </div>
                     </div>
-                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0`}>
-                      <stat.icon className="w-5 h-5 text-white" />
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Main Content Grid - Flexible, fills remaining space */}
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-4 min-h-0">
+            {/* Calendar - 2 columns on large screens */}
+            <div className="lg:col-span-2 flex flex-col min-h-0">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="h-full flex flex-col"
+              >
+                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm h-full flex flex-col min-h-0">
+                  <CardHeader className="pb-2 lg:pb-3 flex-shrink-0">
+                    <CardTitle className="flex items-center text-sm lg:text-base">
+                      <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+                      Kalender Reservasi
+                    </CardTitle>
+                    <CardDescription className="text-xs lg:text-sm">
+                      Lihat reservasi berdasarkan tanggal
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-2 lg:p-3 pt-0 flex-1 min-h-0 overflow-hidden">
+                    <div className="h-full rounded-lg overflow-hidden">
+                      <InteractiveCalendar bookings={bookings} />
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
 
-        {/* Main Content Grid - Responsive Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 flex-1">
-          {/* Interactive Calendar - Takes 2 columns on xl screens, full width on smaller screens */}
-          <div className="lg:col-span-2 xl:col-span-2">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm h-full flex flex-col">
-                <CardHeader className="pb-3 flex-shrink-0">
-                  <CardTitle className="flex items-center text-base">
-                    <Calendar className="w-4 h-4 mr-2 text-blue-600" />
-                    Kalender Reservasi
-                  </CardTitle>
-                  <CardDescription className="text-sm">
-                    Lihat reservasi berdasarkan tanggal
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-3 pt-0 flex-1 min-h-0">
-                  <div className="h-full overflow-hidden rounded-lg">
-                    <InteractiveCalendar bookings={bookings} />
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
-
-          {/* Combined Side Panel - Notifications & Upcoming Reservations */}
-          <div className="lg:col-span-2 xl:col-span-1 flex flex-col gap-4">
-            {/* Pending Approvals */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex flex-col">
-                <CardHeader className="pb-3 flex-shrink-0">
-                  <CardTitle className="flex items-center text-base">
-                    <AlertTriangle className="w-4 h-4 mr-2 text-yellow-600" />
-                    Pending Approvals
-                  </CardTitle>
-                  <CardDescription className="text-sm">
-                    {adminStats.pendingApprovals} reservasi menunggu persetujuan
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-3 pt-0 flex-1">
-                  <div className="max-h-96 overflow-y-auto">
-                    {adminStats.pendingApprovals > 0 ? (
-                      <div className="space-y-3">
-                        {bookings
-                          .filter(booking => booking.status === 'pending')
-                          .slice(0, 5)
-                          .map((booking) => (
-                            <div key={booking.id} className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                              <div className="flex items-center justify-between mb-2">
-                                <p className="font-medium text-gray-900 dark:text-white text-sm">
-                                  {booking.rooms?.name}
+            {/* Right Side Panel - 1 column, scrollable content */}
+            <div className="flex flex-col gap-3 lg:gap-4 min-h-0 lg:overflow-auto">
+              {/* Pending Approvals */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="flex-shrink-0"
+              >
+                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                  <CardHeader className="pb-2 lg:pb-3">
+                    <CardTitle className="flex items-center text-sm lg:text-base">
+                      <AlertTriangle className="w-4 h-4 mr-2 text-yellow-600" />
+                      Pending Approvals
+                    </CardTitle>
+                    <CardDescription className="text-xs lg:text-sm">
+                      {adminStats.pendingApprovals} menunggu persetujuan
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-2 lg:p-3 pt-0">
+                    <div className="max-h-48 lg:max-h-60 overflow-y-auto">
+                      {adminStats.pendingApprovals > 0 ? (
+                        <div className="space-y-2">
+                          {bookings
+                            .filter(booking => booking.status === 'pending')
+                            .slice(0, 4)
+                            .map((booking) => (
+                              <div key={booking.id} className="p-2 lg:p-2.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                                <div className="flex items-start justify-between mb-1">
+                                  <p className="font-medium text-gray-900 dark:text-white text-xs lg:text-sm truncate flex-1">
+                                    {booking.rooms?.name}
+                                  </p>
+                                  <Badge variant="secondary" className="text-[10px] lg:text-xs ml-2 flex-shrink-0">
+                                    Pending
+                                  </Badge>
+                                </div>
+                                <p className="text-[10px] lg:text-xs text-gray-600 dark:text-gray-400 truncate">
+                                  {booking.profiles?.full_name}
                                 </p>
-                                <Badge variant="secondary" className="text-xs">
-                                  Pending
-                                </Badge>
+                                <p className="text-[10px] lg:text-xs text-gray-500 dark:text-gray-500">
+                                  {new Date(booking.start_time).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} • {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                </p>
                               </div>
-                              <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                                {booking.profiles?.full_name}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-500">
-                                {new Date(booking.start_time).toLocaleDateString('id-ID')} • {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                            ))}
+                          {adminStats.pendingApprovals > 4 && (
+                            <p className="text-[10px] lg:text-xs text-gray-500 dark:text-gray-400 text-center pt-1">
+                              +{adminStats.pendingApprovals - 4} lagi
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4">
+                          <div className="text-green-500 text-xl mb-1">✅</div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            Semua sudah diproses
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Upcoming Reservations */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="flex-shrink-0"
+              >
+                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                  <CardHeader className="pb-2 lg:pb-3">
+                    <CardTitle className="flex items-center text-sm lg:text-base">
+                      <TrendingUp className="w-4 h-4 mr-2 text-blue-600" />
+                      Reservasi Mendatang
+                    </CardTitle>
+                    <CardDescription className="text-xs lg:text-sm">
+                      Hari ini dan besok
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-2 lg:p-3 pt-0">
+                    <div className="max-h-48 lg:max-h-60 overflow-y-auto">
+                      {(() => {
+                        const today = new Date()
+                        today.setHours(0, 0, 0, 0)
+                        const tomorrow = new Date(today)
+                        tomorrow.setDate(tomorrow.getDate() + 1)
+                        const dayAfterTomorrow = new Date(tomorrow)
+                        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1)
+
+                        const upcomingBookings = bookings
+                          .filter(booking => {
+                            const bookingDate = new Date(booking.start_time)
+                            return bookingDate >= today &&
+                                   bookingDate < dayAfterTomorrow &&
+                                   (booking.status === 'approved' || booking.status === 'pending')
+                          })
+                          .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
+                          .slice(0, 6)
+
+                        const todayBookings = upcomingBookings.filter(booking => {
+                          const bookingDate = new Date(booking.start_time)
+                          return bookingDate >= today && bookingDate < tomorrow
+                        })
+
+                        const tomorrowBookings = upcomingBookings.filter(booking => {
+                          const bookingDate = new Date(booking.start_time)
+                          return bookingDate >= tomorrow && bookingDate < dayAfterTomorrow
+                        })
+
+                        if (upcomingBookings.length === 0) {
+                          return (
+                            <div className="text-center py-4">
+                              <div className="text-gray-400 text-2xl mb-1">📅</div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                Belum ada reservasi
                               </p>
                             </div>
-                          ))}
-                        {adminStats.pendingApprovals > 5 && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 text-center pt-2">
-                            +{adminStats.pendingApprovals - 5} lagi...
-                          </p>
-                        )}
-                        <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
-                          <Button variant="outline" size="sm" className="w-full" asChild>
-                            <a href="/admin/approvals">
-                              Lihat Semua Approvals
-                            </a>
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-6">
-                        <div className="text-green-500 text-2xl mb-2">✅</div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Semua reservasi sudah diproses
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                          )
+                        }
 
-            {/* Upcoming Reservations */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex flex-col">
-                <CardHeader className="pb-3 flex-shrink-0">
-                  <CardTitle className="flex items-center text-base">
-                    <Calendar className="w-4 h-4 mr-2 text-blue-600" />
-                    Reservasi Mendatang
-                  </CardTitle>
-                  <CardDescription className="text-sm">
-                    Reservasi hari ini dan besok yang perlu diperhatian
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-3 pt-0 flex-1">
-                  <div className="max-h-96 overflow-y-auto">
-                    {/* Get upcoming bookings for today and tomorrow */}
-                    {(() => {
-                      const today = new Date()
-                      today.setHours(0, 0, 0, 0)
-                      const tomorrow = new Date(today)
-                      tomorrow.setDate(tomorrow.getDate() + 1)
-                      const dayAfterTomorrow = new Date(tomorrow)
-                      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1)
-
-                      const upcomingBookings = bookings
-                        .filter(booking => {
-                          const bookingDate = new Date(booking.start_time)
-                          return bookingDate >= today &&
-                                 bookingDate < dayAfterTomorrow &&
-                                 (booking.status === 'approved' || booking.status === 'pending')
-                        })
-                        .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
-                        .slice(0, 10) // Max 10 items
-
-                      // Group bookings by day
-                      const todayBookings = upcomingBookings.filter(booking => {
-                        const bookingDate = new Date(booking.start_time)
-                        return bookingDate >= today && bookingDate < tomorrow
-                      })
-
-                      const tomorrowBookings = upcomingBookings.filter(booking => {
-                        const bookingDate = new Date(booking.start_time)
-                        return bookingDate >= tomorrow && bookingDate < dayAfterTomorrow
-                      })
-
-                      if (upcomingBookings.length === 0) {
                         return (
-                          <div className="text-center py-8">
-                            <div className="text-gray-400 text-4xl mb-3">📅</div>
-                            <p className="text-gray-500 dark:text-gray-400">
-                              Belum ada reservasi untuk hari ini dan besok
-                            </p>
+                          <div className="space-y-3">
+                            {todayBookings.length > 0 && (
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
+                                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></div>
+                                  Hari Ini
+                                </h4>
+                                <div className="space-y-1.5">
+                                  {todayBookings.map((booking) => (
+                                    <div key={booking.id} className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-gray-900 dark:text-white text-xs truncate">
+                                          {booking.rooms?.name}
+                                        </p>
+                                        <p className="text-[10px] text-gray-600 dark:text-gray-400 truncate">
+                                          {booking.profiles?.full_name} • {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                        </p>
+                                      </div>
+                                      <Badge variant={booking.status === 'approved' ? 'default' : 'secondary'} className="ml-2 flex-shrink-0 text-[9px] lg:text-[10px] px-1.5 py-0">
+                                        {booking.status}
+                                      </Badge>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {tomorrowBookings.length > 0 && (
+                              <div>
+                                <h4 className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
+                                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-1.5"></div>
+                                  Besok
+                                </h4>
+                                <div className="space-y-1.5">
+                                  {tomorrowBookings.map((booking) => (
+                                    <div key={booking.id} className="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-gray-900 dark:text-white text-xs truncate">
+                                          {booking.rooms?.name}
+                                        </p>
+                                        <p className="text-[10px] text-gray-600 dark:text-gray-400 truncate">
+                                          {booking.profiles?.full_name} • {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                        </p>
+                                      </div>
+                                      <Badge variant={booking.status === 'approved' ? 'default' : 'secondary'} className="ml-2 flex-shrink-0 text-[9px] lg:text-[10px] px-1.5 py-0">
+                                        {booking.status}
+                                      </Badge>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )
-                      }
-
-                      return (
-                        <div className="space-y-4">
-                          {/* Today's Bookings */}
-                          {todayBookings.length > 0 && (
-                            <div>
-                              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                                Hari Ini
-                              </h4>
-                              <div className="space-y-2">
-                                {todayBookings.map((booking) => (
-                                  <div key={booking.id} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-medium text-gray-900 dark:text-white text-sm truncate">
-                                        {booking.rooms?.name}
-                                      </p>
-                                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                        {booking.profiles?.full_name} • {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                                      </p>
-                                    </div>
-                                    <Badge variant={
-                                      booking.status === 'approved' ? 'default' :
-                                      booking.status === 'pending' ? 'secondary' :
-                                      booking.status === 'rejected' ? 'destructive' : 'outline'
-                                    } className="ml-2 flex-shrink-0">
-                                      {booking.status}
-                                    </Badge>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Tomorrow's Bookings */}
-                          {tomorrowBookings.length > 0 && (
-                            <div>
-                              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                                Besok
-                              </h4>
-                              <div className="space-y-2">
-                                {tomorrowBookings.map((booking) => (
-                                  <div key={booking.id} className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-medium text-gray-900 dark:text-white text-sm truncate">
-                                        {booking.rooms?.name}
-                                      </p>
-                                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                        {booking.profiles?.full_name} • {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                                      </p>
-                                    </div>
-                                    <Badge variant={
-                                      booking.status === 'approved' ? 'default' :
-                                      booking.status === 'pending' ? 'secondary' :
-                                      booking.status === 'rejected' ? 'destructive' : 'outline'
-                                    } className="ml-2 flex-shrink-0">
-                                      {booking.status}
-                                    </Badge>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Show count if more than 10 items */}
-                          {upcomingBookings.length >= 10 && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 text-center pt-2 border-t border-gray-200 dark:border-gray-700">
-                              Menampilkan 10 dari {upcomingBookings.length} reservasi mendatang
-                            </p>
-                          )}
-                        </div>
-                      )
-                    })()}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                      })()}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
           </div>
         </div>
       </main>

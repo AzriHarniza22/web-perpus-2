@@ -401,7 +401,7 @@ export const useBookingStats = (dateRange?: { start: string; end: string }) => {
 
       const stats = bookingStats as BookingStat[]
       const totalBookings = stats.length
-      const approvedBookings = stats.filter((b) => b.status === 'approved').length
+      const approvedBookings = stats.filter((b) => b.status === 'approved' || b.status === 'completed').length
       const pendingBookings = stats.filter((b) => b.status === 'pending').length
       const rejectedBookings = stats.filter((b) => b.status === 'rejected').length
       const cancelledBookings = stats.filter((b) => b.status === 'cancelled').length
@@ -661,7 +661,7 @@ export const useRoomUtilization = (dateRange?: { start: string; end: string }) =
 
       // Calculate utilization for each room
       const utilization = typedRooms.map(room => {
-        const roomBookings = typedBookings.filter(b => b.room_id === room.id && b.status === 'approved')
+        const roomBookings = typedBookings.filter(b => b.room_id === room.id && (b.status === 'approved' || b.status === 'completed'))
         const totalBookedHours = roomBookings.reduce((sum: number, booking) => {
           const start = new Date(booking.start_time)
           const end = new Date(booking.end_time)

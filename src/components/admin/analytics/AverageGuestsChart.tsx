@@ -59,32 +59,51 @@ export function AverageGuestsChart({
   const chartData = useMemo(() => {
     const roomGuestData = new Map()
 
+    // First, add all rooms (excluding Library Tour) to ensure rooms with no bookings are included
+    rooms?.forEach(room => {
+      if (room.name !== 'Library Tour' && room.is_active) {
+        roomGuestData.set(room.id, {
+          name: room.name,
+          totalGuests: 0,
+          bookingCount: 0,
+          capacity: room.capacity,
+          averageGuests: 0,
+          utilizationRate: 0
+        })
+      }
+    })
+
+    // Then process bookings to update guest counts
     filteredBookings.forEach(booking => {
       const roomId = booking.room_id
       const roomName = booking.rooms?.name || 'Unknown Room'
       const guestCount = booking.guest_count || 0
 
       if (!roomGuestData.has(roomId)) {
-        roomGuestData.set(roomId, {
-          name: roomName,
-          totalGuests: 0,
-          bookingCount: 0,
-          capacity: booking.rooms?.capacity || 0
-        })
+        // Only add rooms that aren't Library Tour and are active
+        if (roomName !== 'Library Tour') {
+          roomGuestData.set(roomId, {
+            name: roomName,
+            totalGuests: 0,
+            bookingCount: 0,
+            capacity: booking.rooms?.capacity || 0
+          })
+        }
       }
 
-      const data = roomGuestData.get(roomId)
-      data.totalGuests += guestCount
-      data.bookingCount += 1
+      if (roomGuestData.has(roomId)) {
+        const data = roomGuestData.get(roomId)
+        data.totalGuests += guestCount
+        data.bookingCount += 1
+      }
     })
 
-    // Calculate averages and filter out rooms with no bookings
+    // Calculate averages for all rooms (including those with no bookings)
     const roomAverages = Array.from(roomGuestData.values())
-      .filter(room => room.bookingCount > 0)
       .map(room => ({
         ...room,
-        averageGuests: Math.round((room.totalGuests / room.bookingCount) * 10) / 10,
-        utilizationRate: room.capacity > 0 ? Math.round((room.totalGuests / (room.bookingCount * room.capacity)) * 100) : 0
+        averageGuests: room.bookingCount > 0 ? Math.round((room.totalGuests / room.bookingCount) * 10) / 10 : 0,
+        utilizationRate: room.capacity > 0 && room.bookingCount > 0 ? Math.round((room.totalGuests / (room.bookingCount * room.capacity)) * 100) : 0
       }))
       .sort((a, b) => {
         if (sortOrder === 'desc') {
@@ -256,7 +275,10 @@ export function AverageGuestsChart({
               <div className="text-center">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Minimal</p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {Math.min(...chartData.datasets[0].data)}
+                  {chartData.datasets[0].data.length > 0 && chartData.datasets[0].data.some(val => val > 0)
+                    ? Math.min(...chartData.datasets[0].data.filter(val => val > 0))
+                    : 'N/A'
+                  }
                 </p>
               </div>
             </div>
@@ -285,7 +307,8 @@ function getChartOptions() {
         padding: 12,
         callbacks: {
           label: (context: { parsed: { y: number } }) => {
-            return `Rata-rata Tamu: ${context.parsed.y}`
+            const value = context.parsed.y
+            return value > 0 ? `Rata-rata Tamu: ${value}` : 'No bookings yet'
           }
         }
       }

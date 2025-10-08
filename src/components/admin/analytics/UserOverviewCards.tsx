@@ -197,17 +197,17 @@ export function UserOverviewCards({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
         {[...Array(6)].map((_, index) => (
-          <Card key={index} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                  <div className="h-6 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          <Card key={index} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm w-full">
+            <CardContent className="p-3 h-20">
+              <div className="flex items-center justify-between h-full">
+                <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  <div className="h-5 w-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  <div className="h-2.5 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                 </div>
-                <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+                <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse flex-shrink-0 ml-2" />
               </div>
             </CardContent>
           </Card>
@@ -217,7 +217,7 @@ export function UserOverviewCards({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
       {statCards.map((stat, index) => (
         <motion.div
           key={stat.label}
@@ -225,38 +225,38 @@ export function UserOverviewCards({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1, duration: 0.5 }}
         >
-          <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105 w-full">
+            <CardContent className="p-3 h-20">
+              <div className="flex items-center justify-between h-full">
+                <div className="space-y-1 flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-600 dark:text-gray-400 truncate">
                     {stat.label}
                   </p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">
                       {stat.label.includes('Tingkat') ? `${stat.value}%` : stat.value}
                     </p>
                     {stat.change !== undefined && stat.changeType && (
-                      <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
+                      <div className={`flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full ${
                         stat.changeType === 'increase'
                           ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400'
                           : stat.changeType === 'decrease'
                           ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
                           : 'bg-gray-100 text-gray-700 dark:bg-gray-900/50 dark:text-gray-400'
                       }`}>
-                        <TrendingUp className={`w-3 h-3 ${stat.changeType === 'decrease' ? 'rotate-180' : ''}`} />
+                        <TrendingUp className={`w-2.5 h-2.5 ${stat.changeType === 'decrease' ? 'rotate-180' : ''}`} />
                         {Math.abs(stat.change)}%
                       </div>
                     )}
                   </div>
                   {stat.subtitle && (
-                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-500 truncate">
                       {stat.subtitle}
                     </p>
                   )}
                 </div>
-                <div className={`w-12 h-12 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
-                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                <div className={`w-8 h-8 rounded-lg ${stat.bgColor} flex items-center justify-center flex-shrink-0 ml-2`}>
+                  <stat.icon className={`w-4 h-4 ${stat.color}`} />
                 </div>
               </div>
             </CardContent>

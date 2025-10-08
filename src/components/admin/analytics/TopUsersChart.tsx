@@ -53,7 +53,26 @@ export function TopUsersChart({
   const itemsPerPage = 10
 
   const userAnalytics = useMemo(() => {
-    return aggregateUserAnalytics(bookings, users, dateFilter)
+    console.log('DEBUG: TopUsersChart - Input data:', {
+      bookingsCount: bookings?.length || 0,
+      usersCount: users?.length || 0,
+      dateFilter
+    })
+
+    const result = aggregateUserAnalytics(bookings, users, dateFilter)
+
+    console.log('DEBUG: TopUsersChart - Analytics result:', {
+      totalUsers: result.totalUsers,
+      activeUsers: result.activeUsers,
+      topUsersCount: result.topUsers.length,
+      sampleTopUsers: result.topUsers.slice(0, 3).map(u => ({
+        name: u.name,
+        bookingCount: u.bookingCount,
+        approvedBookingCount: u.approvedBookingCount
+      }))
+    })
+
+    return result
   }, [bookings, users, dateFilter])
 
   const filteredUsers = useMemo(() => {

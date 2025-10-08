@@ -211,18 +211,6 @@ export default function AnalyticsPage() {
         role="main"
       >
         <div className="p-4 sm:p-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 sm:mb-8"
-          >
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Analytics Dashboard
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">
-              Analisis mendalam penggunaan sistem reservasi ruangan
-            </p>
-          </motion.div>
 
           {/* Analytics Content will be loaded client-side */}
           <AnalyticsContent />
@@ -251,6 +239,19 @@ function AnalyticsContent() {
     bookingsError,
     users: users.length
   })
+
+  // Debug: Log booking statuses to understand the data
+  if (bookings && bookings.length > 0) {
+    const statusCounts = bookings.reduce((acc, booking) => {
+      acc[booking.status] = (acc[booking.status] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+
+    console.log('DEBUG: Booking status distribution:', statusCounts)
+    console.log('DEBUG: Sample booking statuses:', bookings.slice(0, 5).map(b => ({ id: b.id, status: b.status })))
+  } else {
+    console.log('DEBUG: No bookings found or bookings array is empty')
+  }
 
   // Fetch users data
   useEffect(() => {

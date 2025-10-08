@@ -59,40 +59,58 @@ export function AverageReservationTimeChart({
   const chartData = useMemo(() => {
     const roomDurationData = new Map()
 
+    // First, add all rooms (excluding Library Tour) to ensure rooms with no bookings are included
+    rooms?.forEach(room => {
+      if (room.name !== 'Library Tour' && room.is_active) {
+        roomDurationData.set(room.id, {
+          name: room.name,
+          totalDuration: 0,
+          bookingCount: 0,
+          capacity: room.capacity,
+          averageDuration: 0
+        })
+      }
+    })
+
+    // Then process bookings to update duration data
     filteredBookings.forEach(booking => {
       const roomId = booking.room_id
       const roomName = booking.rooms?.name || 'Unknown Room'
 
       if (!roomDurationData.has(roomId)) {
-        roomDurationData.set(roomId, {
-          name: roomName,
-          totalDuration: 0,
-          bookingCount: 0,
-          capacity: booking.rooms?.capacity || 0
-        })
+        // Only add rooms that aren't Library Tour and are active
+        if (roomName !== 'Library Tour') {
+          roomDurationData.set(roomId, {
+            name: roomName,
+            totalDuration: 0,
+            bookingCount: 0,
+            capacity: booking.rooms?.capacity || 0
+          })
+        }
       }
 
-      const data = roomDurationData.get(roomId)
+      if (roomDurationData.has(roomId)) {
+        const data = roomDurationData.get(roomId)
 
-      // Calculate duration in hours
-      if (booking.start_time && booking.end_time) {
-        const start = new Date(booking.start_time).getTime()
-        const end = new Date(booking.end_time).getTime()
-        const duration = (end - start) / (1000 * 60 * 60) // Convert to hours
+        // Calculate duration in hours
+        if (booking.start_time && booking.end_time) {
+          const start = new Date(booking.start_time).getTime()
+          const end = new Date(booking.end_time).getTime()
+          const duration = (end - start) / (1000 * 60 * 60) // Convert to hours
 
-        if (duration > 0 && duration <= 24) { // Filter out invalid durations
-          data.totalDuration += duration
-          data.bookingCount += 1
+          if (duration > 0 && duration <= 24) { // Filter out invalid durations
+            data.totalDuration += duration
+            data.bookingCount += 1
+          }
         }
       }
     })
 
-    // Calculate averages and filter out rooms with no valid bookings
+    // Calculate averages for all rooms (including those with no bookings)
     const roomAverages = Array.from(roomDurationData.values())
-      .filter(room => room.bookingCount > 0)
       .map(room => ({
         ...room,
-        averageDuration: Math.round((room.totalDuration / room.bookingCount) * 10) / 10
+        averageDuration: room.bookingCount > 0 ? Math.round((room.totalDuration / room.bookingCount) * 10) / 10 : 0
       }))
       .sort((a, b) => {
         if (sortOrder === 'desc') {
@@ -264,7 +282,10 @@ export function AverageReservationTimeChart({
               <div className="text-center">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Terpendek</p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {Math.min(...chartData.datasets[0].data)} jam
+                  {chartData.datasets[0].data.length > 0 && chartData.datasets[0].data.some(val => val > 0)
+                    ? `${Math.min(...chartData.datasets[0].data.filter(val => val > 0))} jam`
+                    : 'N/A'
+                  }
                 </p>
               </div>
             </div>
@@ -294,7 +315,8 @@ function getChartOptions() {
         padding: 12,
         callbacks: {
           label: (context: { parsed: { x: number } }) => {
-            return `Durasi: ${context.parsed.x} jam`
+            const value = context.parsed.x
+            return value > 0 ? `Durasi: ${value} jam` : 'No data'
           }
         }
       }
