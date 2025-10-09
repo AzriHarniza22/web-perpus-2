@@ -234,9 +234,9 @@ export function ExportButton({
             disabled={disabled}
             className={cn(
               "flex items-center gap-2 shadow-sm transition-all duration-200",
-              "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800",
+              "bg-gradient-to-r from-primary to-primary-700 hover:from-primary-700 hover:to-primary-800",
               "text-white border-0 font-medium",
-              hasActiveFilters && "ring-2 ring-blue-300 dark:ring-blue-600"
+              hasActiveFilters && "ring-2 ring-primary-300 dark:ring-primary-600"
             )}
           >
             <Download className="w-4 h-4" />

@@ -295,7 +295,7 @@ function AnalyticsDashboardContent({
           <CardContent className="p-3">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                <Filter className="w-4 h-4 text-primary dark:text-primary-foreground" aria-hidden="true" />
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-300" id="global-filters-label">Filter Global:</span>
               </div>
 
@@ -314,7 +314,7 @@ function AnalyticsDashboardContent({
                     className={cn(
                       "text-xs font-medium transition-all duration-200",
                       period.active
-                        ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                        ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
                         : "hover:bg-gray-50 dark:hover:bg-gray-700"
                     )}
                     aria-pressed={period.active}
@@ -393,7 +393,7 @@ function AnalyticsDashboardContent({
                 {filterState.dateRange && (
                   <Badge
                     variant="default"
-                    className="flex items-center gap-1.5 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                    className="flex items-center gap-1.5 bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground"
                   >
                     <CalendarIcon className="w-3 h-3" />
                     <span className="font-medium">
@@ -404,7 +404,7 @@ function AnalyticsDashboardContent({
                       variant="ghost"
                       size="sm"
                       onClick={clearDateFilter}
-                      className="h-4 w-4 p-0 ml-1 hover:bg-blue-200 dark:hover:bg-blue-800"
+                      className="h-4 w-4 p-0 ml-1 hover:bg-primary/20 dark:hover:bg-primary/30"
                       aria-label="Remove date filter"
                     >
                       <X className="h-3 w-3" />
@@ -796,7 +796,7 @@ function AnalyticsDashboardSkeleton() {
               <div className="h-10 w-[200px] bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
 
               <div className="flex gap-2">
-                <div className="h-6 w-24 bg-blue-100 dark:bg-blue-900/30 rounded-full animate-pulse" />
+                <div className="h-6 w-24 bg-primary/10 dark:bg-primary/20 rounded-full animate-pulse" />
                 <div className="h-6 w-20 bg-green-100 dark:bg-green-900/30 rounded-full animate-pulse" />
               </div>
             </div>

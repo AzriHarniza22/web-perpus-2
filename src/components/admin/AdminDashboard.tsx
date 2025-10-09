@@ -101,7 +101,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
   if (bookingsLoading || roomsLoading) {
     return (
       <Loading variant="skeleton">
-        <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 overflow-hidden">
+        <div className="flex flex-col h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 overflow-hidden">
           {/* Sidebar */}
           <AdminSidebar onToggle={setSidebarCollapsed} />
 
@@ -182,7 +182,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 overflow-hidden">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 overflow-hidden">
       {/* Sidebar */}
       <AdminSidebar onToggle={setSidebarCollapsed} />
 
@@ -196,7 +196,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
       >
         <div className="px-4 lg:px-6 py-3 flex justify-between items-center">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Dashboard
             </h1>
             <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400">Kelola ruangan dan reservasi</p>
@@ -233,8 +233,8 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
             className="flex-shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-3 lg:mb-4"
           >
             {[
-              { icon: Building, label: 'Total Ruangan', value: adminStats.totalRooms.toString(), color: 'from-blue-500 to-cyan-400' },
-              { icon: Users, label: 'Total Pengguna', value: adminStats.totalUsers.toString(), color: 'from-purple-500 to-pink-400' },
+              { icon: Building, label: 'Total Ruangan', value: adminStats.totalRooms.toString(), color: 'from-primary-500 to-cyan-400' },
+              { icon: Users, label: 'Total Pengguna', value: adminStats.totalUsers.toString(), color: 'from-secondary-500 to-accent-400' },
               { icon: Calendar, label: 'Hari Ini', value: adminStats.todayBookings.toString(), color: 'from-green-500 to-emerald-400' },
               { icon: Clock, label: 'Besok', value: adminStats.tomorrowBookings.toString(), color: 'from-orange-500 to-red-400' }
             ].map((stat, index) => (
@@ -274,7 +274,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                 <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm h-full flex flex-col min-h-0">
                   <CardHeader className="pb-2 lg:pb-3 flex-shrink-0">
                     <CardTitle className="flex items-center text-sm lg:text-base">
-                      <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+                      <Calendar className="w-4 h-4 mr-2 text-primary" />
                       Kalender Reservasi
                     </CardTitle>
                     <CardDescription className="text-xs lg:text-sm">
@@ -363,7 +363,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                 <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
                   <CardHeader className="pb-2 lg:pb-3">
                     <CardTitle className="flex items-center text-sm lg:text-base">
-                      <TrendingUp className="w-4 h-4 mr-2 text-blue-600" />
+                      <TrendingUp className="w-4 h-4 mr-2 text-primary" />
                       Reservasi Mendatang
                     </CardTitle>
                     <CardDescription className="text-xs lg:text-sm">
@@ -442,12 +442,12 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                             {tomorrowBookings.length > 0 && (
                               <div>
                                 <h4 className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
-                                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-1.5"></div>
+                                  <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-1.5"></div>
                                   Besok
                                 </h4>
                                 <div className="space-y-1.5">
                                   {tomorrowBookings.map((booking) => (
-                                    <div key={booking.id} className="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                    <div key={booking.id} className="flex items-center justify-between p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
                                       <div className="flex-1 min-w-0">
                                         <p className="font-medium text-gray-900 dark:text-white text-xs truncate">
                                           {booking.rooms?.name}

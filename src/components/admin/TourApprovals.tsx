@@ -112,15 +112,15 @@ export default function TourApprovals() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/50 backdrop-blur-sm hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50">
+              <Card className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/50 backdrop-blur-sm hover:shadow-xl hover:shadow-secondary-500/10 transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50">
                 <CardContent className="py-0 px-4">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex-1 space-y-3">
                       {/* Header with Tour and Status */}
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
-                          <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center mr-2">
-                            <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                          <div className="w-6 h-6 bg-secondary-100 dark:bg-secondary-900/50 rounded-full flex items-center justify-center mr-2">
+                            <Sparkles className="w-3 h-3 text-secondary dark:text-secondary-400" />
                           </div>
                           {tourInfo.name}
                         </h3>
@@ -134,7 +134,7 @@ export default function TourApprovals() {
                       <div className="flex items-center space-x-3">
                         <Avatar className="w-7 h-7">
                           <AvatarImage src={booking.profiles?.profile_photo || undefined} alt={booking.profiles?.full_name} />
-                          <AvatarFallback className="text-xs bg-gradient-to-br from-purple-400 to-pink-500 text-white">
+                          <AvatarFallback className="text-xs bg-gradient-to-br from-secondary-400 to-accent-500 text-white">
                             {booking.profiles?.full_name ? booking.profiles.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
                           </AvatarFallback>
                         </Avatar>
@@ -150,8 +150,8 @@ export default function TourApprovals() {
 
                       {/* Date and Time */}
                       <div className="flex items-center space-x-2">
-                        <div className="w-7 h-7 bg-purple-100 dark:bg-purple-800 rounded-full flex items-center justify-center">
-                          <Calendar className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                        <div className="w-7 h-7 bg-secondary-100 dark:bg-secondary-800 rounded-full flex items-center justify-center">
+                          <Calendar className="w-3.5 h-3.5 text-secondary dark:text-secondary-400" />
                         </div>
                         <div>
                           <p className="font-medium text-gray-900 dark:text-white text-sm">
@@ -169,20 +169,20 @@ export default function TourApprovals() {
                       <Dialog>
                         <DialogTrigger asChild>
                           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button variant="outline" size="sm" className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-600 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all">
-                              <Eye className="w-4 h-4 mr-2 text-purple-600" />
+                            <Button variant="outline" size="sm" className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-secondary-300 dark:hover:border-secondary-600 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all">
+                              <Eye className="w-4 h-4 mr-2 text-secondary" />
                               Lihat Detail
                             </Button>
                           </motion.div>
                         </DialogTrigger>
-                        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20">
+                        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white via-secondary-50/30 to-accent-50/30 dark:from-gray-900 dark:via-secondary-900/20 dark:to-accent-900/20">
                           <DialogHeader className="space-y-4 pb-6 border-b border-gray-200 dark:border-gray-700">
                             <div className="flex items-center space-x-4">
-                              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                              <div className="w-12 h-12 bg-gradient-to-br from-secondary to-accent-600 rounded-xl flex items-center justify-center shadow-lg">
                                 <Sparkles className="w-6 h-6 text-white" />
                               </div>
                               <div className="flex-1">
-                                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-secondary to-accent-600 bg-clip-text text-transparent">
                                   Detail Pemesanan Tour
                                 </DialogTitle>
                                 <DialogDescription className="text-base text-gray-600 dark:text-gray-300 mt-1">
@@ -202,28 +202,28 @@ export default function TourApprovals() {
                             {/* Basic Information Section */}
                             <div className="space-y-4">
                               <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mr-3">
-                                  <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                <div className="w-8 h-8 bg-secondary-100 dark:bg-secondary-900/50 rounded-lg flex items-center justify-center mr-3">
+                                  <Sparkles className="w-4 h-4 text-secondary dark:text-secondary-400" />
                                 </div>
                                 Informasi Tour
                               </h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
                                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
-                                    <Sparkles className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
+                                    <Sparkles className="w-4 h-4 mr-2 text-secondary dark:text-secondary-400" />
                                     Nama Tour
                                   </h4>
                                   <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{tourInfo.name}</p>
                                 </div>
                                 <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
                                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
-                                    <Users className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
+                                    <Users className="w-4 h-4 mr-2 text-secondary dark:text-secondary-400" />
                                     Peserta
                                   </h4>
                                   <div className="flex items-center space-x-3">
                                     <Avatar className="w-10 h-10">
                                       <AvatarImage src={booking.profiles?.profile_photo || undefined} alt={booking.profiles?.full_name} />
-                                      <AvatarFallback className="text-sm bg-gradient-to-br from-purple-400 to-pink-500 text-white">
+                                      <AvatarFallback className="text-sm bg-gradient-to-br from-secondary-400 to-accent-500 text-white">
                                         {booking.profiles?.full_name ? booking.profiles.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
                                       </AvatarFallback>
                                     </Avatar>
@@ -248,15 +248,15 @@ export default function TourApprovals() {
                             {/* Tour Details Section */}
                             <div className="space-y-4">
                               <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center mr-3">
-                                  <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900/50 rounded-lg flex items-center justify-center mr-3">
+                                  <MapPin className="w-4 h-4 text-primary dark:text-primary-400" />
                                 </div>
                                 Detail Tour
                               </h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
                                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
-                                    <MapPin className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+                                    <MapPin className="w-4 h-4 mr-2 text-primary dark:text-primary-400" />
                                     Meeting Point
                                   </h4>
                                   <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{tourInfo.meetingPoint}</p>
@@ -283,7 +283,7 @@ export default function TourApprovals() {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
                                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
-                                    <Calendar className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+                                    <Calendar className="w-4 h-4 mr-2 text-primary dark:text-primary-400" />
                                     Waktu Mulai
                                   </h4>
                                   <p className="text-gray-700 dark:text-gray-300 font-medium text-base">{formatDateTime(booking.start_time)}</p>
@@ -326,7 +326,7 @@ export default function TourApprovals() {
                                   <Button
                                     variant="outline"
                                     asChild
-                                    className="bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 dark:from-red-900/20 dark:to-pink-900/20 dark:hover:from-red-900/30 dark:hover:to-pink-900/30 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 transition-all"
+                                    className="bg-gradient-to-r from-red-50 to-accent-50 hover:from-red-100 hover:to-accent-100 dark:from-red-900/20 dark:to-accent-900/20 dark:hover:from-red-900/30 dark:hover:to-accent-900/30 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 transition-all"
                                   >
                                     <a
                                       href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
@@ -350,14 +350,14 @@ export default function TourApprovals() {
                             variant="outline"
                             size="sm"
                             asChild
-                            className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-600 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all"
+                            className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-secondary-300 dark:hover:border-secondary-600 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all"
                           >
                             <a
                               href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              <File className="w-4 h-4 mr-2 text-purple-600" />
+                              <File className="w-4 h-4 mr-2 text-secondary" />
                               Lihat Dokumen
                             </a>
                           </Button>

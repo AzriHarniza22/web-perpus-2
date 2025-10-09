@@ -139,8 +139,8 @@ export function UserOverviewCards({
       label: 'Total Pengguna',
       value: animatedValues.totalUsers,
       icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100 dark:bg-blue-900/50',
+      color: 'text-primary',
+      bgColor: 'bg-primary-100 dark:bg-primary-900/50',
       change: 12,
       changeType: 'increase'
     },
@@ -158,8 +158,8 @@ export function UserOverviewCards({
       label: 'Pengguna Baru',
       value: animatedValues.newUsersThisMonth,
       icon: UserPlus,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100 dark:bg-purple-900/50',
+      color: 'text-secondary',
+      bgColor: 'bg-secondary-100 dark:bg-secondary-900/50',
       subtitle: 'Bulan ini',
       change: 15,
       changeType: 'increase'

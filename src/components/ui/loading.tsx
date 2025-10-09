@@ -46,7 +46,7 @@ const FullscreenLoading: React.FC<{ message?: string; showDots?: boolean }> = ({
         backgroundPosition: { duration: 20, repeat: Infinity, ease: 'linear' },
       }}
       style={{ backgroundSize: '400% 400%' }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 overflow-hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 overflow-hidden"
     >
       {/* Floating Particles */}
       <div className="absolute inset-0 opacity-30">
@@ -54,19 +54,19 @@ const FullscreenLoading: React.FC<{ message?: string; showDots?: boolean }> = ({
           variants={particleVariants}
           custom={0}
           animate="animate"
-          className="absolute top-20 left-10 w-32 h-32 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl"
+          className="absolute top-20 left-10 w-32 h-32 bg-primary-400 rounded-full mix-blend-multiply filter blur-xl"
         />
         <motion.div
           variants={particleVariants}
           custom={1}
           animate="animate"
-          className="absolute top-40 right-10 w-24 h-24 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl"
+          className="absolute top-40 right-10 w-24 h-24 bg-secondary-400 rounded-full mix-blend-multiply filter blur-xl"
         />
         <motion.div
           variants={particleVariants}
           custom={2}
           animate="animate"
-          className="absolute bottom-32 left-1/2 w-28 h-28 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl"
+          className="absolute bottom-32 left-1/2 w-28 h-28 bg-accent-400 rounded-full mix-blend-multiply filter blur-xl"
         />
         <motion.div
           variants={particleVariants}
@@ -88,13 +88,13 @@ const FullscreenLoading: React.FC<{ message?: string; showDots?: boolean }> = ({
           <motion.div
             animate={reducedMotion ? {} : { rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-            className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1"
+            className="w-20 h-20 rounded-full bg-gradient-to-r from-primary via-secondary to-accent p-1"
           >
             <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 flex items-center justify-center">
               <motion.div
                 animate={reducedMotion ? {} : { rotate: -360 }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                className="w-16 h-16 border-4 border-transparent border-t-blue-500 border-r-purple-500 rounded-full"
+                className="w-16 h-16 border-4 border-transparent border-t-primary border-r-secondary rounded-full"
               />
             </div>
           </motion.div>
@@ -103,7 +103,7 @@ const FullscreenLoading: React.FC<{ message?: string; showDots?: boolean }> = ({
           <motion.div
             animate={reducedMotion ? {} : { scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute inset-0 rounded-full border-2 border-blue-400/50"
+            className="absolute inset-0 rounded-full border-2 border-primary/50"
           />
         </div>
 
@@ -133,7 +133,7 @@ const FullscreenLoading: React.FC<{ message?: string; showDots?: boolean }> = ({
                   repeat: Infinity,
                   delay: i * 0.2,
                 }}
-                className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full shadow-lg"
+                className="w-3 h-3 bg-gradient-to-r from-primary to-secondary rounded-full shadow-lg"
               />
             ))}
           </div>
@@ -161,7 +161,7 @@ const InlineLoading: React.FC<{
         animate={reducedMotion ? {} : { rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
         className={cn(
-          'border-2 border-blue-500 border-t-transparent rounded-full',
+          'border-2 border-primary border-t-transparent rounded-full',
           sizes[size]
         )}
       />

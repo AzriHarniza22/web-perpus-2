@@ -34,7 +34,7 @@ export default function Error({
         <div className="space-y-3">
           <Button
             onClick={reset}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+            className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary hover:to-secondary text-white"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
             Coba Lagi

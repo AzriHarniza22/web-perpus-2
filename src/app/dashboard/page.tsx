@@ -79,7 +79,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <Loading variant="skeleton">
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="mb-8">
               <Skeleton className="h-8 w-64 mb-2" />
@@ -114,7 +114,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
       {/* Sidebar */}
       <UserSidebar onToggle={setSidebarCollapsed} />
 
@@ -139,8 +139,8 @@ export default function DashboardPage() {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
           {[
-            { icon: BookOpen, label: 'Total Reservasi', value: stats.totalBookings, color: 'from-blue-500 to-cyan-400' },
-            { icon: Clock, label: 'Reservasi Mendatang', value: stats.upcomingBookings, color: 'from-purple-500 to-pink-400' },
+            { icon: BookOpen, label: 'Total Reservasi', value: stats.totalBookings, color: 'from-primary-500 to-cyan-400' },
+            { icon: Clock, label: 'Reservasi Mendatang', value: stats.upcomingBookings, color: 'from-secondary-500 to-accent-400' },
             { icon: CheckCircle, label: 'Reservasi Selesai', value: stats.completedBookings, color: 'from-green-500 to-emerald-400' },
             { icon: TrendingUp, label: 'Total Jam', value: stats.totalHours, color: 'from-orange-500 to-red-400' }
           ].map((stat, index) => (
@@ -179,7 +179,7 @@ export default function DashboardPage() {
               description: 'Pilih dan pesan ruangan yang tersedia untuk kebutuhan Anda',
               href: '/book',
               buttonText: 'Mulai Booking',
-              color: 'from-blue-500 to-cyan-400',
+              color: 'from-primary-500 to-cyan-400',
               variant: 'default' as const
             },
             {
@@ -197,7 +197,7 @@ export default function DashboardPage() {
               description: 'Update informasi profil dan preferensi Anda',
               href: '/profile',
               buttonText: 'Kelola Profil',
-              color: 'from-purple-500 to-pink-400',
+              color: 'from-secondary-500 to-accent-400',
               variant: 'outline' as const
             }
           ].map((card, index) => (
@@ -241,7 +241,7 @@ export default function DashboardPage() {
           <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
+                <Sparkles className="w-5 h-5 mr-2 text-secondary-600" />
                 Reservasi Mendatang
               </CardTitle>
               <CardDescription>
@@ -252,9 +252,9 @@ export default function DashboardPage() {
               {upcomingBookingsList.length > 0 ? (
                 <div className="space-y-4">
                   {upcomingBookingsList.slice(0, 3).map((booking) => (
-                    <div key={booking.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg">
+                    <div key={booking.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                        <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
                           <BookOpen className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -285,14 +285,14 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <BookOpen className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  <div className="w-16 h-16 bg-gradient-to-r from-primary-100 to-secondary-100 dark:from-primary-900 dark:to-secondary-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <BookOpen className="w-8 h-8 text-primary dark:text-primary-400" />
                   </div>
                   <p className="text-gray-500 dark:text-gray-400 mb-4">
                     Belum ada reservasi aktif
                   </p>
                   <Link href="/book">
-                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                    <Button className="bg-gradient-to-r from-primary to-secondary hover:from-primary hover:to-secondary">
                       <Sparkles className="w-4 h-4 mr-2" />
                       Buat Reservasi Pertama Anda
                     </Button>

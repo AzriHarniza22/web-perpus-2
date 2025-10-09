@@ -178,9 +178,9 @@ export function TourAverageGuestsChart({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
-              className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg"
+              className="text-center p-3 bg-secondary-50 dark:bg-secondary-900/20 rounded-lg"
             >
-              <p className="text-lg font-bold text-purple-600">{overallStats.avgParticipants}</p>
+              <p className="text-lg font-bold text-secondary">{overallStats.avgParticipants}</p>
               <p className="text-xs text-gray-600 dark:text-gray-400">Rata-rata</p>
             </motion.div>
 
@@ -188,9 +188,9 @@ export function TourAverageGuestsChart({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
+              className="text-center p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg"
             >
-              <p className="text-lg font-bold text-blue-600">{overallStats.minParticipants}</p>
+              <p className="text-lg font-bold text-primary">{overallStats.minParticipants}</p>
               <p className="text-xs text-gray-600 dark:text-gray-400">Minimum</p>
             </motion.div>
 

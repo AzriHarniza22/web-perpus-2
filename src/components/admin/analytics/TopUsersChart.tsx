@@ -144,7 +144,7 @@ export function TopUsersChart({
       case 3:
         return <Award className="w-5 h-5 text-amber-600" />
       default:
-        return <Star className="w-5 h-5 text-blue-500" />
+        return <Star className="w-5 h-5 text-primary-500" />
     }
   }
 
@@ -157,7 +157,7 @@ export function TopUsersChart({
       case 3:
         return 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-400'
       default:
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-400'
+        return 'bg-primary-100 text-primary-800 dark:bg-primary-900/50 dark:text-primary-400'
     }
   }
 
@@ -294,7 +294,7 @@ export function TopUsersChart({
                         </div>
 
                         <Avatar className="w-10 h-10">
-                          <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400">
+                          <AvatarFallback className="bg-primary-100 dark:bg-primary-900 text-primary dark:text-primary-400">
                             {getUserInitials(user.name)}
                           </AvatarFallback>
                         </Avatar>

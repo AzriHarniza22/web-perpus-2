@@ -157,7 +157,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <Loading variant="skeleton">
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="mb-8">
               <Skeleton className="h-8 w-48 mb-2" />
@@ -188,7 +188,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
       {/* Sidebar */}
       <UserSidebar onToggle={setSidebarCollapsed} />
 
@@ -215,7 +215,7 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="flex items-center">
-                      <UserIcon className="w-5 h-5 mr-2 text-blue-600" />
+                      <UserIcon className="w-5 h-5 mr-2 text-primary" />
                       Informasi Profil
                     </CardTitle>
                     <CardDescription>
@@ -254,10 +254,10 @@ export default function ProfilePage() {
                       />
                       <Label
                         htmlFor="profile-photo"
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
                       >
-                        <Camera className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm text-blue-700 dark:text-blue-300">Ubah Foto Profil</span>
+                        <Camera className="w-4 h-4 text-primary" />
+                        <span className="text-sm text-primary dark:text-primary-300">Ubah Foto Profil</span>
                       </Label>
                     </div>
                   )}
@@ -379,7 +379,7 @@ export default function ProfilePage() {
                     <Button
                       onClick={handleSave}
                       disabled={saving}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      className="bg-gradient-to-r from-primary to-secondary hover:from-primary hover:to-secondary"
                     >
                       {saving ? (
                         <motion.div

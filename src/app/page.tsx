@@ -212,7 +212,7 @@ const HomePage = () => {
           <div className="flex justify-between items-center h-20">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
             >
               Perpustakaan Aceh
             </motion.div>
@@ -231,15 +231,15 @@ const HomePage = () => {
                   whileHover={{ y: -2 }}
                   className={`relative font-medium transition-colors ${
                     activeSection === item.id
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
+                      ? 'text-primary dark:text-primary'
+                      : 'text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary'
                   }`}
                 >
                   {item.name}
                   {activeSection === item.id && (
                     <motion.div
                       layoutId="activeSection"
-                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-blue-600"
+                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
                     />
                   )}
                 </motion.a>
@@ -253,7 +253,7 @@ const HomePage = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => router.push('/login')}
-                className="px-6 py-2 text-blue-600 font-medium hover:text-blue-700 transition-colors"
+                className="px-6 py-2 text-primary font-medium hover:text-primary transition-colors"
               >
                 Masuk
               </motion.button>
@@ -261,7 +261,7 @@ const HomePage = () => {
                 whileHover={{ scale: 1.05, boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)' }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => router.push('/register')}
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-medium shadow-lg transition-all"
+                className="px-6 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-full font-medium shadow-lg transition-all"
               >
                 Daftar
               </motion.button>
@@ -296,7 +296,7 @@ const HomePage = () => {
                   <a
                     key={item.id}
                     href={`#${item.id}`}
-                    className="block py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    className="block py-2 text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {item.name}
@@ -305,13 +305,13 @@ const HomePage = () => {
                 <div className="flex space-x-4 pt-4">
                   <button
                     onClick={() => router.push('/login')}
-                    className="px-6 py-2 text-blue-600 font-medium hover:text-blue-700 transition-colors"
+                    className="px-6 py-2 text-primary font-medium hover:text-primary transition-colors"
                   >
                     Masuk
                   </button>
                   <button
                     onClick={() => router.push('/register')}
-                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-medium"
+                    className="px-6 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-full font-medium"
                   >
                     Daftar
                   </button>
@@ -326,26 +326,26 @@ const HomePage = () => {
       <section ref={heroRef} id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background Animation */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900"
+          className="absolute inset-0 bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900"
         >
           <div className="absolute inset-0 opacity-30">
             <motion.div
               variants={particleVariants}
               custom={0}
               animate="animate"
-              className="absolute top-20 left-10 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl"
+              className="absolute top-20 left-10 w-72 h-72 bg-primary-400 rounded-full mix-blend-multiply filter blur-xl"
             />
             <motion.div
               variants={particleVariants}
               custom={1}
               animate="animate"
-              className="absolute top-40 right-10 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl"
+              className="absolute top-40 right-10 w-72 h-72 bg-secondary-400 rounded-full mix-blend-multiply filter blur-xl"
             />
             <motion.div
               variants={particleVariants}
               custom={2}
               animate="animate"
-              className="absolute bottom-32 left-1/2 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl"
+              className="absolute bottom-32 left-1/2 w-72 h-72 bg-accent-400 rounded-full mix-blend-multiply filter blur-xl"
             />
             <motion.div
               variants={particleVariants}
@@ -388,7 +388,7 @@ const HomePage = () => {
                 className="text-5xl lg:text-7xl font-bold text-gray-900 dark:text-white leading-tight"
               >
                 Reservasi
-                <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                <span className="block bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                   Ruangan
                 </span>
                 Perpustakaan
@@ -410,7 +410,7 @@ const HomePage = () => {
                   whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(37, 99, 235, 0.4)' }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => router.push('/register')}
-                  className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg font-semibold rounded-full shadow-2xl transition-all flex items-center justify-center gap-2"
+                  className="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white text-lg font-semibold rounded-full shadow-2xl transition-all flex items-center justify-center gap-2"
                 >
                   Mulai Reservasi
                   <ArrowRight size={20} />
@@ -420,7 +420,7 @@ const HomePage = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsDemoModalOpen(true)}
-                  className="px-8 py-4 border-2 border-gray-300 text-gray-700 text-lg font-semibold rounded-full hover:border-blue-600 hover:text-blue-600 transition-all flex items-center justify-center gap-2"
+                  className="px-8 py-4 border-2 border-gray-300 text-gray-700 text-lg font-semibold rounded-full hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2"
                 >
                   <Play size={20} />
                   Lihat Demo
@@ -466,7 +466,7 @@ const HomePage = () => {
                   rotate: [0, 5, 0]
                 }}
                 transition={{ duration: 4, repeat: Infinity }}
-                className="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-r from-blue-400 to-purple-400 rounded-2xl opacity-80"
+                className="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-2xl opacity-80"
               />
               <motion.div
                 animate={{
@@ -474,7 +474,7 @@ const HomePage = () => {
                   rotate: [0, -5, 0]
                 }}
                 transition={{ duration: 3, repeat: Infinity }}
-                className="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-pink-400 to-red-400 rounded-full opacity-60"
+                className="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-accent-400 to-red-400 rounded-full opacity-60"
               />
             </motion.div>
           </div>
@@ -492,7 +492,7 @@ const HomePage = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Statistik <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Penggunaan</span>
+              Statistik <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Penggunaan</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Data real-time penggunaan sistem reservasi ruangan kami
@@ -521,7 +521,7 @@ const HomePage = () => {
                 }}
                 className="bg-gray-50 dark:bg-gray-800 rounded-3xl p-8 text-center"
               >
-                <div className="text-4xl lg:text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                <div className="text-4xl lg:text-5xl font-bold text-primary dark:text-primary mb-2">
                   <AnimatedCounter
                     from={0}
                     to={stat.value}
@@ -545,7 +545,7 @@ const HomePage = () => {
           >
             <div className="text-center mb-8">
               <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                Tetap <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Terhubung</span>
+                Tetap <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Terhubung</span>
               </h3>
               <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
                 Dapatkan update terbaru tentang fitur baru, tips penggunaan, dan berita dari Perpustakaan Aceh
@@ -575,7 +575,7 @@ const HomePage = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     type="submit"
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all"
+                    className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all"
                   >
                     Berlangganan
                   </motion.button>
@@ -605,7 +605,7 @@ const HomePage = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Fitur <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Unggulan</span>
+              Fitur <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Unggulan</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Nikmati pengalaman reservasi ruangan yang tak terlupakan dengan fitur-fitur canggih kami
@@ -618,13 +618,13 @@ const HomePage = () => {
                 icon: Calendar,
                 title: 'Kalender Interaktif',
                 description: 'Lihat ketersediaan ruangan secara real-time dengan kalender yang mudah digunakan',
-                color: 'from-blue-500 to-cyan-400'
+                color: 'from-primary-500 to-cyan-400'
               },
               {
                 icon: Clock,
                 title: 'Booking Instan',
                 description: 'Reservasi ruangan hanya dalam hitungan detik dengan sistem otomatis yang cepat',
-                color: 'from-purple-500 to-pink-400'
+                color: 'from-secondary-500 to-accent-400'
               },
               {
                 icon: Shield,
@@ -642,13 +642,13 @@ const HomePage = () => {
                 icon: Users,
                 title: 'Multi-User Support',
                 description: 'Kelola reservasi tim dengan fitur kolaborasi yang powerful dan intuitif',
-                color: 'from-red-500 to-pink-400'
+                color: 'from-red-500 to-accent-400'
               },
               {
                 icon: Award,
                 title: 'Dashboard Analytics',
                 description: 'Analisis penggunaan ruangan dengan dashboard yang comprehensive dan mudah dipahami',
-                color: 'from-indigo-500 to-purple-400'
+                color: 'from-indigo-500 to-secondary-400'
               }
             ].map((feature, index) => (
               <motion.div
@@ -675,7 +675,7 @@ const HomePage = () => {
                 className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl cursor-pointer group relative overflow-hidden"
               >
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute inset-0 bg-gradient-to-r from-primary-500/5 to-secondary-500/5 opacity-0 group-hover:opacity-100 transition-opacity"
                   initial={false}
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
@@ -702,7 +702,7 @@ const HomePage = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Apa Kata <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Pengguna</span>
+              Apa Kata <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Pengguna</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Pendapat pengguna tentang pengalaman mereka menggunakan sistem reservasi kami
@@ -763,7 +763,7 @@ const HomePage = () => {
                   key={index}
                   onClick={() => setCurrentTestimonial(index)}
                   className={`w-3 h-3 rounded-full transition-colors ${
-                    index === currentTestimonial ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+                    index === currentTestimonial ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
                   }`}
                 />
               ))}
@@ -773,7 +773,7 @@ const HomePage = () => {
           <Dialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen}>
             <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Demo Interaktif Sistem Reservasi
                 </DialogTitle>
               </DialogHeader>
@@ -818,9 +818,9 @@ const HomePage = () => {
                   </div>
                 </div>
 
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Cara Menggunakan:</h4>
-                  <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800 dark:text-blue-200">
+                <div className="bg-primary-50 dark:bg-primary-900/20 rounded-lg p-4">
+                  <h4 className="font-semibold text-primary-900 dark:text-primary-100 mb-2">Cara Menggunakan:</h4>
+                  <ol className="list-decimal list-inside space-y-1 text-sm text-primary-800 dark:text-primary-200">
                     <li>Daftar akun atau masuk ke sistem</li>
                     <li>Pilih ruangan yang diinginkan</li>
                     <li>Tentukan tanggal dan waktu</li>
@@ -849,7 +849,7 @@ const HomePage = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Pilihan <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Ruangan</span>
+              Pilihan <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Ruangan</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Berbagai pilihan ruangan dengan fasilitas lengkap untuk kebutuhan Anda
@@ -882,7 +882,7 @@ const HomePage = () => {
                 whileDrag={{ scale: 1.05, rotateY: 10 }}
                 className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group relative cursor-grab active:cursor-grabbing"
               >
-                <div className={`h-48 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 relative overflow-hidden`}>
+                <div className={`h-48 bg-gradient-to-r from-primary via-primary to-primary relative overflow-hidden`}>
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all" />
                   <motion.div
                     whileHover={{ scale: 1.1 }}
@@ -929,7 +929,7 @@ const HomePage = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Hubungi <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Kami</span>
+              Hubungi <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Kami</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Ada pertanyaan? Tim kami siap membantu Anda 24/7
@@ -942,7 +942,7 @@ const HomePage = () => {
                 icon: MapPin,
                 title: 'Alamat',
                 info: 'Jl. Teuku Umar No. 4, Banda Aceh, Aceh 23116',
-                color: 'from-blue-500 to-cyan-400'
+                color: 'from-primary-500 to-cyan-400'
               },
               {
                 icon: Phone,
@@ -954,7 +954,7 @@ const HomePage = () => {
                 icon: Mail,
                 title: 'Email',
                 info: 'info@perpustakaanaceh.go.id',
-                color: 'from-purple-500 to-pink-400'
+                color: 'from-secondary-500 to-accent-400'
               }
             ].map((contact, index) => (
               <motion.div
@@ -998,12 +998,12 @@ const HomePage = () => {
           whileHover={{ scale: 1.1, rotate: 5 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => router.push('/register')}
-          className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-2xl flex items-center justify-center text-white relative overflow-hidden group"
+          className="w-16 h-16 bg-gradient-to-r from-primary to-secondary rounded-full shadow-2xl flex items-center justify-center text-white relative overflow-hidden group"
         >
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute inset-0 bg-gradient-to-r from-secondary to-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
           />
           <Sparkles size={24} className="relative z-10" />
           <motion.div
@@ -1031,7 +1031,7 @@ const HomePage = () => {
           <div className="text-center">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-4"
+              className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-4"
             >
               Perpustakaan Wilayah Aceh
             </motion.div>

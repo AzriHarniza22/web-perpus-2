@@ -201,7 +201,7 @@ export default function TourManagement() {
         return (
           <div>
             <div className="font-medium flex items-center">
-              <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
+              <Sparkles className="w-4 h-4 mr-2 text-secondary" />
               {tourInfo.name}
             </div>
             <div className="text-sm text-muted-foreground">
@@ -415,8 +415,8 @@ export default function TourManagement() {
 
       {bookings.length === 0 && (
         <div className="text-center py-12">
-          <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+          <div className="w-16 h-16 bg-secondary-100 dark:bg-secondary-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-secondary dark:text-secondary-400" />
           </div>
           <p className="text-muted-foreground text-lg">No tour bookings found</p>
           <p className="text-sm text-muted-foreground mt-2">

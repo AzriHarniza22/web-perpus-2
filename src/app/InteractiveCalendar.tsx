@@ -152,8 +152,8 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
               className={`
                 relative p-2 text-sm rounded-lg transition-all duration-200
                 ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-700'}
-                ${isTodayDate ? 'bg-blue-500 text-white font-bold' : ''}
-                ${isSelected && !isTodayDate ? 'bg-purple-500 text-white' : ''}
+                ${isTodayDate ? 'bg-primary text-white font-bold' : ''}
+                ${isSelected && !isTodayDate ? 'bg-secondary-500 text-white' : ''}
                 ${dateStatus === 'approved' && !isTodayDate && !isSelected ? 'bg-red-100 text-red-600' : ''}
                 ${dateStatus === 'pending' && !isTodayDate && !isSelected ? 'bg-yellow-100 text-yellow-600' : ''}
                 ${!isTodayDate && !isSelected && !dateStatus && isCurrentMonth ? 'hover:bg-white/40' : ''}
@@ -221,7 +221,7 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
       {/* Legend */}
       <div className="mt-4 flex items-center justify-center gap-4 text-xs">
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+          <div className="w-3 h-3 bg-primary rounded-full"></div>
           <span className="text-gray-600">Hari ini</span>
         </div>
         <div className="flex items-center gap-1">
@@ -233,7 +233,7 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
           <span className="text-gray-600">Menunggu</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+          <div className="w-3 h-3 bg-secondary rounded-full"></div>
           <span className="text-gray-600">Dipilih</span>
         </div>
       </div>

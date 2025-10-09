@@ -13,7 +13,7 @@ export function RoomUsageChart({ data }: RoomUsageChartProps) {
     <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center">
-          <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
+          <BarChart3 className="w-5 h-5 mr-2 text-primary" />
           Penggunaan Ruangan
         </CardTitle>
         <CardDescription>
@@ -93,7 +93,7 @@ export function RoomUsageChart({ data }: RoomUsageChartProps) {
             <div key={item.room} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
               <span className="text-sm font-medium">{item.room}</span>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-blue-600">{item.bookings} reservasi</span>
+                <span className="text-sm text-primary">{item.bookings} reservasi</span>
                 <span className="text-sm text-gray-500">/ {item.capacity} kapasitas</span>
               </div>
             </div>

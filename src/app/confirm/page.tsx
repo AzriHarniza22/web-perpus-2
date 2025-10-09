@@ -53,7 +53,7 @@ function ConfirmPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Animation */}
       <div className="absolute inset-0">
         <motion.div
@@ -62,7 +62,7 @@ function ConfirmPageContent() {
             scale: [1, 1.1, 1]
           }}
           transition={{ duration: 20, repeat: Infinity }}
-          className="absolute inset-0 bg-gradient-to-br from-blue-400/10 via-purple-400/10 to-pink-400/10 dark:from-blue-400/5 dark:via-purple-400/5 dark:to-pink-400/5"
+          className="absolute inset-0 bg-gradient-to-br from-primary-400/10 via-secondary-400/10 to-accent-400/10 dark:from-primary-400/5 dark:via-secondary-400/5 dark:to-accent-400/5"
         />
       </div>
 
@@ -91,11 +91,11 @@ function ConfirmPageContent() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              className="w-16 h-16 bg-gradient-to-r from-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-4"
             >
               <Mail className="w-8 h-8 text-white" />
             </motion.div>
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Konfirmasi Email
             </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-300">
@@ -167,7 +167,7 @@ function ConfirmPageContent() {
               >
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium"
+                  className="w-full h-11 bg-gradient-to-r from-primary to-secondary hover:from-primary hover:to-secondary text-white font-medium"
                   disabled={loading}
                 >
                   {loading ? (
@@ -211,7 +211,7 @@ function ConfirmPageContent() {
               Sudah konfirmasi email?{' '}
               <Link
                 href="/login"
-                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
+                className="text-primary hover:text-primary dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
               >
                 Masuk di sini
               </Link>

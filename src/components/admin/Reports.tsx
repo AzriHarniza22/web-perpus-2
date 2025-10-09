@@ -1011,7 +1011,7 @@ export default function Reports() {
                   <p className="text-2xl font-bold">{stats.totalBookings}</p>
                   <p className="text-xs text-muted-foreground">Approved: {stats.approvedBookings} | Pending: {stats.pendingBookings}</p>
                 </div>
-                <FileText className="h-8 w-8 text-blue-600" />
+                <FileText className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
@@ -1037,7 +1037,7 @@ export default function Reports() {
                   <p className="text-sm font-medium text-muted-foreground">Total Pengguna</p>
                   <p className="text-2xl font-bold">{enhancedAnalytics.userAnalytics.totalUsers}</p>
                 </div>
-                <Users className="h-8 w-8 text-purple-600" />
+                <Users className="h-8 w-8 text-secondary" />
               </div>
             </CardContent>
           </Card>
@@ -1202,7 +1202,7 @@ export default function Reports() {
                   <p className="text-sm text-gray-600">{inst.userCount} users</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-blue-600">{inst.bookingCount}</p>
+                  <p className="font-bold text-primary">{inst.bookingCount}</p>
                   <p className="text-xs text-gray-500">bookings</p>
                 </div>
               </div>
@@ -1240,7 +1240,7 @@ export default function Reports() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="text-center p-3 border rounded-lg">
               <p className="text-sm font-medium text-gray-600">Total</p>
-              <p className="text-2xl font-bold text-blue-600">{notificationStats?.totalNotifications || 0}</p>
+              <p className="text-2xl font-bold text-primary">{notificationStats?.totalNotifications || 0}</p>
             </div>
             <div className="text-center p-3 border rounded-lg">
               <p className="text-sm font-medium text-gray-600">Sent</p>
@@ -1252,7 +1252,7 @@ export default function Reports() {
             </div>
             <div className="text-center p-3 border rounded-lg">
               <p className="text-sm font-medium text-gray-600">Email</p>
-              <p className="text-2xl font-bold text-purple-600">{notificationStats?.emailNotifications || 0}</p>
+              <p className="text-2xl font-bold text-secondary">{notificationStats?.emailNotifications || 0}</p>
             </div>
             <div className="text-center p-3 border rounded-lg">
               <p className="text-sm font-medium text-gray-600">WhatsApp</p>
@@ -1316,7 +1316,7 @@ export default function Reports() {
               <div key={index} className="border rounded-lg p-3 text-center">
                 <h5 className="font-medium text-sm">{room.roomName}</h5>
                 <p className="text-xs text-gray-600">{room.totalBookings} bookings</p>
-                <p className="text-xs text-blue-600">{room.utilizationRate.toFixed(1)}% utilization</p>
+                <p className="text-xs text-primary">{room.utilizationRate.toFixed(1)}% utilization</p>
               </div>
             ))}
           </div>
@@ -1363,7 +1363,7 @@ export default function Reports() {
             {stats!.monthlyStats.slice(0, 6).map((month, index) => (
               <div key={index} className="text-center p-2 border rounded">
                 <p className="text-xs font-medium">{month.month}</p>
-                <p className="text-lg font-bold text-blue-600">{month.count}</p>
+                <p className="text-lg font-bold text-primary">{month.count}</p>
               </div>
             ))}
           </div>

@@ -13,7 +13,7 @@ export function CancellationTrendsChart({ data }: CancellationTrendsChartProps) 
     <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center">
-          <TrendingDown className="w-5 h-5 mr-2 text-blue-600" />
+          <TrendingDown className="w-5 h-5 mr-2 text-primary" />
           Tren Pembatalan
         </CardTitle>
         <CardDescription>
@@ -111,7 +111,7 @@ export function CancellationTrendsChart({ data }: CancellationTrendsChartProps) 
             <span className="text-sm">Pembatalan</span>
           </div>
           <div className="flex items-center">
-            <div className="w-4 h-1 bg-blue-500 mr-2 border-dashed border-t-2"></div>
+            <div className="w-4 h-1 bg-primary-500 mr-2 border-dashed border-t-2"></div>
             <span className="text-sm">Total Reservasi</span>
           </div>
           <div className="flex items-center">

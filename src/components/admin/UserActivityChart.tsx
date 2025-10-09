@@ -13,7 +13,7 @@ export function UserActivityChart({ data }: UserActivityChartProps) {
     <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center">
-          <Users className="w-5 h-5 mr-2 text-blue-600" />
+          <Users className="w-5 h-5 mr-2 text-primary" />
           Aktivitas Pengguna
         </CardTitle>
         <CardDescription>
@@ -111,7 +111,7 @@ export function UserActivityChart({ data }: UserActivityChartProps) {
             <span className="text-sm">Pengguna Aktif</span>
           </div>
           <div className="flex items-center">
-            <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+            <div className="w-3 h-3 rounded-full bg-primary-500 mr-2"></div>
             <span className="text-sm">Reservasi</span>
           </div>
           <div className="flex items-center">

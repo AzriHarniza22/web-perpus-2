@@ -223,8 +223,8 @@ export function TourOverviewCards({
       label: 'Total Reservasi',
       value: animatedValues.totalBookings || tourStats.totalBookings,
       icon: BarChart3,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100 dark:bg-blue-900/50',
+      color: 'text-primary',
+      bgColor: 'bg-primary-100 dark:bg-primary-900/50',
       change: 12,
       changeType: 'increase'
     },
@@ -259,8 +259,8 @@ export function TourOverviewCards({
       label: 'Total Peserta',
       value: animatedValues.totalParticipants || tourStats.totalParticipants,
       icon: Users,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100 dark:bg-purple-900/50',
+      color: 'text-secondary',
+      bgColor: 'bg-secondary-100 dark:bg-secondary-900/50',
       subtitle: 'orang'
     },
     {

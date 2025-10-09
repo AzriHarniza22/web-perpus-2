@@ -76,8 +76,8 @@ const quickFilters: QuickFilter[] = [
     key: 'this-week',
     label: 'Minggu Ini',
     icon: <Calendar className="w-3 h-3" />,
-    color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-    activeColor: 'bg-blue-600 text-white'
+    color: 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300',
+    activeColor: 'bg-primary text-white'
   },
   {
     key: 'this-month',
@@ -90,8 +90,8 @@ const quickFilters: QuickFilter[] = [
     key: 'this-year',
     label: 'Tahun Ini',
     icon: <Calendar className="w-3 h-3" />,
-    color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-    activeColor: 'bg-purple-600 text-white'
+    color: 'bg-secondary-100 text-secondary-800 dark:bg-secondary-900/30 dark:text-secondary-300',
+    activeColor: 'bg-secondary text-white'
   }
 ]
 
@@ -121,7 +121,7 @@ export function EnhancedFilterPanel({
     { value: 'pending', label: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
     { value: 'approved', label: 'Approved', color: 'bg-green-100 text-green-800' },
     { value: 'rejected', label: 'Rejected', color: 'bg-red-100 text-red-800' },
-    { value: 'completed', label: 'Completed', color: 'bg-blue-100 text-blue-800' },
+    { value: 'completed', label: 'Completed', color: 'bg-primary-100 text-primary-800' },
     { value: 'cancelled', label: 'Cancelled', color: 'bg-gray-100 text-gray-800' },
   ]
 
@@ -187,7 +187,7 @@ export function EnhancedFilterPanel({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <Filter className="w-5 h-5 text-primary dark:text-primary-400" />
               <CardTitle className="text-lg">Filter Analytics</CardTitle>
             </div>
 

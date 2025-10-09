@@ -110,8 +110,8 @@ export default function BookTourPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+          <div className="w-16 h-16 bg-secondary-100 dark:bg-secondary-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-secondary-600 dark:text-secondary-400" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
             Anda perlu login untuk memesan tour
@@ -149,7 +149,7 @@ export default function BookTourPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:via-purple-900 dark:to-purple-900">
+    <div className="min-h-screen bg-gradient-to-br from-secondary-50 via-accent-50 to-orange-50 dark:from-gray-900 dark:via-secondary-900 dark:to-secondary-900">
       {/* Sidebar */}
       <UserSidebar onToggle={setSidebarCollapsed} />
 

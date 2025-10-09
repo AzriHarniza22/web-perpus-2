@@ -109,7 +109,7 @@ export default function BookRoomPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
       {/* Sidebar */}
       <UserSidebar onToggle={setSidebarCollapsed} />
 
@@ -128,7 +128,7 @@ export default function BookRoomPage() {
           <div className="mb-8">
             <Link
               href="/book"
-              className="inline-flex items-center text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mb-4 transition-colors"
+              className="inline-flex items-center text-primary hover:text-primary dark:text-primary-400 dark:hover:text-primary-300 mb-4 transition-colors"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

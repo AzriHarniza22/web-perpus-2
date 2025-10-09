@@ -325,14 +325,14 @@ export function UserBookingDistributionChart({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.1, duration: 0.3 }}
-              className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
+              className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800"
             >
               <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Mean</span>
+                <TrendingUp className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary-800 dark:text-primary-200">Mean</span>
               </div>
-              <p className="text-lg font-bold text-blue-900 dark:text-blue-100">{stats.mean}</p>
-              <p className="text-xs text-blue-700 dark:text-blue-300">Avg bookings</p>
+              <p className="text-lg font-bold text-primary-900 dark:text-primary-100">{stats.mean}</p>
+              <p className="text-xs text-primary-700 dark:text-primary-300">Avg bookings</p>
             </motion.div>
 
             <motion.div
@@ -353,14 +353,14 @@ export function UserBookingDistributionChart({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3, duration: 0.3 }}
-              className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800"
+              className="p-3 bg-secondary-50 dark:bg-secondary-900/20 rounded-lg border border-secondary-200 dark:border-secondary-800"
             >
               <div className="flex items-center gap-2 mb-1">
-                <BarChart3 className="w-4 h-4 text-purple-600" />
-                <span className="text-sm font-medium text-purple-800 dark:text-purple-200">Mode</span>
+                <BarChart3 className="w-4 h-4 text-secondary" />
+                <span className="text-sm font-medium text-secondary-800 dark:text-secondary-200">Mode</span>
               </div>
-              <p className="text-lg font-bold text-purple-900 dark:text-purple-100">{stats.mode}</p>
-              <p className="text-xs text-purple-700 dark:text-purple-300">Most common</p>
+              <p className="text-lg font-bold text-secondary-900 dark:text-secondary-100">{stats.mode}</p>
+              <p className="text-xs text-secondary-700 dark:text-secondary-300">Most common</p>
             </motion.div>
 
             <motion.div
@@ -404,7 +404,7 @@ export function UserBookingDistributionChart({
                     <div className="flex items-center gap-2">
                       <div className="w-20 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-blue-500 transition-all duration-300"
+                          className="h-full bg-primary-500 transition-all duration-300"
                           style={{ width: `${item.percentage}%` }}
                         />
                       </div>

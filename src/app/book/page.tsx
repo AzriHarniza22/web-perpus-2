@@ -84,7 +84,7 @@ export default function BookRoomPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
       {/* Sidebar */}
       <UserSidebar onToggle={setSidebarCollapsed} />
 
@@ -113,10 +113,10 @@ export default function BookRoomPage() {
               >
                 <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col h-full">
                   {/* Background Gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 via-secondary-50/30 to-accent-50/50 dark:from-primary-900/20 dark:via-secondary-900/20 dark:to-accent-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                   {/* Header with Image or Icon */}
-                  <div className="h-32 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 relative overflow-hidden">
+                  <div className="h-32 bg-gradient-to-r from-primary-400 via-primary-500 to-primary relative overflow-hidden">
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300" />
                     <motion.div
                       whileHover={{ scale: 1.1 }}
@@ -147,14 +147,14 @@ export default function BookRoomPage() {
                   <CardHeader className="relative z-10">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-h-[60px]">
-                        <CardTitle className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        <CardTitle className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-400 transition-colors">
                           {room.name}
                         </CardTitle>
                         <CardDescription className="text-gray-600 dark:text-gray-300 mt-1">
                           {room.description}
                         </CardDescription>
                       </div>
-                      <div className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium">
+                      <div className="flex items-center gap-1 bg-primary-100 dark:bg-primary-900/50 text-primary-800 dark:text-primary-200 px-3 py-1 rounded-full text-sm font-medium">
                         <Users className="w-4 h-4" />
                         {room.capacity}
                       </div>
@@ -164,7 +164,7 @@ export default function BookRoomPage() {
                   <CardContent className="relative z-10 flex flex-col flex-grow">
                     <div className="mb-6 min-h-[100px]">
                       <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                        <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
+                        <Sparkles className="w-4 h-4 mr-2 text-secondary-600" />
                         Fasilitas
                       </h4>
                       <div className="flex flex-wrap gap-2">
@@ -190,7 +190,7 @@ export default function BookRoomPage() {
                     >
                       <Button
                         onClick={() => router.push(`/book/${room.id}`)}
-                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300"
+                        className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary hover:to-secondary text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300"
                       >
                         Pesan Ruangan Ini
                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />

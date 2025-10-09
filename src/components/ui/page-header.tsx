@@ -39,7 +39,7 @@ export function PageHeader({
           animate={{ opacity: 1 }}
           className="flex-1"
         >
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             {title}
           </h1>
           {description && (

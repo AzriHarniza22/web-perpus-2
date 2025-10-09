@@ -16,27 +16,27 @@ import BookingDetailModal from '@/components/admin/BookingDetailModal'
 const bookingTypeConfigs = {
   room: {
     icon: Building,
-    color: { primary: 'blue', secondary: 'indigo', background: 'blue-50' },
-    gradient: 'from-blue-600 to-indigo-600',
+    color: { primary: 'primary', secondary: 'primary', background: 'primary/10' },
+    gradient: 'from-primary to-primary',
     label: 'Reservasi Ruangan',
-    badgeBg: 'blue-100',
-    badgeBorder: 'blue-200'
+    badgeBg: 'primary/10',
+    badgeBorder: 'primary/20'
   },
   tour: {
     icon: Sparkles,
-    color: { primary: 'purple', secondary: 'pink', background: 'purple-50' },
-    gradient: 'from-purple-600 to-pink-600',
+    color: { primary: 'secondary', secondary: 'secondary', background: 'secondary/10' },
+    gradient: 'from-secondary to-secondary',
     label: 'Pemesanan Tour',
-    badgeBg: 'purple-100',
-    badgeBorder: 'purple-200'
+    badgeBg: 'secondary/10',
+    badgeBorder: 'secondary/20'
   }
 }
 
 // Enhanced filter configuration with Indonesian labels
 const filterConfigs = {
-  all: { key: 'all', label: 'Semua', icon: Grid3X3, color: 'text-gray-600', bgColor: 'bg-gray-100' },
-  room: { key: 'room', label: 'Ruangan', icon: Building, color: 'text-blue-600', bgColor: 'bg-blue-100' },
-  tour: { key: 'tour', label: 'Tour', icon: Sparkles, color: 'text-purple-600', bgColor: 'bg-purple-100' }
+  all: { key: 'all', label: 'Semua', icon: Grid3X3, color: 'text-muted-foreground', bgColor: 'bg-muted' },
+  room: { key: 'room', label: 'Ruangan', icon: Building, color: 'text-primary', bgColor: 'bg-primary/10' },
+  tour: { key: 'tour', label: 'Tour', icon: Sparkles, color: 'text-secondary', bgColor: 'bg-secondary/10' }
 }
 
 export default function BookingApprovals() {
@@ -118,7 +118,7 @@ export default function BookingApprovals() {
       {/* Enhanced Header with Filter */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             Persetujuan Reservasi
           </h2>
           <p className="text-muted-foreground">Tinjau dan kelola permintaan reservasi yang menunggu persetujuan</p>
@@ -170,7 +170,7 @@ export default function BookingApprovals() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className={`bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50 hover:shadow-${config.color.primary}-500/10`}>
+              <Card className={`bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50 hover:shadow-primary/10`}>
                 <CardContent className="py-0 px-4">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex-1 space-y-3">
@@ -182,7 +182,7 @@ export default function BookingApprovals() {
                           </div>
                           {bookingTypeKey === 'tour' ? tourInfo?.name : booking.rooms?.name}
                         </h3>
-                        <Badge className={`bg-${config.badgeBg} text-${config.color.primary}-800 dark:bg-${config.badgeBg} dark:text-${config.color.primary}-300 border border-${config.badgeBorder} dark:border-${config.color.primary}-800 px-3 py-1`}>
+                        <Badge className={`bg-${config.badgeBg} text-primary dark:bg-${config.badgeBg} dark:text-primary-foreground border border-${config.badgeBorder} dark:border-primary/30 px-3 py-1`}>
                           <Clock className="w-3 h-3 mr-1" />
                           Menunggu
                         </Badge>
@@ -208,8 +208,8 @@ export default function BookingApprovals() {
 
                     {/* Enhanced Date and Time with Type-specific Icons */}
                     <div className="flex items-center space-x-2">
-                      <div className={`w-8 h-8 bg-${config.color.background} dark:bg-${config.color.primary}-900/50 rounded-full flex items-center justify-center`}>
-                        <Calendar className={`w-4 h-4 text-${config.color.primary}-600 dark:text-${config.color.primary}-400`} />
+                      <div className={`w-8 h-8 bg-${config.color.background} dark:bg-${config.color.primary}/20 rounded-full flex items-center justify-center`}>
+                        <Calendar className={`w-4 h-4 text-${config.color.primary} dark:text-${config.color.primary}-foreground`} />
                       </div>
                       <div>
                         <p className="font-medium text-gray-900 dark:text-white text-sm">
@@ -230,9 +230,9 @@ export default function BookingApprovals() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleViewDetails(booking)}
-                        className={`w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-${config.color.primary}-300 dark:hover:border-${config.color.primary}-600 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all`}
+                        className={`w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-primary/30 dark:hover:border-primary/50 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all`}
                       >
-                        <Eye className={`w-4 h-4 mr-2 text-${config.color.primary}-600`} />
+                        <Eye className={`w-4 h-4 mr-2 text-${config.color.primary}`} />
                         Lihat Detail
                       </Button>
                     </motion.div>
@@ -243,14 +243,14 @@ export default function BookingApprovals() {
                           variant="outline"
                           size="sm"
                           asChild
-                          className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-600 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all"
+                          className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-secondary/30 dark:hover:border-secondary/50 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all"
                         >
                           <a
                             href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            <File className="w-4 h-4 mr-2 text-purple-600" />
+                            <File className="w-4 h-4 mr-2 text-secondary" />
                             Lihat Proposal
                           </a>
                         </Button>
@@ -310,8 +310,8 @@ export default function BookingApprovals() {
             </>
           ) : bookingType === 'room' ? (
             <>
-              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Building className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <div className="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Building className="w-8 h-8 text-primary dark:text-primary-foreground" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                 Tidak Ada Reservasi Ruangan
@@ -322,8 +322,8 @@ export default function BookingApprovals() {
             </>
           ) : (
             <>
-              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+              <div className="w-16 h-16 bg-secondary/10 dark:bg-secondary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-secondary dark:text-secondary-foreground" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                 Tidak Ada Pemesanan Tour

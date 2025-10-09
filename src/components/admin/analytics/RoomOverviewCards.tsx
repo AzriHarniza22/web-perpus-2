@@ -219,8 +219,8 @@ export function RoomOverviewCards({
       label: 'Total Reservasi',
       value: animatedValues.totalBookings || roomStats.totalBookings,
       icon: BarChart3,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100 dark:bg-blue-900/50',
+      color: 'text-primary',
+      bgColor: 'bg-primary-100 dark:bg-primary-900/50',
       change: 12,
       changeType: 'increase'
     },
@@ -255,8 +255,8 @@ export function RoomOverviewCards({
       label: 'Total Tamu',
       value: animatedValues.totalGuests || roomStats.totalGuests,
       icon: Users,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100 dark:bg-purple-900/50',
+      color: 'text-secondary',
+      bgColor: 'bg-secondary-100 dark:bg-secondary-900/50',
       subtitle: 'orang'
     },
     {
@@ -271,8 +271,8 @@ export function RoomOverviewCards({
       label: 'Rata-rata Tamu',
       value: animatedValues.avgGuestsPerBooking || roomStats.avgGuestsPerBooking,
       icon: Users,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100 dark:bg-purple-900/50',
+      color: 'text-secondary',
+      bgColor: 'bg-secondary-100 dark:bg-secondary-900/50',
       subtitle: 'orang/booking'
     },
     {

@@ -160,7 +160,7 @@ export function ReservationHeatmap({ bookings, isLoading = false }: ReservationH
                           className={`
                             h-8 rounded-sm cursor-pointer transition-all duration-200
                             ${getIntensityColor(count)}
-                            hover:ring-2 hover:ring-blue-400 hover:ring-opacity-50
+                            hover:ring-2 hover:ring-primary-400 hover:ring-opacity-50
                           `}
                           title={`${count} reservasi pada hari ${['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][dayIndex]}, jam ${hourIndex}:00`}
                           whileHover={{ scale: 1.2 }}

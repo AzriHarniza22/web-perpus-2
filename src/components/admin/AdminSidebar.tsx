@@ -84,7 +84,7 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
           animate={{ opacity: 1 }}
           className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'}`}
         >
-          <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 bg-gradient-to-r from-primary to-secondary rounded-lg flex items-center justify-center flex-shrink-0">
             <Shield className="w-5 h-5 text-white" />
           </div>
           <AnimatePresence>
@@ -96,7 +96,7 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <h2 className="text-sm font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent whitespace-nowrap">
+                <h2 className="text-sm font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
                   Admin Panel
                 </h2>
                 <p className="text-xs text-gray-600 dark:text-gray-400">Perpustakaan Aceh</p>
@@ -119,8 +119,8 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
                   isCollapsed ? 'justify-center' : 'space-x-3'
                 } ${
                   item.active
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
+                    ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-primary dark:hover:text-primary-400'
                 }`}
                 title={isCollapsed ? item.label : undefined}
               >

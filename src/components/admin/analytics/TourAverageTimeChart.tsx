@@ -180,9 +180,9 @@ export function TourAverageTimeChart({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
-              className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
+              className="text-center p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg"
             >
-              <p className="text-lg font-bold text-blue-600">{overallStats.avgDuration}h</p>
+              <p className="text-lg font-bold text-primary">{overallStats.avgDuration}h</p>
               <p className="text-xs text-gray-600 dark:text-gray-400">Rata-rata</p>
             </motion.div>
 

@@ -65,7 +65,7 @@ export default function AdminHistoryPage() {
   if (loading) {
     return (
       <Loading variant="skeleton">
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+        <div className="min-h-screen bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 dark:from-background dark:via-primary/20 dark:to-secondary/20">
           {/* Sidebar */}
           <AdminSidebar onToggle={setSidebarCollapsed} />
 
@@ -137,7 +137,7 @@ export default function AdminHistoryPage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 dark:from-background dark:via-primary/20 dark:to-secondary/20">
       {/* Sidebar */}
       <AdminSidebar onToggle={setSidebarCollapsed} />
 
@@ -154,7 +154,7 @@ export default function AdminHistoryPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               History Management
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">

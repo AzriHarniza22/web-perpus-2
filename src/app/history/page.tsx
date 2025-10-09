@@ -67,7 +67,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
       {/* Sidebar */}
       <UserSidebar onToggle={setSidebarCollapsed} />
 
@@ -101,7 +101,7 @@ export default function HistoryPage() {
                     <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                       booking.status === 'approved' ? 'bg-green-100 text-green-800' :
                       booking.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                      booking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                      booking.status === 'completed' ? 'bg-primary-100 text-primary-800' :
                       'bg-yellow-100 text-yellow-800'
                     }`}>
                       {booking.status === 'approved' ? 'Disetujui' :
@@ -138,7 +138,7 @@ export default function HistoryPage() {
                 <div className="text-center mt-4">
                   <Link
                     href="/"
-                    className="inline-block bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+                    className="inline-block bg-primary text-white py-2 px-4 rounded hover:bg-primary"
                   >
                     Buat Reservasi Baru
                   </Link>

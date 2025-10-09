@@ -93,9 +93,9 @@ export default function BookingDetailModal({
     if (isTour) {
       return {
         icon: Sparkles,
-        gradient: 'from-purple-600 to-pink-600',
-        bgGradient: 'from-purple-50 to-pink-50',
-        darkBgGradient: 'from-purple-900/20 to-pink-900/20',
+        gradient: 'from-secondary to-accent-600',
+        bgGradient: 'from-secondary-50 to-accent-50',
+        darkBgGradient: 'from-secondary-900/20 to-accent-900/20',
         primaryColor: 'purple',
         label: 'Pemesanan Tour',
         typeLabel: 'Tour'
@@ -103,9 +103,9 @@ export default function BookingDetailModal({
     } else {
       return {
         icon: Building,
-        gradient: 'from-blue-600 to-indigo-600',
-        bgGradient: 'from-blue-50 to-indigo-50',
-        darkBgGradient: 'from-blue-900/20 to-indigo-900/20',
+        gradient: 'from-primary to-indigo-600',
+        bgGradient: 'from-primary-50 to-indigo-50',
+        darkBgGradient: 'from-primary-900/20 to-indigo-900/20',
         primaryColor: 'blue',
         label: 'Reservasi Ruangan',
         typeLabel: 'Ruangan'
@@ -348,8 +348,8 @@ export default function BookingDetailModal({
           {booking.event_description && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center mr-3">
-                  <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <div className="w-8 h-8 bg-secondary-100 dark:bg-secondary-900/50 rounded-lg flex items-center justify-center mr-3">
+                  <FileText className="w-4 h-4 text-secondary dark:text-secondary-400" />
                 </div>
                 Deskripsi Kegiatan
               </h3>
@@ -387,7 +387,7 @@ export default function BookingDetailModal({
                 <Button
                   variant="outline"
                   asChild
-                  className="bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 dark:from-red-900/20 dark:to-pink-900/20 dark:hover:from-red-900/30 dark:hover:to-pink-900/30 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 transition-all"
+                  className="bg-gradient-to-r from-red-50 to-accent-50 hover:from-red-100 hover:to-accent-100 dark:from-red-900/20 dark:to-accent-900/20 dark:hover:from-red-900/30 dark:hover:to-accent-900/30 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 transition-all"
                 >
                   <a
                     href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}

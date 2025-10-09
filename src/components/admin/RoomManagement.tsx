@@ -151,7 +151,7 @@ export default function RoomManagement() {
                   photos: [],
                 })
               }}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary hover:bg-primary/90"
             >
               <Plus className="w-4 h-4 mr-2" />
               Tambah Ruangan
@@ -215,9 +215,9 @@ export default function RoomManagement() {
                   accept="image/*"
                   onChange={handleFileUpload}
                   disabled={uploading}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                 />
-                {uploading && <p className="text-sm text-blue-600 mt-1">Mengunggah...</p>}
+                {uploading && <p className="text-sm text-primary mt-1">Mengunggah...</p>}
                 <div className="flex flex-wrap gap-2 mt-2">
                   {formData.photos.map((url, index) => (
                     <div key={index} className="relative">
@@ -237,7 +237,7 @@ export default function RoomManagement() {
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                   Batal
                 </Button>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                <Button type="submit" className="bg-primary hover:bg-primary/90">
                   {editingRoom ? 'Perbarui Ruangan' : 'Tambah Ruangan'}
                 </Button>
               </DialogFooter>
@@ -279,10 +279,10 @@ export default function RoomManagement() {
             >
               <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col h-full">
                 {/* Background Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 dark:from-primary/20 dark:via-secondary/20 dark:to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                 {/* Header with Image or Icon */}
-                <div className="aspect-video bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 relative overflow-hidden">
+                <div className="aspect-video bg-gradient-to-r from-primary/60 via-primary/70 to-primary/80 relative overflow-hidden">
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300" />
                   <motion.div
                     whileHover={{ scale: 1.1 }}
@@ -313,14 +313,14 @@ export default function RoomManagement() {
                 <CardHeader className="relative z-10">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-h-[60px]">
-                      <CardTitle className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      <CardTitle className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-foreground transition-colors">
                         {room.name}
                       </CardTitle>
                       <CardDescription className="text-gray-600 dark:text-gray-300 mt-1">
                         {room.description}
                       </CardDescription>
                     </div>
-                    <div className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="flex items-center gap-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
                       <Users className="w-4 h-4" />
                       {room.capacity}
                     </div>
@@ -330,7 +330,7 @@ export default function RoomManagement() {
                 <CardContent className="relative z-10 flex flex-col flex-grow">
                   <div className="mb-6 min-h-[100px]">
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                      <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
+                      <Sparkles className="w-4 h-4 mr-2 text-secondary" />
                       Fasilitas
                     </h4>
                     <div className="flex flex-wrap gap-2">
@@ -358,7 +358,7 @@ export default function RoomManagement() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleEdit(room)}
-                        className="p-2 hover:bg-blue-50 hover:border-blue-300 hover:text-black hover:scale-110 transition-all"
+                        className="p-2 hover:bg-primary/10 hover:border-primary/30 hover:text-primary hover:scale-110 transition-all"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>

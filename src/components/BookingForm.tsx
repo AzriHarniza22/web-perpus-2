@@ -248,14 +248,14 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
         >
           <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
             {/* Background Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 via-indigo-50/30 to-secondary-50/50 dark:from-primary-900/20 dark:via-indigo-900/20 dark:to-secondary-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
             <CardHeader className="relative z-10">
               <CardTitle className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-10 h-10 bg-gradient-to-r from-primary to-cyan-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                   <CalendarIcon className="w-5 h-5 text-white" />
                 </div>
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Pilih Tanggal
                 </span>
               </CardTitle>
@@ -296,7 +296,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                       fontWeight: 'bold'
                     },
                     today: {
-                      backgroundColor: 'rgb(59 130 246)', // blue-500
+                      backgroundColor: 'var(--primary)',
                       color: 'white',
                       fontWeight: 'bold'
                     }
@@ -315,7 +315,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                   className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3"
                 >
                   <h4 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center">
-                    <Clock className="w-4 h-4 mr-2 text-blue-600" />
+                    <Clock className="w-4 h-4 mr-2 text-primary" />
                     Waktu yang sudah dipesan untuk {formatDate(selectedDate, 'dd MMMM yyyy')}:
                   </h4>
                   <div className="space-y-1">
@@ -365,14 +365,14 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
       >
         <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
           {/* Background Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-pink-50/30 to-orange-50/50 dark:from-purple-900/20 dark:via-pink-900/20 dark:to-orange-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-secondary-50/50 via-accent-50/30 to-orange-50/50 dark:from-secondary-900/20 dark:via-accent-900/20 dark:to-orange-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
           <CardHeader className="relative z-10">
             <CardTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 bg-gradient-to-r from-secondary to-accent-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">
                 Detail Reservasi
               </span>
             </CardTitle>
@@ -515,7 +515,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
               >
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-secondary to-accent hover:from-secondary-700 hover:to-accent-700 text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300"
                   disabled={createBookingMutation.isPending}
                 >
                   {createBookingMutation.isPending ? (

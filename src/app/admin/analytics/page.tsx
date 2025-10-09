@@ -71,7 +71,7 @@ export default function AnalyticsPage() {
   if (loading || authLoading) {
     return (
       <Loading variant="skeleton" aria-label="Memuat halaman analytics">
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+        <div className="min-h-screen bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 dark:from-background dark:via-primary/20 dark:to-secondary/20">
           {/* Sidebar */}
           <AdminSidebar onToggle={setSidebarCollapsed} />
 
@@ -144,7 +144,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 dark:from-background dark:via-primary/20 dark:to-secondary/20">
       {/* Sidebar */}
       <AdminSidebar onToggle={setSidebarCollapsed} />
 
@@ -163,7 +163,7 @@ export default function AnalyticsPage() {
             animate={{ opacity: 1 }}
             className="min-w-0 flex-1"
           >
-            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate">
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent truncate">
               Analytics & Reports
             </h1>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
@@ -313,17 +313,17 @@ function AnalyticsContent() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
-          className="fixed top-20 right-4 z-40 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 shadow-lg backdrop-blur-sm"
+          className="fixed top-20 right-4 z-40 bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30 rounded-lg p-4 shadow-lg backdrop-blur-sm"
           role="status"
           aria-live="polite"
         >
           <div className="flex items-center gap-3">
-            <Loader2 className="w-5 h-5 animate-spin text-blue-600" aria-hidden="true" />
+            <Loader2 className="w-5 h-5 animate-spin text-primary" aria-hidden="true" />
             <div>
-              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+              <p className="text-sm font-medium text-primary dark:text-primary-foreground">
                 Mengekspor {exportStatus.format?.toUpperCase()}...
               </p>
-              <p className="text-xs text-blue-700 dark:text-blue-300">
+              <p className="text-xs text-primary/80 dark:text-primary-foreground/80">
                 Mohon tunggu sebentar
               </p>
             </div>

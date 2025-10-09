@@ -201,7 +201,7 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
 
         return (
           <div className="flex items-center space-x-2">
-            <TypeIcon className="w-4 h-4 text-blue-600" />
+            <TypeIcon className="w-4 h-4 text-primary" />
             <Badge variant="outline" className="text-xs">
               {typeLabel}
             </Badge>
@@ -263,7 +263,7 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
           return (
             <div>
               <div className="font-medium flex items-center">
-                <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
+                <Sparkles className="w-4 h-4 mr-2 text-secondary" />
                 {tourName}
               </div>
               <div className="text-sm text-muted-foreground">
@@ -438,7 +438,7 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold flex items-center">
-              <History className="w-8 h-8 mr-3 text-blue-600" />
+              <History className="w-8 h-8 mr-3 text-primary" />
               History Management
             </h1>
             <p className="text-muted-foreground">Unified view of all reservations and tour bookings</p>
@@ -500,7 +500,7 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center">
-            <History className="w-8 h-8 mr-3 text-blue-600" />
+            <History className="w-8 h-8 mr-3 text-primary" />
             History Management
           </h1>
           <p className="text-muted-foreground">Unified view of all reservations and tour bookings</p>
@@ -608,8 +608,8 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
 
       {filteredBookings.length === 0 && (
         <div className="text-center py-12">
-          <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-            <History className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+          <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <History className="w-8 h-8 text-primary dark:text-primary-400" />
           </div>
           <p className="text-muted-foreground text-lg">No bookings found</p>
           <p className="text-sm text-muted-foreground mt-2">
