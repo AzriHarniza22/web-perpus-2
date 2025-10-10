@@ -84,7 +84,7 @@ export default function BookRoomPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
+    <div className="min-h-screen bg-background">
       {/* Sidebar */}
       <UserSidebar onToggle={setSidebarCollapsed} />
 
@@ -111,12 +111,10 @@ export default function BookRoomPage() {
                 whileHover={{ y: -10, scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col h-full">
-                  {/* Background Gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 via-secondary-50/30 to-accent-50/50 dark:from-primary-900/20 dark:via-secondary-900/20 dark:to-accent-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <Card className="bg-card backdrop-blur-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col h-full">
 
                   {/* Header with Image or Icon */}
-                  <div className="h-32 bg-gradient-to-r from-primary-400 via-primary-500 to-primary relative overflow-hidden">
+                  <div className="h-32 bg-primary relative overflow-hidden">
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300" />
                     <motion.div
                       whileHover={{ scale: 1.1 }}
@@ -140,7 +138,7 @@ export default function BookRoomPage() {
                         rotate: [0, 5, 0]
                       }}
                       transition={{ duration: 4, repeat: Infinity }}
-                      className="absolute -top-2 -right-2 w-12 h-12 bg-white/20 rounded-full"
+                      className="absolute -top-2 -right-2 w-12 h-12 bg-background/20 rounded-full"
                     />
                   </div>
 
@@ -174,7 +172,7 @@ export default function BookRoomPage() {
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: index * 0.1 + idx * 0.05 }}
-                            className="flex items-center gap-1 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-xs font-medium"
+                            className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-xs font-medium"
                           >
                             <CheckCircle className="w-3 h-3" />
                             {facility}
@@ -190,10 +188,10 @@ export default function BookRoomPage() {
                     >
                       <Button
                         onClick={() => router.push(`/book/${room.id}`)}
-                        className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary hover:to-secondary text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300"
+                        className="w-full bg-primary hover:bg-primary text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300"
                       >
                         Pesan Ruangan Ini
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight className="w-4 h-4 ml-2 text-white group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </motion.div>
                   </CardContent>

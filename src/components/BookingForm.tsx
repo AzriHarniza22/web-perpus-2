@@ -246,7 +246,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+          <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
             {/* Background Gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 via-indigo-50/30 to-secondary-50/50 dark:from-primary-900/20 dark:via-indigo-900/20 dark:to-secondary-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -363,7 +363,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+        <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
           {/* Background Gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-secondary-50/50 via-accent-50/30 to-orange-50/50 dark:from-secondary-900/20 dark:via-accent-900/20 dark:to-orange-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 

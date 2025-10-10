@@ -69,7 +69,7 @@ function ConfirmPageContent() {
       {/* Back Button & Theme Toggle */}
       <div className="absolute top-4 left-4 z-10">
         <Link href="/">
-          <Button variant="outline" size="sm" className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm">
+          <Button variant="outline" size="sm" className="bg-background/90 backdrop-blur-sm">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Kembali
           </Button>
@@ -85,7 +85,7 @@ function ConfirmPageContent() {
         transition={{ duration: 0.6 }}
         className="w-full max-w-md relative z-10"
       >
-        <Card className="backdrop-blur-lg bg-white/90 dark:bg-gray-900/90 border-0 shadow-2xl">
+        <Card className="backdrop-blur-lg bg-background/90 border-0 shadow-2xl">
           <CardHeader className="text-center pb-2">
             <motion.div
               initial={{ scale: 0 }}

@@ -149,7 +149,7 @@ export default function BookTourPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary-50 via-accent-50 to-orange-50 dark:from-gray-900 dark:via-secondary-900 dark:to-secondary-900">
+    <div className="min-h-screen bg-background">
       {/* Sidebar */}
       <UserSidebar onToggle={setSidebarCollapsed} />
 

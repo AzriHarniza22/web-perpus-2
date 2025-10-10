@@ -277,7 +277,7 @@ export default function RoomManagement() {
               whileHover={{ y: -10, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col h-full">
+              <Card className="bg-card backdrop-blur-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col h-full">
                 {/* Background Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 dark:from-primary/20 dark:via-secondary/20 dark:to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -306,7 +306,7 @@ export default function RoomManagement() {
                       rotate: [0, 5, 0]
                     }}
                     transition={{ duration: 4, repeat: Infinity }}
-                    className="absolute -top-2 -right-2 w-12 h-12 bg-white/20 rounded-full"
+                    className="absolute -top-2 -right-2 w-12 h-12 bg-background/20 rounded-full"
                   />
                 </div>
 

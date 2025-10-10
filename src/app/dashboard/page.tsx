@@ -79,7 +79,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <Loading variant="skeleton">
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
+        <div className="min-h-screen bg-background">
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="mb-8">
               <Skeleton className="h-8 w-64 mb-2" />
@@ -114,7 +114,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
+    <div className="min-h-screen bg-background">
       {/* Sidebar */}
       <UserSidebar onToggle={setSidebarCollapsed} />
 
@@ -139,10 +139,10 @@ export default function DashboardPage() {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
           {[
-            { icon: BookOpen, label: 'Total Reservasi', value: stats.totalBookings, color: 'from-primary-500 to-cyan-400' },
-            { icon: Clock, label: 'Reservasi Mendatang', value: stats.upcomingBookings, color: 'from-secondary-500 to-accent-400' },
-            { icon: CheckCircle, label: 'Reservasi Selesai', value: stats.completedBookings, color: 'from-green-500 to-emerald-400' },
-            { icon: TrendingUp, label: 'Total Jam', value: stats.totalHours, color: 'from-orange-500 to-red-400' }
+            { icon: BookOpen, label: 'Total Reservasi', value: stats.totalBookings, bgColor: 'bg-blue-500' },
+            { icon: Clock, label: 'Reservasi Mendatang', value: stats.upcomingBookings, bgColor: 'bg-purple-500' },
+            { icon: CheckCircle, label: 'Reservasi Selesai', value: stats.completedBookings, bgColor: 'bg-green-500' },
+            { icon: TrendingUp, label: 'Total Jam', value: stats.totalHours, bgColor: 'bg-orange-500' }
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -150,11 +150,11 @@ export default function DashboardPage() {
               animate={{ scale: 1 }}
               transition={{ delay: 0.2 + index * 0.1, type: "spring", stiffness: 200 }}
             >
-              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all cursor-pointer group h-32">
+              <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all cursor-pointer group h-32">
                 <CardContent className="p-6 h-full flex flex-col justify-center">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400 flex-1">{stat.label}</p>
-                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0`}>
+                    <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0`}>
                       <stat.icon className="w-5 h-5 text-white" />
                     </div>
                   </div>
@@ -179,7 +179,7 @@ export default function DashboardPage() {
               description: 'Pilih dan pesan ruangan yang tersedia untuk kebutuhan Anda',
               href: '/book',
               buttonText: 'Mulai Booking',
-              color: 'from-primary-500 to-cyan-400',
+              bgColor: 'bg-blue-500',
               variant: 'default' as const
             },
             {
@@ -188,7 +188,7 @@ export default function DashboardPage() {
               description: 'Lihat semua reservasi yang telah Anda buat',
               href: '/history',
               buttonText: 'Lihat Riwayat',
-              color: 'from-green-500 to-emerald-400',
+              bgColor: 'bg-green-500',
               variant: 'outline' as const
             },
             {
@@ -197,7 +197,7 @@ export default function DashboardPage() {
               description: 'Update informasi profil dan preferensi Anda',
               href: '/profile',
               buttonText: 'Kelola Profil',
-              color: 'from-secondary-500 to-accent-400',
+              bgColor: 'bg-purple-500',
               variant: 'outline' as const
             }
           ].map((card, index) => (
@@ -208,10 +208,10 @@ export default function DashboardPage() {
               transition={{ delay: 0.5 + index * 0.1 }}
               whileHover={{ y: -5, scale: 1.02 }}
             >
-              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all group">
+              <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all group">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${card.color} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform`}>
+                    <div className={`w-10 h-10 rounded-lg ${card.bgColor} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform`}>
                       <card.icon className="w-5 h-5 text-white" />
                     </div>
                     {card.title}
@@ -221,7 +221,7 @@ export default function DashboardPage() {
                 <CardContent>
                   <Link href={card.href}>
                     <Button variant={card.variant} className="w-full">
-                      <card.icon className="w-4 h-4 mr-2" />
+                      <card.icon className="w-4 h-4 mr-2 text-primary" />
                       {card.buttonText}
                     </Button>
                   </Link>
@@ -238,10 +238,10 @@ export default function DashboardPage() {
           transition={{ delay: 0.4 }}
           className="mt-12"
         >
-          <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+          <Card className="bg-card backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Sparkles className="w-5 h-5 mr-2 text-secondary-600" />
+                <Sparkles className="w-5 h-5 mr-2 text-gray-600" />
                 Reservasi Mendatang
               </CardTitle>
               <CardDescription>
@@ -252,9 +252,9 @@ export default function DashboardPage() {
               {upcomingBookingsList.length > 0 ? (
                 <div className="space-y-4">
                   {upcomingBookingsList.slice(0, 3).map((booking) => (
-                    <div key={booking.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 rounded-lg">
+                    <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
+                        <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
                           <BookOpen className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -285,15 +285,15 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-gradient-to-r from-primary-100 to-secondary-100 dark:from-primary-900 dark:to-secondary-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
                     <BookOpen className="w-8 h-8 text-primary dark:text-primary-400" />
                   </div>
                   <p className="text-gray-500 dark:text-gray-400 mb-4">
                     Belum ada reservasi aktif
                   </p>
                   <Link href="/book">
-                    <Button className="bg-gradient-to-r from-primary to-secondary hover:from-primary hover:to-secondary">
-                      <Sparkles className="w-4 h-4 mr-2" />
+                    <Button className="bg-blue-500 hover:bg-blue-600">
+                      <Sparkles className="w-4 h-4 mr-2 text-white" />
                       Buat Reservasi Pertama Anda
                     </Button>
                   </Link>

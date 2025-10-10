@@ -109,7 +109,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
           <motion.header
             initial={{ y: -100 }}
             animate={{ y: 0 }}
-            className={`flex-shrink-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
+            className={`flex-shrink-0 bg-background/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
               sidebarCollapsed ? 'ml-16' : 'ml-64'
             }`}
           >
@@ -140,7 +140,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
               {/* Stats Cards */}
               <div className="flex-shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                 {[...Array(4)].map((_, i) => (
-                  <Card key={i} className="bg-white/90 dark:bg-gray-800/90">
+                  <Card key={i} className="bg-card">
                     <CardContent className="p-3">
                       <Skeleton className="h-4 w-20 mb-2" />
                       <Skeleton className="h-6 w-12" />
@@ -190,7 +190,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
       <motion.header
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className={`flex-shrink-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 z-10 ${
+        className={`flex-shrink-0 bg-background/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 z-10 ${
           sidebarCollapsed ? 'ml-16' : 'ml-64'
         }`}
       >
@@ -212,7 +212,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
             <ThemeToggle />
             <form action="/auth/signout" method="post">
               <Button variant="outline" size="sm" type="submit">
-                <LogOut className="w-4 h-4 lg:mr-2" />
+                <LogOut className="w-4 h-4 lg:mr-2 text-primary" />
                 <span className="hidden lg:inline">Keluar</span>
               </Button>
             </form>
@@ -244,7 +244,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2 + index * 0.05, type: "spring", stiffness: 200 }}
               >
-                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all">
+                <Card className="bg-card backdrop-blur-sm hover:shadow-lg transition-all">
                   <CardContent className="p-2.5 lg:p-3">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
@@ -271,7 +271,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                 transition={{ delay: 0.3 }}
                 className="h-full flex flex-col"
               >
-                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm h-full flex flex-col min-h-0">
+                <Card className="bg-card backdrop-blur-sm h-full flex flex-col min-h-0">
                   <CardHeader className="pb-2 lg:pb-3 flex-shrink-0">
                     <CardTitle className="flex items-center text-sm lg:text-base">
                       <Calendar className="w-4 h-4 mr-2 text-primary" />
@@ -299,7 +299,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                 transition={{ delay: 0.4 }}
                 className="flex-shrink-0"
               >
-                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                <Card className="bg-card backdrop-blur-sm">
                   <CardHeader className="pb-2 lg:pb-3">
                     <CardTitle className="flex items-center text-sm lg:text-base">
                       <AlertTriangle className="w-4 h-4 mr-2 text-yellow-600" />
@@ -360,7 +360,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                 transition={{ delay: 0.5 }}
                 className="flex-shrink-0"
               >
-                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                <Card className="bg-card backdrop-blur-sm">
                   <CardHeader className="pb-2 lg:pb-3">
                     <CardTitle className="flex items-center text-sm lg:text-base">
                       <TrendingUp className="w-4 h-4 mr-2 text-primary" />

@@ -30,14 +30,14 @@ export function ThemeToggle() {
       aria-label="Toggle theme"
     >
       <MotionSun
-        className="h-4 w-4"
+        className="h-4 w-4 text-gray-600"
         animate={{
           rotate: theme === 'light' ? 0 : -90,
           scale: theme === 'light' ? 1 : 0
         }}
       />
       <MotionMoon
-        className="absolute h-4 w-4"
+        className="absolute h-4 w-4 text-gray-600"
         animate={{
           rotate: theme === 'dark' ? 0 : 90,
           scale: theme === 'dark' ? 1 : 0

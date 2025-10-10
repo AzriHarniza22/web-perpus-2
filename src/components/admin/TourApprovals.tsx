@@ -169,13 +169,13 @@ export default function TourApprovals() {
                       <Dialog>
                         <DialogTrigger asChild>
                           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button variant="outline" size="sm" className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-secondary-300 dark:hover:border-secondary-600 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all">
+                            <Button variant="outline" size="sm" className="w-full justify-start bg-card border border-gray-200 dark:border-gray-600 hover:border-secondary-300 dark:hover:border-secondary-600 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all">
                               <Eye className="w-4 h-4 mr-2 text-secondary" />
                               Lihat Detail
                             </Button>
                           </motion.div>
                         </DialogTrigger>
-                        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white via-secondary-50/30 to-accent-50/30 dark:from-gray-900 dark:via-secondary-900/20 dark:to-accent-900/20">
+                        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-background via-secondary-50/30 to-accent-50/30 dark:from-gray-900 dark:via-secondary-900/20 dark:to-accent-900/20">
                           <DialogHeader className="space-y-4 pb-6 border-b border-gray-200 dark:border-gray-700">
                             <div className="flex items-center space-x-4">
                               <div className="w-12 h-12 bg-gradient-to-br from-secondary to-accent-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -208,14 +208,14 @@ export default function TourApprovals() {
                                 Informasi Tour
                               </h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
+                                <div className="bg-card rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
                                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                                     <Sparkles className="w-4 h-4 mr-2 text-secondary dark:text-secondary-400" />
                                     Nama Tour
                                   </h4>
                                   <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{tourInfo.name}</p>
                                 </div>
-                                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
+                                <div className="bg-card rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
                                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                                     <Users className="w-4 h-4 mr-2 text-secondary dark:text-secondary-400" />
                                     Peserta
@@ -233,7 +233,7 @@ export default function TourApprovals() {
                                     </div>
                                   </div>
                                 </div>
-                                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
+                                <div className="bg-card rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
                                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                                     <Users className="w-4 h-4 mr-2 text-green-600 dark:text-green-400" />
                                     Jumlah Peserta
@@ -254,14 +254,14 @@ export default function TourApprovals() {
                                 Detail Tour
                               </h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <div className="bg-card rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
                                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                                     <MapPin className="w-4 h-4 mr-2 text-primary dark:text-primary-400" />
                                     Meeting Point
                                   </h4>
                                   <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{tourInfo.meetingPoint}</p>
                                 </div>
-                                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <div className="bg-card rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
                                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                                     <Users className="w-4 h-4 mr-2 text-green-600 dark:text-green-400" />
                                     Guide
@@ -281,14 +281,14 @@ export default function TourApprovals() {
                                 Jadwal Tour
                               </h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <div className="bg-card rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
                                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                                     <Calendar className="w-4 h-4 mr-2 text-primary dark:text-primary-400" />
                                     Waktu Mulai
                                   </h4>
                                   <p className="text-gray-700 dark:text-gray-300 font-medium text-base">{formatDateTime(booking.start_time)}</p>
                                 </div>
-                                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <div className="bg-card rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
                                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                                     <Clock className="w-4 h-4 mr-2 text-orange-600 dark:text-orange-400" />
                                     Durasi
@@ -307,7 +307,7 @@ export default function TourApprovals() {
                                   </div>
                                   Permintaan Khusus
                                 </h3>
-                                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <div className="bg-card rounded-xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
                                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{booking.notes}</p>
                                 </div>
                               </div>
@@ -322,7 +322,7 @@ export default function TourApprovals() {
                                   </div>
                                   Dokumen Tour
                                 </h3>
-                                <div className="bg-white dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <div className="bg-card rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
                                   <Button
                                     variant="outline"
                                     asChild
@@ -350,7 +350,7 @@ export default function TourApprovals() {
                             variant="outline"
                             size="sm"
                             asChild
-                            className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-secondary-300 dark:hover:border-secondary-600 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all"
+                            className="w-full justify-start bg-card border border-gray-200 dark:border-gray-600 hover:border-secondary-300 dark:hover:border-secondary-600 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all"
                           >
                             <a
                               href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}

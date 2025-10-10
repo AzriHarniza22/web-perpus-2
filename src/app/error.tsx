@@ -18,7 +18,7 @@ export default function Error({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-red-950 dark:via-orange-950 dark:to-yellow-950 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 text-center">
+      <div className="max-w-md w-full bg-background rounded-2xl shadow-2xl p-8 text-center">
         <div className="w-20 h-20 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-6">
           <AlertTriangle className="w-10 h-10 text-red-600 dark:text-red-400" />
         </div>
@@ -36,7 +36,7 @@ export default function Error({
             onClick={reset}
             className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary hover:to-secondary text-white"
           >
-            <RefreshCw className="w-4 h-4 mr-2" />
+            <RefreshCw className="w-4 h-4 mr-2 text-primary" />
             Coba Lagi
           </Button>
 
@@ -45,7 +45,7 @@ export default function Error({
             onClick={() => window.location.href = '/'}
             className="w-full"
           >
-            <Home className="w-4 h-4 mr-2" />
+            <Home className="w-4 h-4 mr-2 text-primary" />
             Kembali ke Beranda
           </Button>
         </div>

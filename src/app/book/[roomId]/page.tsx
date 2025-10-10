@@ -199,7 +199,7 @@ export default function BookRoomPage() {
                     </div>
                   )}
                   <button
-                    className="absolute top-2 right-2 bg-white/75 rounded-full p-2 hover:bg-white transition"
+                    className="absolute top-2 right-2 bg-background/75 rounded-full p-2 hover:bg-background transition"
                     onClick={() => {
                       setIsModalOpen(false)
                     }}

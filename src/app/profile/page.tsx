@@ -157,7 +157,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <Loading variant="skeleton">
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
+        <div className="min-h-screen bg-background">
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="mb-8">
               <Skeleton className="h-8 w-48 mb-2" />
@@ -188,7 +188,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
+    <div className="min-h-screen bg-background">
       {/* Sidebar */}
       <UserSidebar onToggle={setSidebarCollapsed} />
 
@@ -210,7 +210,7 @@ export default function ProfilePage() {
             className="space-y-6"
           >
             {/* Profile Card */}
-            <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+            <Card className="bg-card backdrop-blur-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>

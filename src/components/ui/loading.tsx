@@ -90,7 +90,7 @@ const FullscreenLoading: React.FC<{ message?: string; showDots?: boolean }> = ({
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
             className="w-20 h-20 rounded-full bg-gradient-to-r from-primary via-secondary to-accent p-1"
           >
-            <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 flex items-center justify-center">
+            <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
               <motion.div
                 animate={reducedMotion ? {} : { rotate: -360 }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}

@@ -29,7 +29,7 @@ export function PageHeader({
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className={`bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
+      className={`bg-background/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}
     >
@@ -39,7 +39,7 @@ export function PageHeader({
           animate={{ opacity: 1 }}
           className="flex-1"
         >
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold text-primary">
             {title}
           </h1>
           {description && (
@@ -61,7 +61,7 @@ export function PageHeader({
                   {user.email?.[0].toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-gray-600 dark:text-gray-300">
+              <span className="text-black dark:text-white">
                 Selamat datang, {user.email?.split('@')[0]}
               </span>
             </motion.div>

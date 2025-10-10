@@ -271,7 +271,7 @@ export function GeneralOverviewCards({
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(8)].map((_, index) => (
-          <Card key={index} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+          <Card key={index} className="bg-card backdrop-blur-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
@@ -296,7 +296,7 @@ export function GeneralOverviewCards({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1, duration: 0.5 }}
         >
-          <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105">
+          <Card className="bg-card backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">

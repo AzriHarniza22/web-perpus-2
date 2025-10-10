@@ -294,16 +294,14 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
-            {/* Background Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 via-indigo-50/30 to-secondary-50/50 dark:from-primary-900/20 dark:via-indigo-900/20 dark:to-secondary-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <Card className="bg-card hover:shadow-xl transition-all duration-300">
 
-            <CardHeader className="relative z-10">
+            <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-primary to-cyan-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                   <CalendarIcon className="w-5 h-5 text-white" />
                 </div>
-                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <span className="text-blue-600">
                   Pilih Tanggal
                 </span>
               </CardTitle>
@@ -311,7 +309,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                 Pilih tanggal yang diinginkan untuk tour
               </CardDescription>
             </CardHeader>
-            <CardContent className="relative z-10">
+            <CardContent>
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="date" className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -413,16 +411,14 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
-            {/* Background Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-secondary-50/50 via-accent-50/30 to-orange-50/50 dark:from-secondary-900/20 dark:via-accent-900/20 dark:to-orange-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          <Card className="bg-card hover:shadow-xl transition-all duration-300">
 
-            <CardHeader className="relative z-10">
+            <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-secondary to-accent-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Users className="w-5 h-5 text-white" />
                 </div>
-                <span className="bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">
+                <span className="text-blue-600">
                   Detail Booking Tour
                 </span>
               </CardTitle>
@@ -553,12 +549,11 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="relative z-10"
                 >
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-secondary to-accent hover:from-secondary-700 hover:to-accent-700 text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <>
                       {isSubmitting ? (
@@ -568,7 +563,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                         </>
                       ) : (
                         <>
-                          <ArrowRight className="w-4 h-4 mr-2" />
+                          <ArrowRight className="w-4 h-4 mr-2 text-white" />
                           Kirim Booking Tour
                         </>
                       )}

@@ -182,7 +182,7 @@ export function EnhancedFilterPanel({
   ].reduce((a, b) => a + b, 0)
 
   return (
-    <Card className={cn("mb-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-2", className)}>
+    <Card className={cn("mb-6 bg-card backdrop-blur-sm border-2", className)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

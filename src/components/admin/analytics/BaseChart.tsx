@@ -119,7 +119,7 @@ export function BaseChart<T extends ChartType = ChartType>({
   }
 
   const renderLoadingState = () => (
-    <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+    <Card className="bg-card backdrop-blur-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           {Icon && <Icon className="w-5 h-5" />}
@@ -165,7 +165,7 @@ export function BaseChart<T extends ChartType = ChartType>({
   }
 
   return (
-    <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+    <Card className="bg-card backdrop-blur-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -193,7 +193,7 @@ export function BaseChart<T extends ChartType = ChartType>({
           <div className="flex items-center gap-2 flex-wrap">
             {/* View Mode Controls */}
             {availableViewModes.length > 1 && (
-              <div className="flex rounded-lg border bg-white dark:bg-gray-800">
+              <div className="flex rounded-lg border bg-card">
                 {availableViewModes.map((mode) => (
                   <Button
                     key={mode}
@@ -210,7 +210,7 @@ export function BaseChart<T extends ChartType = ChartType>({
 
             {/* Chart Type Controls */}
             {availableChartTypes.length > 1 && (
-              <div className="flex rounded-lg border bg-white dark:bg-gray-800">
+              <div className="flex rounded-lg border bg-card">
                 {availableChartTypes.map((type) => (
                   <Button
                     key={type}

@@ -100,14 +100,14 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
   ]
 
   return (
-    <div className="bg-white/20 backdrop-blur-xl rounded-3xl p-6 border border-white/30 shadow-2xl">
+    <div className="bg-background/20 backdrop-blur-xl rounded-3xl p-6 border border-background/30 shadow-2xl">
       {/* Calendar Header */}
       <div className="flex items-center justify-between mb-6">
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={prevMonth}
-          className="p-2 rounded-full bg-white/30 hover:bg-white/40 transition-all"
+          className="p-2 rounded-full bg-background/30 hover:bg-background/40 transition-all"
         >
           <ChevronLeft size={20} className="text-gray-700" />
         </motion.button>
@@ -120,7 +120,7 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={nextMonth}
-          className="p-2 rounded-full bg-white/30 hover:bg-white/40 transition-all"
+          className="p-2 rounded-full bg-background/30 hover:bg-background/40 transition-all"
         >
           <ChevronRight size={20} className="text-gray-700" />
         </motion.button>
@@ -173,7 +173,7 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         key={selectedDate.toDateString()}
-        className="bg-white/30 rounded-2xl p-4"
+        className="bg-background/30 rounded-2xl p-4"
       >
         <h4 className="font-bold text-gray-800 mb-3">
           📅 {formatDate(selectedDate)}

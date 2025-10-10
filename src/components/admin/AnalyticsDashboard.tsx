@@ -291,7 +291,7 @@ function AnalyticsDashboardContent({
         aria-label="Analytics filters and export controls"
       >
         {/* Enhanced Global Filters */}
-        <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-2">
+        <Card className="bg-card backdrop-blur-sm border-2">
           <CardContent className="p-3">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
@@ -484,7 +484,7 @@ function AnalyticsDashboardContent({
             >
               <TabsTrigger
                 value="general"
-                className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all duration-200"
+                className="flex items-center gap-2 data-[state=active]:bg-card dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all duration-200"
                 aria-label="General analytics tab"
               >
                 <BarChart3 className="w-4 h-4" aria-hidden="true" />
@@ -492,7 +492,7 @@ function AnalyticsDashboardContent({
               </TabsTrigger>
               <TabsTrigger
                 value="room"
-                className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all duration-200"
+                className="flex items-center gap-2 data-[state=active]:bg-card dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all duration-200"
                 aria-label="Room analytics tab"
               >
                 <Building className="w-4 h-4" aria-hidden="true" />
@@ -500,7 +500,7 @@ function AnalyticsDashboardContent({
               </TabsTrigger>
               <TabsTrigger
                 value="tour"
-                className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all duration-200"
+                className="flex items-center gap-2 data-[state=active]:bg-card dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all duration-200"
                 aria-label="Tour analytics tab"
               >
                 <MapPin className="w-4 h-4" aria-hidden="true" />
@@ -508,7 +508,7 @@ function AnalyticsDashboardContent({
               </TabsTrigger>
               <TabsTrigger
                 value="user"
-                className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all duration-200"
+                className="flex items-center gap-2 data-[state=active]:bg-card dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all duration-200"
                 aria-label="User analytics tab"
               >
                 <Users className="w-4 h-4" aria-hidden="true" />
@@ -778,7 +778,7 @@ function AnalyticsDashboardSkeleton() {
     <div className="space-y-4">
       {/* Enhanced Filter Header Skeleton */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-2">
+        <Card className="bg-card backdrop-blur-sm border-2">
           <CardContent className="p-3">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
@@ -825,7 +825,7 @@ function AnalyticsDashboardSkeleton() {
           {/* Overview Cards Skeleton */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <Card key={i} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+              <Card key={i} className="bg-card backdrop-blur-sm">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-2">
@@ -842,7 +842,7 @@ function AnalyticsDashboardSkeleton() {
           {/* Charts Grid Skeleton */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             {[...Array(2)].map((_, i) => (
-              <Card key={i} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+              <Card key={i} className="bg-card backdrop-blur-sm">
                 <CardContent className="p-4">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -868,7 +868,7 @@ function AnalyticsDashboardSkeleton() {
 
           {/* Additional Chart Skeleton */}
           <div className="grid grid-cols-1 gap-4">
-            <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+            <Card className="bg-card backdrop-blur-sm">
               <CardContent className="p-4">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">

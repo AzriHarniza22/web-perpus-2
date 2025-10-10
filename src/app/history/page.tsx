@@ -67,7 +67,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
+    <div className="min-h-screen bg-background">
       {/* Sidebar */}
       <UserSidebar onToggle={setSidebarCollapsed} />
 

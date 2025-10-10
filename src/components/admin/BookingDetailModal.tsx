@@ -141,7 +141,7 @@ export default function BookingDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`max-w-8xl w-[95vw] max-h-[95vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl`}>
+      <DialogContent className={`max-w-8xl w-[95vw] max-h-[95vh] overflow-y-auto bg-background border border-gray-200 dark:border-gray-700 shadow-2xl`}>
         <DialogHeader className="space-y-4 pb-6 border-b border-gray-200/50 dark:border-gray-700/50">
           <div className="flex items-center space-x-4">
             <div className={`w-12 h-12 bg-gradient-to-br ${config.gradient} rounded-xl flex items-center justify-center shadow-lg`}>
@@ -174,7 +174,7 @@ export default function BookingDetailModal({
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {isTour && tourInfo ? (
-                <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all">
                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                     <Sparkles className={`w-4 h-4 mr-2 text-${config.primaryColor}-600 dark:text-${config.primaryColor}-400`} />
                     Nama Tour
@@ -182,7 +182,7 @@ export default function BookingDetailModal({
                   <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{tourInfo.name}</p>
                 </div>
               ) : (
-                <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all">
                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                     <MapPin className={`w-4 h-4 mr-2 text-${config.primaryColor}-600 dark:text-${config.primaryColor}-400`} />
                     Ruangan
@@ -191,7 +191,7 @@ export default function BookingDetailModal({
                 </div>
               )}
 
-              <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all">
                 <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                   <Users className={`w-4 h-4 mr-2 text-green-600 dark:text-green-400`} />
                   Pemohon
@@ -210,7 +210,7 @@ export default function BookingDetailModal({
                 </div>
               </div>
 
-              <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all">
+              <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all">
                 <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                   <Users className={`w-4 h-4 mr-2 text-green-600 dark:text-green-400`} />
                   Jumlah {isTour ? 'Peserta' : 'Tamu'}
@@ -231,14 +231,14 @@ export default function BookingDetailModal({
               Jadwal {isTour ? 'Tour' : 'Reservasi'}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+              <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                 <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                   <Calendar className={`w-4 h-4 mr-2 text-${config.primaryColor}-600 dark:text-${config.primaryColor}-400`} />
                   Tanggal
                 </h4>
                 <p className="text-gray-700 dark:text-gray-300 font-medium text-base">{formatDateOnly(booking.start_time)}</p>
               </div>
-              <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+              <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                 <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                   <Clock className={`w-4 h-4 mr-2 text-orange-600 dark:text-orange-400`} />
                   Waktu
@@ -260,14 +260,14 @@ export default function BookingDetailModal({
                 Detail Tour
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+                <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                     <MapPin className={`w-4 h-4 mr-2 text-${config.primaryColor}-600 dark:text-${config.primaryColor}-400`} />
                     Meeting Point
                   </h4>
                   <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{tourInfo.meetingPoint}</p>
                 </div>
-                <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+                <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                     <Users className={`w-4 h-4 mr-2 text-green-600 dark:text-green-400`} />
                     Guide
@@ -289,7 +289,7 @@ export default function BookingDetailModal({
                 Informasi Ruangan
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+                <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                     <Users className={`w-4 h-4 mr-2 text-green-600 dark:text-green-400`} />
                     Kapasitas
@@ -309,14 +309,14 @@ export default function BookingDetailModal({
               Informasi Pengguna
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+              <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                 <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                   <User className={`w-4 h-4 mr-2 text-${config.primaryColor}-600 dark:text-${config.primaryColor}-400`} />
                   Nama Lengkap
                 </h4>
                 <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{booking.profiles?.full_name || 'Tidak tersedia'}</p>
               </div>
-              <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+              <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                 <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                   <Mail className={`w-4 h-4 mr-2 text-${config.primaryColor}-600 dark:text-${config.primaryColor}-400`} />
                   Email
@@ -324,7 +324,7 @@ export default function BookingDetailModal({
                 <p className="text-gray-700 dark:text-gray-300 font-medium text-sm">{booking.profiles?.email || 'Tidak tersedia'}</p>
               </div>
               {booking.profiles?.institution && (
-                <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+                <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                     <Building className={`w-4 h-4 mr-2 text-${config.primaryColor}-600 dark:text-${config.primaryColor}-400`} />
                     Institusi
@@ -333,7 +333,7 @@ export default function BookingDetailModal({
                 </div>
               )}
               {booking.profiles?.phone && (
-                <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+                <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                   <h4 className="font-semibold text-sm mb-3 flex items-center text-gray-900 dark:text-gray-100">
                     <Phone className={`w-4 h-4 mr-2 text-${config.primaryColor}-600 dark:text-${config.primaryColor}-400`} />
                     Telepon
@@ -353,7 +353,7 @@ export default function BookingDetailModal({
                 </div>
                 Deskripsi Kegiatan
               </h3>
-              <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-5 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+              <div className="bg-card/80 rounded-xl p-5 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{booking.event_description}</p>
               </div>
             </div>
@@ -368,7 +368,7 @@ export default function BookingDetailModal({
                 </div>
                 Catatan Tambahan
               </h3>
-              <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-5 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+              <div className="bg-card/80 rounded-xl p-5 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">{booking.notes}</p>
               </div>
             </div>
@@ -383,7 +383,7 @@ export default function BookingDetailModal({
                 </div>
                 Dokumen Proposal
               </h3>
-              <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+              <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                 <Button
                   variant="outline"
                   asChild
@@ -411,7 +411,7 @@ export default function BookingDetailModal({
                 </div>
                 Tindakan
               </h3>
-              <div className="bg-white/80 dark:bg-gray-800/50 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+              <div className="bg-card/80 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
                 <div className="flex gap-3">
                   <Button
                     onClick={() => handleStatusUpdate('approved')}

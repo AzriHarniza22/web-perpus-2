@@ -201,12 +201,12 @@ const HomePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Navigation */}
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800"
+        className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
@@ -272,7 +272,7 @@ const HomePage = () => {
               className="md:hidden p-2"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMenuOpen ? <X size={24} className="text-gray-600" /> : <Menu size={24} className="text-gray-600" />}
             </button>
           </div>
         </div>
@@ -284,7 +284,7 @@ const HomePage = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800"
+              className="md:hidden bg-background border-t border-gray-100 dark:border-gray-800"
             >
               <div className="px-4 py-4 space-y-4">
                 {[
@@ -413,7 +413,7 @@ const HomePage = () => {
                   className="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white text-lg font-semibold rounded-full shadow-2xl transition-all flex items-center justify-center gap-2"
                 >
                   Mulai Reservasi
-                  <ArrowRight size={20} />
+                  <ArrowRight size={20} className="text-white" />
                 </motion.button>
                 
                 <motion.button
@@ -422,7 +422,7 @@ const HomePage = () => {
                   onClick={() => setIsDemoModalOpen(true)}
                   className="px-8 py-4 border-2 border-gray-300 text-gray-700 text-lg font-semibold rounded-full hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2"
                 >
-                  <Play size={20} />
+                  <Play size={20} className="text-primary" />
                   Lihat Demo
                 </motion.button>
               </motion.div>
@@ -432,15 +432,15 @@ const HomePage = () => {
                 className="mt-12 flex items-center justify-center lg:justify-start gap-8 text-gray-600 dark:text-gray-300"
               >
                 <div className="flex items-center gap-2">
-                  <CheckCircle size={20} className="text-green-500" />
+                  <CheckCircle size={20} className="text-green-600" />
                   <span>Gratis</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle size={20} className="text-green-500" />
+                  <CheckCircle size={20} className="text-green-600" />
                   <span>24/7 Tersedia</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle size={20} className="text-green-500" />
+                  <CheckCircle size={20} className="text-green-600" />
                   <span>Mudah Digunakan</span>
                 </div>
               </motion.div>
@@ -482,7 +482,7 @@ const HomePage = () => {
       </section>
 
       {/* Statistics Section */}
-      <section className="py-20 bg-white dark:bg-gray-900">
+      <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -541,7 +541,7 @@ const HomePage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="mt-16 bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl"
+            className="mt-16 bg-card rounded-3xl p-8 shadow-xl"
           >
             <div className="text-center mb-8">
               <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-4">
@@ -672,7 +672,7 @@ const HomePage = () => {
                   transition: { duration: 0.3 }
                 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl cursor-pointer group relative overflow-hidden"
+                className="bg-card rounded-3xl p-8 shadow-xl cursor-pointer group relative overflow-hidden"
               >
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-primary-500/5 to-secondary-500/5 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -717,7 +717,7 @@ const HomePage = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -100 }}
                 transition={{ duration: 0.5 }}
-                className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-xl"
+                className="bg-card rounded-3xl p-8 shadow-xl"
               >
                 <div className="flex items-center mb-6">
                   <Avatar className="w-16 h-16 mr-4">
@@ -743,7 +743,7 @@ const HomePage = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setCurrentTestimonial((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1))}
-                className="p-3 bg-white dark:bg-gray-900 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+                className="p-3 bg-background rounded-full shadow-lg hover:shadow-xl transition-shadow"
               >
                 <ChevronLeft size={24} className="text-gray-600 dark:text-gray-300" />
               </motion.button>
@@ -751,7 +751,7 @@ const HomePage = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setCurrentTestimonial((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1))}
-                className="p-3 bg-white dark:bg-gray-900 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+                className="p-3 bg-background rounded-full shadow-lg hover:shadow-xl transition-shadow"
               >
                 <ChevronRight size={24} className="text-gray-600 dark:text-gray-300" />
               </motion.button>
@@ -787,19 +787,19 @@ const HomePage = () => {
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Fitur Utama:</h3>
                     <ul className="space-y-2">
                       <li className="flex items-center gap-2">
-                        <CheckCircle size={16} className="text-green-500" />
+                        <CheckCircle size={16} className="text-green-600" />
                         <span>Kalender interaktif real-time</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle size={16} className="text-green-500" />
+                        <CheckCircle size={16} className="text-green-600" />
                         <span>Booking instan</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle size={16} className="text-green-500" />
+                        <CheckCircle size={16} className="text-green-600" />
                         <span>Notifikasi otomatis</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <CheckCircle size={16} className="text-green-500" />
+                        <CheckCircle size={16} className="text-green-600" />
                         <span>Dashboard analytics</span>
                       </li>
                     </ul>
@@ -809,7 +809,7 @@ const HomePage = () => {
                     <h4 className="font-semibold mb-2">Kalender Demo</h4>
                     <div className="text-sm text-gray-600 dark:text-gray-300">
                       <p>Klik pada tanggal di bawah untuk melihat demo reservasi:</p>
-                      <div className="mt-2 p-2 bg-white dark:bg-gray-700 rounded border">
+                      <div className="mt-2 p-2 bg-card rounded border">
                         <p className="text-xs">📅 Kalender akan muncul di sini</p>
                         <p className="text-xs mt-1">Ruangan tersedia: 15</p>
                         <p className="text-xs">Reservasi hari ini: 8</p>
@@ -838,7 +838,7 @@ const HomePage = () => {
       <section
         ref={roomsRef}
         id="rooms"
-        className="py-20 bg-white dark:bg-gray-900"
+        className="py-20 bg-background"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -880,7 +880,7 @@ const HomePage = () => {
                 dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                 dragElastic={0.1}
                 whileDrag={{ scale: 1.05, rotateY: 10 }}
-                className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group relative cursor-grab active:cursor-grabbing"
+                className="bg-card rounded-3xl shadow-xl overflow-hidden group relative cursor-grab active:cursor-grabbing"
               >
                 <div className={`h-48 bg-gradient-to-r from-primary via-primary to-primary relative overflow-hidden`}>
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all" />
@@ -898,14 +898,14 @@ const HomePage = () => {
                     <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">{room.description}</p>
                   )}
                   <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 mb-4">
-                    <Users size={16} />
+                    <Users size={16} className="text-gray-600" />
                     <span>{room.capacity} orang</span>
                   </div>
 
                   <div className="space-y-2 mb-6">
                     {room.facilities.map((facility: string, idx: number) => (
                       <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
-                        <CheckCircle size={14} className="text-green-500" />
+                        <CheckCircle size={14} className="text-green-600" />
                         <span className="text-gray-600 dark:text-gray-300">{facility}</span>
                       </div>
                     ))}
@@ -974,7 +974,7 @@ const HomePage = () => {
                   y: -5,
                   transition: { duration: 0.3 }
                 }}
-                className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl text-center"
+                className="bg-card rounded-3xl p-8 shadow-xl text-center"
               >
                 <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${contact.color} flex items-center justify-center mb-6 mx-auto`}>
                   <contact.icon size={32} className="text-white" />
@@ -1005,12 +1005,12 @@ const HomePage = () => {
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             className="absolute inset-0 bg-gradient-to-r from-secondary to-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
           />
-          <Sparkles size={24} className="relative z-10" />
+          <Sparkles size={24} className="relative z-10 text-white" />
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: [0, 1.2, 0] }}
             transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-            className="absolute inset-0 bg-white/20 rounded-full"
+            className="absolute inset-0 bg-background/20 rounded-full"
           />
         </motion.button>
 

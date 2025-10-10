@@ -125,7 +125,7 @@ export default function BookingApprovals() {
         </div>
         <div className="flex items-center space-x-3">
           <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Filter:</span>
-          <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+          <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 bg-card shadow-sm">
             {(Object.keys(filterConfigs) as Array<keyof typeof filterConfigs>).map((filterKey) => {
               const filter = filterConfigs[filterKey]
               const Icon = filter.icon
@@ -183,7 +183,7 @@ export default function BookingApprovals() {
                           {bookingTypeKey === 'tour' ? tourInfo?.name : booking.rooms?.name}
                         </h3>
                         <Badge className={`bg-${config.badgeBg} text-primary dark:bg-${config.badgeBg} dark:text-primary-foreground border border-${config.badgeBorder} dark:border-primary/30 px-3 py-1`}>
-                          <Clock className="w-3 h-3 mr-1" />
+                          <Clock className="w-3 h-3 mr-1 text-gray-600" />
                           Menunggu
                         </Badge>
                       </div>
@@ -230,7 +230,7 @@ export default function BookingApprovals() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleViewDetails(booking)}
-                        className={`w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-primary/30 dark:hover:border-primary/50 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all`}
+                        className={`w-full justify-start bg-card border border-gray-200 dark:border-gray-600 hover:border-primary/30 dark:hover:border-primary/50 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all`}
                       >
                         <Eye className={`w-4 h-4 mr-2 text-${config.color.primary}`} />
                         Lihat Detail
@@ -243,7 +243,7 @@ export default function BookingApprovals() {
                           variant="outline"
                           size="sm"
                           asChild
-                          className="w-full justify-start bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-secondary/30 dark:hover:border-secondary/50 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all"
+                          className="w-full justify-start bg-card border border-gray-200 dark:border-gray-600 hover:border-secondary/30 dark:hover:border-secondary/50 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all"
                         >
                           <a
                             href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
@@ -265,7 +265,7 @@ export default function BookingApprovals() {
                           className="bg-green-600 hover:bg-green-700 text-white font-medium shadow-md hover:shadow-green-500/25 transition-all"
                           disabled={updateBookingStatusMutation.isPending}
                         >
-                          <CheckCircle className="w-3 h-3 mr-1" />
+                          <CheckCircle className="w-3 h-3 mr-1 text-green-600" />
                           Setujui
                         </Button>
                       </motion.div>
@@ -276,7 +276,7 @@ export default function BookingApprovals() {
                           size="sm"
                           disabled={updateBookingStatusMutation.isPending}
                         >
-                          <XCircle className="w-3 h-3 mr-1" />
+                          <XCircle className="w-3 h-3 mr-1 text-red-600" />
                           Tolak
                         </Button>
                       </motion.div>
