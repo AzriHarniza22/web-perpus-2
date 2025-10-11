@@ -29,9 +29,7 @@ export function PageHeader({
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className={`bg-background/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
-        sidebarCollapsed ? 'ml-16' : 'ml-64'
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}
     >
       <div className="px-6 py-4 flex justify-between items-center">
         <motion.div

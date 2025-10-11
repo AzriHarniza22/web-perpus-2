@@ -9,7 +9,9 @@ import BookingForm from '../../../components/BookingForm'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import { Loading } from '@/components/ui/loading'
+import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
+import { Sparkles } from 'lucide-react'
 
 import { Room, Booking } from '@/lib/api'
 
@@ -71,7 +73,7 @@ export default function BookRoomPage() {
         .single()
 
       if (!roomData) {
-        router.push('/')
+        setLoading(false)
         return
       }
 
@@ -93,7 +95,6 @@ export default function BookRoomPage() {
     if (roomId && isAuthenticated && user) {
       fetchData()
     } else if (!isLoading && !isAuthenticated) {
-      router.push('/login')
       setLoading(false)
     }
   }, [roomId, router, isAuthenticated, user, isLoading])
@@ -104,8 +105,46 @@ export default function BookRoomPage() {
     return <Loading variant="fullscreen" />
   }
 
-  if (!isAuthenticated || !user || !room) {
-    return null // Will redirect
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-secondary-100 dark:bg-secondary-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-secondary-600 dark:text-secondary-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Anda perlu login untuk memesan ruangan
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Silakan login terlebih dahulu untuk melanjutkan pemesanan ruangan.
+          </p>
+          <Button onClick={() => router.push('/login')}>
+            Login
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!room) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-red-600 dark:text-red-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Ruangan Tidak Tersedia
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Ruangan yang Anda cari tidak ditemukan atau tidak aktif saat ini.
+          </p>
+          <Button onClick={() => window.location.reload()}>
+            Coba Lagi
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -121,7 +160,7 @@ export default function BookRoomPage() {
         sidebarCollapsed={sidebarCollapsed}
       />
 
-      <main className={`py-8 transition-all duration-300 ${
+      <main className={`pb-8 pt-24 transition-all duration-300 ${
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}>
         <div className="max-w-4xl mx-auto px-4">

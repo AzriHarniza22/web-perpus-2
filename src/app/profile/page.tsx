@@ -200,7 +200,7 @@ export default function ProfilePage() {
         sidebarCollapsed={sidebarCollapsed}
       />
 
-      <main className={`px-6 py-8 transition-all duration-300 ${
+      <main className={`px-6 pb-8 pt-24 transition-all duration-300 ${
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}>
         <div className="max-w-2xl mx-auto">

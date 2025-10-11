@@ -161,7 +161,7 @@ export default function BookTourPage() {
         sidebarCollapsed={sidebarCollapsed}
       />
 
-      <main className={`py-8 transition-all duration-300 ${
+      <main className={`pb-8 pt-24 transition-all duration-300 ${
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}>
         <div className="max-w-4xl mx-auto px-4">

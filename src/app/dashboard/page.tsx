@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -18,48 +18,54 @@ import { PageHeader } from '@/components/ui/page-header'
 export default function DashboardPage() {
   const { user, isLoading, logout, isAuthenticated } = useAuth()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [stats, setStats] = useState({
-    totalBookings: 0,
-    upcomingBookings: 0,
-    completedBookings: 0,
-    totalHours: 0
-  })
-  const [upcomingBookingsList, setUpcomingBookingsList] = useState<BookingWithRelations[]>([])
   const router = useRouter()
   const { data: bookingsData } = useBookings({})
   const bookings = bookingsData?.bookings || []
 
-  // Calculate real stats from user's bookings
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      const userBookings = bookings.filter(booking => booking.user_id === user.id)
-      const now = new Date()
-
-      const totalBookings = userBookings.length
-      const upcomingBookingsFiltered = userBookings.filter(booking =>
-        new Date(booking.start_time) > now && booking.status === 'approved'
-      )
-      const upcomingBookings = upcomingBookingsFiltered.length
-      const completedBookings = userBookings.filter(booking =>
-        booking.status === 'completed'
-      ).length
-
-      // Calculate total hours from all bookings
-      const totalHours = userBookings.reduce((total, booking) => {
-        const start = new Date(booking.start_time)
-        const end = new Date(booking.end_time)
-        const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
-        return total + hours
-      }, 0)
-
-      setStats({
-        totalBookings,
-        upcomingBookings,
-        completedBookings,
-        totalHours: Math.round(totalHours)
-      })
-      setUpcomingBookingsList(upcomingBookingsFiltered)
+  const stats = useMemo(() => {
+    if (!isAuthenticated || !user) {
+      return {
+        totalBookings: 0,
+        upcomingBookings: 0,
+        completedBookings: 0,
+        totalHours: 0
+      }
     }
+    const userBookings = bookings.filter(booking => booking.user_id === user.id)
+    const now = new Date()
+
+    const totalBookings = userBookings.length
+    const upcomingBookingsFiltered = userBookings.filter(booking =>
+      new Date(booking.start_time) > now && booking.status === 'approved'
+    )
+    const upcomingBookings = upcomingBookingsFiltered.length
+    const completedBookings = userBookings.filter(booking =>
+      booking.status === 'completed'
+    ).length
+
+    // Calculate total hours from all bookings
+    const totalHours = userBookings.reduce((total, booking) => {
+      const start = new Date(booking.start_time)
+      const end = new Date(booking.end_time)
+      const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60)
+      return total + hours
+    }, 0)
+
+    return {
+      totalBookings,
+      upcomingBookings,
+      completedBookings,
+      totalHours: Math.round(totalHours)
+    }
+  }, [isAuthenticated, user, bookings])
+
+  const upcomingBookingsList = useMemo(() => {
+    if (!isAuthenticated || !user) return []
+    const userBookings = bookings.filter(booking => booking.user_id === user.id)
+    const now = new Date()
+    return userBookings.filter(booking =>
+      new Date(booking.start_time) > now && booking.status === 'approved'
+    )
   }, [isAuthenticated, user, bookings])
 
   // Redirect if not authenticated
@@ -127,7 +133,7 @@ export default function DashboardPage() {
         sidebarCollapsed={sidebarCollapsed}
       />
 
-      <main className={`px-6 py-8 transition-all duration-300 ${
+      <main className={`px-6 pb-8 pt-24 transition-all duration-300 ${
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}>
 
@@ -150,11 +156,11 @@ export default function DashboardPage() {
               animate={{ scale: 1 }}
               transition={{ delay: 0.2 + index * 0.1, type: "spring", stiffness: 200 }}
             >
-              <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all cursor-pointer group h-32">
+              <Card className="bg-card hover:shadow-xl hover:scale-105 hover:-translate-y-1 cursor-pointer group h-32 transition-all duration-75 ease-out">
                 <CardContent className="p-6 h-full flex flex-col justify-center">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400 flex-1">{stat.label}</p>
-                    <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0`}>
+                    <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center group-hover:scale-110 flex-shrink-0 transition-transform duration-75 ease-out`}>
                       <stat.icon className="w-5 h-5 text-white" />
                     </div>
                   </div>
@@ -189,7 +195,7 @@ export default function DashboardPage() {
               href: '/history',
               buttonText: 'Lihat Riwayat',
               bgColor: 'bg-green-500',
-              variant: 'outline' as const
+              variant: 'default' as const
             },
             {
               icon: UserIcon,
@@ -198,20 +204,19 @@ export default function DashboardPage() {
               href: '/profile',
               buttonText: 'Kelola Profil',
               bgColor: 'bg-purple-500',
-              variant: 'outline' as const
+              variant: 'default' as const
             }
           ].map((card, index) => (
             <motion.div
               key={card.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 + index * 0.1 }}
-              whileHover={{ y: -5, scale: 1.02 }}
+              transition={{ delay: 0.5 + index * 0.1, duration: 0.1 }}
             >
-              <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all group">
+              <Card className="bg-card hover:shadow-xl hover:-translate-y-1 hover:scale-105 group transition-all duration-75 ease-out">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <div className={`w-10 h-10 rounded-lg ${card.bgColor} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform`}>
+                    <div className={`w-10 h-10 rounded-lg ${card.bgColor} flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-75 ease-out`}>
                       <card.icon className="w-5 h-5 text-white" />
                     </div>
                     {card.title}
@@ -220,8 +225,8 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <Link href={card.href}>
-                    <Button variant={card.variant} className="w-full">
-                      <card.icon className="w-4 h-4 mr-2 text-primary" />
+                    <Button variant={card.variant} className="w-full rounded-lg">
+                      <card.icon className="w-4 h-4 mr-2 text-current" />
                       {card.buttonText}
                     </Button>
                   </Link>
