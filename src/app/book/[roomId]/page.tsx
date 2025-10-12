@@ -12,7 +12,7 @@ import { PageHeader } from '@/components/ui/page-header'
 import { Loading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, ArrowLeft } from 'lucide-react'
 
 import { Room, Booking } from '@/lib/api'
 
@@ -140,7 +140,7 @@ export default function BookRoomPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900">
+    <div className="h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex flex-col">
       {/* Sidebar */}
       <UserSidebar onToggle={setSidebarCollapsed} />
 
@@ -152,33 +152,48 @@ export default function BookRoomPage() {
         sidebarCollapsed={sidebarCollapsed}
       />
 
-      <main className={`px-4 sm:px-6 lg:px-8 pb-12 pt-24 transition-all duration-300 ${
+      {/* Back Button Section - Perfect equal spacing with header */}
+      <div className={`relative transition-all duration-300 ${
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}>
-        {/* Back Navigation */}
-        <div className="mb-6 lg:mb-8">
-          <Link
-            href="/book"
-            className="inline-flex items-center text-primary hover:text-primary dark:text-primary-400 dark:hover:text-primary-300 transition-colors text-sm lg:text-base"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Kembali ke Pilihan Ruangan
-          </Link>
+        {/* Responsive spacer matching header height for perfect symmetry */}
+        <div className="h-[62px] sm:h-[68px] lg:h-[72px]"></div>
+
+        {/* Back button container - perfectly centered with responsive padding */}
+        <div className="relative px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+          <div className="max-w-full flex justify-start">
+            {/* Back navigation button - responsive optimized positioning */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-3 sm:px-4"
+              onClick={() => router.push('/book')}
+            >
+              <ArrowLeft className="w-4 h-4 sm:mr-2" />
+              <span className="hidden md:inline lg:inline">Kembali ke Pilih Ruangan</span>
+            </Button>
+          </div>
         </div>
 
-        {/* Scrollable Content Area */}
-        <div className="max-w-full mx-auto px-4">
-          {/* Optimized 3-Card Grid Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3 gap-3 lg:gap-4 xl:gap-5 min-h-[500px] max-w-none">
-                {/* Room Info Card - Takes full width on mobile, 1/3 on desktop */}
-                <div className="lg:col-span-1 h-full min-h-[500px]">
+        {/* Reduced responsive spacer for more compact layout */}
+        <div className="h-[1px] sm:h-[1px] lg:h-[1px]"></div>
+        </div>
+
+       <main className={`flex-1 px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 pb-2 sm:pb-3 pt-0 transition-all duration-300 ${
+         sidebarCollapsed ? 'ml-16' : 'ml-64'
+       }`}>
+
+        {/* Full Height Content Area - Perfect height with new spacing */}
+       <div className="h-[calc(100vh-168px)] sm:h-[calc(100vh-174px)] lg:h-[calc(100vh-176px)] flex flex-col">
+          {/* Optimized 3-Card Grid Layout - Equal width cards with responsive spacing */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-3 xl:gap-4 flex-1 min-h-0">
+                {/* Room Info Card - Equal width on all screen sizes */}
+                <div className="h-full min-h-0">
                   <RoomInfoCard room={room} />
                 </div>
 
-                {/* Reservation Calendar Card - Takes full width on mobile, 1/3 on desktop */}
-                <div className="lg:col-span-1 h-full min-h-[500px]">
+                {/* Reservation Calendar Card - Equal width on all screen sizes */}
+                <div className="h-full min-h-0">
                   <ReservationCalendarCard
                     existingBookings={bookings}
                     selectedDate={selectedDate}
@@ -186,8 +201,8 @@ export default function BookRoomPage() {
                   />
                 </div>
 
-                {/* Reservation Form Card - Takes full width on mobile, 1/3 on desktop */}
-                <div className="lg:col-span-1 h-full min-h-[500px]">
+                {/* Reservation Form Card - Equal width on all screen sizes */}
+                <div className="h-full min-h-0">
                   <ReservationFormCard
                     room={room}
                     existingBookings={bookings}

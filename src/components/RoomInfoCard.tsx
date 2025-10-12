@@ -50,7 +50,7 @@ export default function RoomInfoCard({ room }: RoomInfoCardProps) {
                 <Info className="w-4 h-4 mr-2 text-blue-500" />
                 Galeri Ruangan
               </h3>
-              <div className="h-48">
+              <div className="h-40 sm:h-44 md:h-48">
                 <ImageCarousel
                   photos={room.photos.filter(photo => isImageValid(photo))}
                   alt={room.name}
@@ -67,29 +67,29 @@ export default function RoomInfoCard({ room }: RoomInfoCardProps) {
 
           {/* Room Information */}
           <div className="flex-shrink-0 space-y-3">
-            <div className="flex items-center gap-3 p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <Users className="w-4 h-4 text-blue-500 flex-shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs text-gray-600 dark:text-gray-300">Kapasitas</p>
-                <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">{room.capacity} orang</p>
+            <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <Users className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-gray-600 dark:text-gray-300 mb-1">Kapasitas</p>
+                <p className="font-semibold text-gray-900 dark:text-white text-sm">{room.capacity} orang</p>
               </div>
             </div>
 
             {room.facilities && room.facilities.length > 0 && (
-              <div className="p-2.5 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center text-sm">
+              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center text-sm">
                   <Info className="w-4 h-4 mr-2 text-green-500 flex-shrink-0" />
                   Fasilitas
                 </h4>
-                <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto">
-                  {room.facilities.slice(0, 6).map((facility: string, index: number) => (
-                    <Badge key={index} variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs px-2 py-1">
+                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+                  {room.facilities.slice(0, 10).map((facility: string, index: number) => (
+                    <Badge key={index} variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs px-2.5 py-1.5">
                       {facility}
                     </Badge>
                   ))}
-                  {room.facilities.length > 6 && (
-                    <Badge variant="secondary" className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 text-xs px-2 py-1">
-                      +{room.facilities.length - 6}
+                  {room.facilities.length > 10 && (
+                    <Badge variant="secondary" className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 text-xs px-2.5 py-1.5">
+                      +{room.facilities.length - 10}
                     </Badge>
                   )}
                 </div>

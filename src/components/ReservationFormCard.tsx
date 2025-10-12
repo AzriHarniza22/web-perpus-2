@@ -186,14 +186,14 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
         </CardHeader>
 
         <CardContent className="flex-1 overflow-y-auto">
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-            {/* Time Selection */}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Time Selection - Optimized for equal width layout */}
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-sm">Waktu Mulai</Label>
-                <div className="flex gap-2 mt-1">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Waktu Mulai</Label>
+                <div className="flex gap-2">
                   <Select value={form.watch('startHour')} onValueChange={(value: string) => form.setValue('startHour', value)}>
-                    <SelectTrigger className="h-9">
+                    <SelectTrigger className="h-9 flex-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -205,7 +205,7 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
                     </SelectContent>
                   </Select>
                   <Select value={form.watch('startMinute')} onValueChange={(value: string) => form.setValue('startMinute', value)}>
-                    <SelectTrigger className="h-9">
+                    <SelectTrigger className="h-9 flex-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -217,11 +217,11 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
                   </Select>
                 </div>
               </div>
-              <div>
-                <Label className="text-sm">Waktu Selesai</Label>
-                <div className="flex gap-2 mt-1">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Waktu Selesai</Label>
+                <div className="flex gap-2">
                   <Select value={form.watch('endHour')} onValueChange={(value: string) => form.setValue('endHour', value)}>
-                    <SelectTrigger className="h-9">
+                    <SelectTrigger className="h-9 flex-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -233,7 +233,7 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
                     </SelectContent>
                   </Select>
                   <Select value={form.watch('endMinute')} onValueChange={(value: string) => form.setValue('endMinute', value)}>
-                    <SelectTrigger className="h-9">
+                    <SelectTrigger className="h-9 flex-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -247,36 +247,36 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="eventDescription" className="text-sm">Deskripsi Acara</Label>
+            <div className="space-y-2">
+              <Label htmlFor="eventDescription" className="text-sm font-medium">Deskripsi Acara</Label>
               <Textarea
                 id="eventDescription"
                 {...form.register('eventDescription')}
                 placeholder="Jelaskan acara atau tujuan Anda"
-                className={cn("mt-1 min-h-[80px] resize-none", form.formState.errors.eventDescription && "border-red-500")}
+                className={cn("min-h-[80px] resize-none", form.formState.errors.eventDescription && "border-red-500")}
               />
               {form.formState.errors.eventDescription && (
-                <p className="text-xs text-red-500 mt-1">{form.formState.errors.eventDescription.message}</p>
+                <p className="text-xs text-red-500">{form.formState.errors.eventDescription.message}</p>
               )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="guestCount" className="text-sm">Jumlah Tamu</Label>
+              <div className="space-y-2">
+                <Label htmlFor="guestCount" className="text-sm font-medium">Jumlah Tamu</Label>
                 <Input
                   id="guestCount"
                   type="number"
                   {...form.register('guestCount', { valueAsNumber: true })}
                   placeholder="1-100"
-                  className={cn("mt-1 h-9", form.formState.errors.guestCount && "border-red-500")}
+                  className={cn("h-9", form.formState.errors.guestCount && "border-red-500")}
                 />
                 {form.formState.errors.guestCount && (
-                  <p className="text-xs text-red-500 mt-1">{form.formState.errors.guestCount.message}</p>
+                  <p className="text-xs text-red-500">{form.formState.errors.guestCount.message}</p>
                 )}
               </div>
 
-              <div>
-                <Label htmlFor="proposalFile" className="text-sm">File Proposal</Label>
+              <div className="space-y-2">
+                <Label htmlFor="proposalFile" className="text-sm font-medium">File Proposal</Label>
                 <Input
                   id="proposalFile"
                   type="file"
@@ -285,21 +285,21 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
                     const file = e.target.files?.[0] || undefined;
                     form.setValue('proposalFile', file);
                   }}
-                  className="mt-1 h-9 text-xs"
+                  className="h-9 text-xs"
                 />
                 {form.formState.errors.proposalFile && (
-                  <p className="text-xs text-red-500 mt-1">{form.formState.errors.proposalFile.message}</p>
+                  <p className="text-xs text-red-500">{form.formState.errors.proposalFile.message}</p>
                 )}
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="notes" className="text-sm">Catatan Tambahan</Label>
+            <div className="space-y-2">
+              <Label htmlFor="notes" className="text-sm font-medium">Catatan Tambahan</Label>
               <Textarea
                 id="notes"
                 {...form.register('notes')}
                 placeholder="Persyaratan khusus atau catatan lainnya"
-                className="mt-1 min-h-[60px] resize-none"
+                className="min-h-[60px] resize-none"
               />
             </div>
 

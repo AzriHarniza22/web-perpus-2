@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState } from 'react'
@@ -109,12 +110,12 @@ export default function ReservationCalendarCard({
         </CardHeader>
 
         <CardContent className="relative z-10 flex-1 overflow-y-auto">
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex-shrink-0">
-              <Label htmlFor="date" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <Label htmlFor="date" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
                 Tanggal Reservasi
               </Label>
-              <div className="mt-2">
+              <div className="w-full">
                 <UICalendar
                   mode="single"
                   selected={currentSelectedDate}
@@ -147,7 +148,7 @@ export default function ReservationCalendarCard({
                       fontWeight: 'bold'
                     }
                   }}
-                  className="rounded-md border shadow-sm [&_.rdp-day_button:hover]:hover:bg-gray-100 [&_.rdp-months]:space-y-2 [&_.rdp-month]:space-y-2 [&_.rdp-table]:text-sm"
+                  className="rounded-md border shadow-sm w-full [&_.rdp-day_button:hover]:hover:bg-gray-100 [&_.rdp-months]:space-y-2 [&_.rdp-month]:space-y-2 [&_.rdp-table]:text-sm [&_.rdp-months]:w-full [&_.rdp-month]:w-full"
                 />
               </div>
             </div>
@@ -156,13 +157,13 @@ export default function ReservationCalendarCard({
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2.5 flex-shrink-0"
+                className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 sm:p-2.5 flex-shrink-0"
               >
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center text-sm">
                   <Clock className="w-4 h-4 mr-2 text-primary flex-shrink-0" />
                   <span className="truncate">Waktu dipesan {format(currentSelectedDate, 'dd/MM')}:</span>
                 </h4>
-                <div className="space-y-1 max-h-32 overflow-y-auto">
+                <div className="space-y-1 max-h-24 sm:max-h-32 overflow-y-auto">
                   {getBookedTimes(currentSelectedDate).slice(0, 4).map((time, index) => (
                     <motion.div
                       key={index}
