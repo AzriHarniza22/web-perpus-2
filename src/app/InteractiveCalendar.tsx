@@ -1,13 +1,33 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 // Interactive Calendar Component
-const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time: string; end_time: string; rooms?: { name: string }; status: string; is_tour?: boolean; profiles?: { full_name?: string; email?: string } }> }) => {
-  const [selectedDate, setSelectedDate] = useState(new Date())
+const InteractiveCalendar = ({
+  bookings = [],
+  selectedDate: externalSelectedDate,
+  onDateSelect
+}: {
+  bookings?: Array<{ start_time: string; end_time: string; rooms?: { name: string }; status: string; is_tour?: boolean; profiles?: { full_name?: string; email?: string } }>
+  selectedDate?: Date
+  onDateSelect?: (date: Date) => void
+}) => {
+  const [internalSelectedDate, setInternalSelectedDate] = useState(new Date())
   const [currentMonth, setCurrentMonth] = useState(new Date())
+
+  useEffect(() => {
+    if (externalSelectedDate !== undefined) {
+      setInternalSelectedDate(externalSelectedDate)
+    }
+  }, [externalSelectedDate])
+
+  const selectedDate = internalSelectedDate
+
+  const handleDateSelect = (date: Date) => {
+    setInternalSelectedDate(date)
+    onDateSelect?.(date)
+  }
 
   const getBookedTimes = (date: Date) => {
     const now = new Date()
@@ -103,27 +123,23 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
     <div className="bg-background/20 backdrop-blur-xl rounded-3xl p-6 border border-background/30 shadow-2xl">
       {/* Calendar Header */}
       <div className="flex items-center justify-between mb-6">
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+        <button
           onClick={prevMonth}
-          className="p-2 rounded-full bg-background/30 hover:bg-background/40 transition-all"
+          className="p-2 rounded-full bg-background/30 hover:bg-background/40 transition-all calendar-button"
         >
           <ChevronLeft size={20} className="text-gray-700" />
-        </motion.button>
+        </button>
 
         <h3 className="text-xl font-bold text-gray-800">
           {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
         </h3>
 
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+        <button
           onClick={nextMonth}
-          className="p-2 rounded-full bg-background/30 hover:bg-background/40 transition-all"
+          className="p-2 rounded-full bg-background/30 hover:bg-background/40 transition-all calendar-button"
         >
           <ChevronRight size={20} className="text-gray-700" />
-        </motion.button>
+        </button>
       </div>
 
       {/* Days of week */}
@@ -143,37 +159,34 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
           const dateStatus = getDateStatus(day)
           const isSelected = selectedDate.toDateString() === day.toDateString()
 
+          const hoverStyles = { scale: 1.1 }
+
           return (
-            <motion.button
+            <button
               key={index}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedDate(day)}
+              onClick={() => handleDateSelect(day)}
               className={`
-                relative p-2 text-sm rounded-lg transition-all duration-200
+                relative p-2 text-sm rounded-lg calendar-button
                 ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-700'}
+                ${dateStatus === 'approved' && !isTodayDate ? `bg-red-100 text-red-600 ${isSelected ? 'ring-2 ring-red-200' : ''}` : ''}
+                ${dateStatus === 'pending' && !isTodayDate ? `bg-yellow-100 text-yellow-600 ${isSelected ? 'ring-2 ring-yellow-200' : ''}` : ''}
                 ${isTodayDate ? 'bg-primary text-white font-bold' : ''}
-                ${isSelected && !isTodayDate ? 'bg-secondary-500 text-white' : ''}
-                ${dateStatus === 'approved' && !isTodayDate && !isSelected ? 'bg-red-100 text-red-600' : ''}
-                ${dateStatus === 'pending' && !isTodayDate && !isSelected ? 'bg-yellow-100 text-yellow-600' : ''}
-                ${!isTodayDate && !isSelected && !dateStatus && isCurrentMonth ? 'hover:bg-white/40' : ''}
+                ${isSelected ? 'bg-blue-500 text-white' : ''}
               `}
             >
               {day.getDate()}
               {dateStatus && (
                 <div className={`absolute top-1 right-1 w-2 h-2 rounded-full ${dateStatus === 'approved' ? 'bg-red-400' : 'bg-yellow-400'}`}></div>
               )}
-            </motion.button>
+            </button>
           )
         })}
       </div>
 
       {/* Selected Date Info */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         key={selectedDate.toDateString()}
-        className="bg-background/30 rounded-2xl p-4"
+        className="bg-background/30 rounded-2xl p-4 fade-in-up"
       >
         <h4 className="font-bold text-gray-800 mb-3">
           📅 {formatDate(selectedDate)}
@@ -182,41 +195,39 @@ const InteractiveCalendar = ({ bookings = [] }: { bookings?: Array<{ start_time:
         <div className="space-y-2 max-h-32 overflow-y-auto">
           {getBookedTimes(selectedDate).length > 0 ? (
             getBookedTimes(selectedDate).map((booking, index) => (
-              <motion.div
+              <div
                 key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className={`p-2 rounded-lg text-sm ${
+                className="p-2 rounded-lg text-sm fade-in-left"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className={`${
                   booking.status === 'approved'
                     ? 'bg-red-100 text-red-800 border-l-4 border-red-400'
                     : 'bg-yellow-100 text-yellow-800 border-l-4 border-yellow-400'
-                }`}
-              >
-                <div className="font-medium">
-                  {booking.isTour ? '🚌 Tour' : '🏢 Room'}: {booking.room}
+                }`}>
+                  <div className="font-medium">
+                    {booking.isTour ? '🚌 Tour' : '🏢 Room'}: {booking.room}
+                  </div>
+                  <div className="text-xs">
+                    🕐 {formatTime(booking.start)} - {formatTime(booking.end)}
+                  </div>
+                  <div className="text-xs capitalize">
+                    📋 {booking.status === 'approved' ? 'Disetujui' : 'Menunggu'}
+                  </div>
                 </div>
-                <div className="text-xs">
-                  🕐 {formatTime(booking.start)} - {formatTime(booking.end)}
-                </div>
-                <div className="text-xs capitalize">
-                  📋 {booking.status === 'approved' ? 'Disetujui' : 'Menunggu'}
-                </div>
-              </motion.div>
+              </div>
             ))
           ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-4 text-gray-600"
+            <div
+              className="text-center py-4 text-gray-600 fade-in"
             >
               <div className="text-2xl mb-2">✨</div>
               <div className="text-sm">Tidak ada booking untuk tanggal ini</div>
               <div className="text-xs text-gray-500 mt-1">Hari yang sempurna untuk reservasi!</div>
-            </motion.div>
+            </div>
           )}
         </div>
-      </motion.div>
+      </div>
 
       {/* Legend */}
       <div className="mt-4 flex items-center justify-center gap-4 text-xs">

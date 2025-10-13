@@ -91,7 +91,7 @@ export default function ReservationCalendarCard({
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="h-full bg-card backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group flex flex-col">
+      <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group flex flex-col">
         {/* Background Gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 via-indigo-50/30 to-secondary-50/50 dark:from-primary-900/20 dark:via-indigo-900/20 dark:to-secondary-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -111,11 +111,11 @@ export default function ReservationCalendarCard({
 
         <CardContent className="relative z-10 flex-1 overflow-y-auto">
           <div className="space-y-4">
-            <div className="flex-shrink-0">
+            <div className="flex-1">
               <Label htmlFor="date" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
                 Tanggal Reservasi
               </Label>
-              <div className="w-full">
+              <div className="flex justify-center">
                 <UICalendar
                   mode="single"
                   selected={currentSelectedDate}
@@ -129,7 +129,8 @@ export default function ReservationCalendarCard({
                     booked: getBookedDates(),
                     approved: getBookedDates().filter(date => getDateStatus(date) === 'approved'),
                     pending: getBookedDates().filter(date => getDateStatus(date) === 'pending'),
-                    today: (date) => isToday(date)
+                    today: (date) => isToday(date),
+                    selected: (date) => currentSelectedDate?.toDateString() === date.toDateString()
                   }}
                   modifiersStyles={{
                     approved: {
@@ -146,9 +147,26 @@ export default function ReservationCalendarCard({
                       backgroundColor: 'var(--primary)',
                       color: 'white',
                       fontWeight: 'bold'
+                    },
+                    selected: {
+                      backgroundColor: 'rgb(59 130 246)', // blue-500
+                      color: 'white',
+                      fontWeight: 'bold'
+                    },
+                    'selected.approved': {
+                      backgroundColor: 'rgb(254 226 226)', // red-100
+                      color: 'rgb(153 27 27)', // red-800
+                      fontWeight: 'bold',
+                      border: '2px solid rgb(254 202 202)' // red-200
+                    },
+                    'selected.pending': {
+                      backgroundColor: 'rgb(254 249 195)', // yellow-100
+                      color: 'rgb(133 77 14)', // yellow-800
+                      fontWeight: 'bold',
+                      border: '2px solid rgb(254 240 138)' // yellow-200
                     }
                   }}
-                  className="rounded-md border shadow-sm w-full [&_.rdp-day_button:hover]:hover:bg-gray-100 [&_.rdp-months]:space-y-2 [&_.rdp-month]:space-y-2 [&_.rdp-table]:text-sm [&_.rdp-months]:w-full [&_.rdp-month]:w-full"
+                  className="rounded-md border shadow-sm w-80 [&_.rdp-day_button:hover]:hover:bg-blue-100 [&_.rdp-months]:space-y-2 [&_.rdp-month]:space-y-2 [&_.rdp-table]:text-sm [&_.rdp-months]:w-full [&_.rdp-month]:w-full [&_.rdp-day_button]:text-xs sm:[&_.rdp-day_button]:text-sm [&_.rdp-head_cell]:text-xs sm:[&_.rdp-head_cell]:text-sm"
                 />
               </div>
             </div>
@@ -157,44 +175,39 @@ export default function ReservationCalendarCard({
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2 sm:p-2.5 flex-shrink-0"
+                className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 sm:p-4"
               >
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center text-sm">
-                  <Clock className="w-4 h-4 mr-2 text-primary flex-shrink-0" />
-                  <span className="truncate">Waktu dipesan {format(currentSelectedDate, 'dd/MM')}:</span>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center text-base">
+                  <Clock className="w-5 h-5 mr-2 text-primary flex-shrink-0" />
+                  <span className="truncate">Reservasi pada {format(currentSelectedDate, 'dd/MM')}:</span>
                 </h4>
-                <div className="space-y-1 max-h-24 sm:max-h-32 overflow-y-auto">
-                  {getBookedTimes(currentSelectedDate).slice(0, 4).map((time, index) => (
+                <div className="space-y-2 max-h-36 sm:max-h-44 overflow-y-auto">
+                  {getBookedTimes(currentSelectedDate).map((time, index) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className={`flex items-center gap-2 text-xs px-2 py-1.5 rounded-md ${
+                      className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md ${
                         time.status === 'approved'
                           ? 'text-red-600 bg-red-50 dark:bg-red-900/20'
                           : 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
                       }`}
                     >
-                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                         time.status === 'approved' ? 'bg-red-500' : 'bg-yellow-500'
                       }`}></div>
                       <span className="truncate">{format(time.start, 'HH:mm')} - {format(time.end, 'HH:mm')}</span>
                     </motion.div>
                   ))}
-                  {getBookedTimes(currentSelectedDate).length > 4 && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 px-2 py-1">
-                      +{getBookedTimes(currentSelectedDate).length - 4} lagi
-                    </div>
-                  )}
                   {getBookedTimes(currentSelectedDate).length === 0 && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="flex items-center gap-2 text-xs text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1.5 rounded-md"
+                      className="flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-md"
                     >
-                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0"></div>
-                      Tidak ada pemesanan
+                      <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                      Tidak ada reservasi di tanggal tersebut
                     </motion.div>
                   )}
                 </div>

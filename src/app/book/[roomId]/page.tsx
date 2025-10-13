@@ -5,14 +5,15 @@ import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import RoomInfoCard from '@/components/RoomInfoCard'
-import ReservationCalendarCard from '@/components/ReservationCalendarCard'
+import InteractiveCalendar from '@/app/InteractiveCalendar'
 import ReservationFormCard from '@/components/ReservationFormCard'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import { Loading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
-import { Sparkles, ArrowLeft } from 'lucide-react'
+import { Sparkles, ArrowLeft, CalendarIcon } from 'lucide-react'
 
 import { Room, Booking } from '@/lib/api'
 
@@ -75,7 +76,7 @@ export default function BookRoomPage() {
       const now = new Date().toISOString()
       const { data: bookingsData } = await supabase
         .from('bookings')
-        .select('*')
+        .select('*, rooms(name)')
         .eq('room_id', roomId)
         .in('status', ['approved', 'pending'])
         .gte('start_time', now) // Only future bookings like landing page
@@ -186,23 +187,44 @@ export default function BookRoomPage() {
         {/* Full Height Content Area - Perfect height with new spacing */}
        <div className="h-[calc(100vh-168px)] sm:h-[calc(100vh-174px)] lg:h-[calc(100vh-176px)] flex flex-col">
           {/* Optimized 3-Card Grid Layout - Equal width cards with responsive spacing */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-3 xl:gap-4 flex-1 min-h-0">
+          <div className="flex flex-col md:flex-row gap-2 sm:gap-3 lg:gap-3 xl:gap-4 flex-1 min-h-0">
                 {/* Room Info Card - Equal width on all screen sizes */}
-                <div className="h-full min-h-0">
+                <div className="flex-1 min-h-0">
                   <RoomInfoCard room={room} />
                 </div>
 
                 {/* Reservation Calendar Card - Equal width on all screen sizes */}
-                <div className="h-full min-h-0">
-                  <ReservationCalendarCard
-                    existingBookings={bookings}
-                    selectedDate={selectedDate}
-                    onDateSelect={setSelectedDate}
-                  />
+                <div className="flex-1 min-h-0">
+                  <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group flex flex-col h-full">
+                    {/* Background Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 via-indigo-50/30 to-secondary-50/50 dark:from-primary-900/20 dark:via-indigo-900/20 dark:to-secondary-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                    <CardHeader className="relative z-10 flex-shrink-0">
+                      <CardTitle className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <CalendarIcon className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+                          Pilih Tanggal
+                        </span>
+                      </CardTitle>
+                      <CardDescription className="text-gray-600 dark:text-gray-300 text-sm">
+                        Pilih tanggal yang diinginkan untuk reservasi
+                      </CardDescription>
+                    </CardHeader>
+
+                    <CardContent className="relative z-10 flex-1 overflow-y-auto">
+                      <InteractiveCalendar
+                        bookings={bookings}
+                        selectedDate={selectedDate}
+                        onDateSelect={setSelectedDate}
+                      />
+                    </CardContent>
+                  </Card>
                 </div>
 
                 {/* Reservation Form Card - Equal width on all screen sizes */}
-                <div className="h-full min-h-0">
+                <div className="flex-1 min-h-0">
                   <ReservationFormCard
                     room={room}
                     existingBookings={bookings}
