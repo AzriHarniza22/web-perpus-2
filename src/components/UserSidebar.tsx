@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
+import Image from 'next/image'
 import { Calendar, History, LogOut, User as UserIcon, BookOpen, ChevronLeft, ChevronRight, Sparkles, MapPin } from 'lucide-react'
 
 interface UserSidebarProps {
@@ -86,8 +87,14 @@ export default function UserSidebar({ className, onToggle }: UserSidebarProps) {
           animate={{ opacity: 1 }}
           className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'}`}
         >
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-            <Sparkles className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+            <Image
+              src="/logo.svg"
+              alt="Perpustakaan Aceh Logo"
+              width={32}
+              height={32}
+              className="w-8 h-8"
+            />
           </div>
           <AnimatePresence>
             {!isCollapsed && (

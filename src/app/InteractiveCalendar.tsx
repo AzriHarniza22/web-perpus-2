@@ -159,8 +159,6 @@ const InteractiveCalendar = ({
           const dateStatus = getDateStatus(day)
           const isSelected = selectedDate.toDateString() === day.toDateString()
 
-          const hoverStyles = { scale: 1.1 }
-
           return (
             <button
               key={index}

@@ -159,8 +159,8 @@ function AnalyticsDashboardContent({
       } : undefined
 
       let exportBookings = bookings
-      let exportRooms = rooms
-      let exportUsers = users
+      const exportRooms = rooms
+      const exportUsers = users
 
       // Filter current bookings based on export date range
       if (exportDateRange?.from && exportDateRange?.to) {
