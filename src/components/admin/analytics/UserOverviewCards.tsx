@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Users, UserCheck, UserPlus, Building, Award, LucideIcon } from 'lucide-react'
+import { TrendingUp, Users, UserCheck, UserPlus, Building, Award, BookOpen, Activity, LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { aggregateUserAnalytics, getUserInitials } from '@/lib/userAnalytics'
 import { Booking, User } from '@/lib/types'
@@ -20,8 +20,6 @@ interface StatCard {
   icon: LucideIcon
   color: string
   bgColor: string
-  change?: number
-  changeType?: 'increase' | 'decrease' | 'neutral'
   subtitle?: string
 }
 
@@ -139,59 +137,47 @@ export function UserOverviewCards({
       label: 'Total Pengguna',
       value: animatedValues.totalUsers,
       icon: Users,
-      color: 'text-primary',
-      bgColor: 'bg-primary-100 dark:bg-primary-900/50',
-      change: 12,
-      changeType: 'increase'
+      color: 'text-white',
+      bgColor: 'bg-blue-500'
     },
     {
       label: 'Pengguna Aktif',
       value: animatedValues.activeUsers,
       icon: UserCheck,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100 dark:bg-green-900/50',
-      subtitle: `${animatedValues.approvalRate}% dari total`,
-      change: 8,
-      changeType: 'increase'
+      color: 'text-white',
+      bgColor: 'bg-green-500',
+      subtitle: `${animatedValues.approvalRate}% dari total`
     },
     {
       label: 'Pengguna Baru',
       value: animatedValues.newUsersThisMonth,
       icon: UserPlus,
-      color: 'text-secondary',
-      bgColor: 'bg-secondary-100 dark:bg-secondary-900/50',
-      subtitle: 'Bulan ini',
-      change: 15,
-      changeType: 'increase'
+      color: 'text-white',
+      bgColor: 'bg-purple-500',
+      subtitle: 'Bulan ini'
     },
     {
       label: 'Rata-rata Booking',
       value: animatedValues.avgBookingsPerUser,
-      icon: TrendingUp,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100 dark:bg-orange-900/50',
-      subtitle: 'Per pengguna aktif',
-      change: 5,
-      changeType: 'increase'
+      icon: BookOpen,
+      color: 'text-white',
+      bgColor: 'bg-blue-500',
+      subtitle: 'Per pengguna aktif'
     },
     {
       label: 'Institusi Terdaftar',
       value: animatedValues.topInstitutionCount,
       icon: Building,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-100 dark:bg-indigo-900/50',
-      change: 3,
-      changeType: 'increase'
+      color: 'text-white',
+      bgColor: 'bg-blue-500'
     },
     {
       label: 'Tingkat Aktivitas',
       value: animatedValues.approvalRate,
-      icon: Award,
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-100 dark:bg-emerald-900/50',
-      subtitle: 'Pengguna aktif/total',
-      change: 7,
-      changeType: 'increase'
+      icon: Activity,
+      color: 'text-white',
+      bgColor: 'bg-green-500',
+      subtitle: 'Pengguna aktif/total'
     }
   ]
 
@@ -225,7 +211,7 @@ export function UserOverviewCards({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1, duration: 0.5 }}
         >
-          <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105 w-full">
+          <Card className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105 w-full">
             <CardContent className="p-3 h-20">
               <div className="flex items-center justify-between h-full">
                 <div className="space-y-1 flex-1 min-w-0">
@@ -236,18 +222,6 @@ export function UserOverviewCards({
                     <p className="text-lg font-bold text-gray-900 dark:text-white">
                       {stat.label.includes('Tingkat') ? `${stat.value}%` : stat.value}
                     </p>
-                    {stat.change !== undefined && stat.changeType && (
-                      <div className={`flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full ${
-                        stat.changeType === 'increase'
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400'
-                          : stat.changeType === 'decrease'
-                          ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
-                          : 'bg-gray-100 text-gray-700 dark:bg-gray-900/50 dark:text-gray-400'
-                      }`}>
-                        <TrendingUp className={`w-2.5 h-2.5 ${stat.changeType === 'decrease' ? 'rotate-180' : ''}`} />
-                        {Math.abs(stat.change)}%
-                      </div>
-                    )}
                   </div>
                   {stat.subtitle && (
                     <p className="text-xs text-gray-500 dark:text-gray-500 truncate">
@@ -255,7 +229,7 @@ export function UserOverviewCards({
                     </p>
                   )}
                 </div>
-                <div className={`w-8 h-8 rounded-lg ${stat.bgColor} flex items-center justify-center flex-shrink-0 ml-2`}>
+                <div className={`w-8 h-8 rounded-lg ${stat.bgColor} flex items-center justify-center flex-shrink-0 ml-2 group-hover:scale-110 transition-transform duration-75 ease-out`}>
                   <stat.icon className={`w-4 h-4 ${stat.color}`} />
                 </div>
               </div>

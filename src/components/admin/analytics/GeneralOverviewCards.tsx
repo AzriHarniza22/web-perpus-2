@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Users, Building, MapPin, Clock, BarChart3, LucideIcon } from 'lucide-react'
+import { TrendingUp, Users, Building, MapPin, Clock, BookOpen, CheckCircle, XCircle, Percent, LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Booking, Room, Tour, User } from '@/lib/types'
 
@@ -20,8 +20,6 @@ interface StatCard {
   icon: LucideIcon
   color: string
   bgColor: string
-  change?: number
-  changeType?: 'increase' | 'decrease' | 'neutral'
 }
 
 export function GeneralOverviewCards({
@@ -202,68 +200,58 @@ export function GeneralOverviewCards({
     {
       label: 'Total Reservasi',
       value: animatedValues.totalBookings,
-      icon: BarChart3,
-      color: 'text-primary',
-      bgColor: 'bg-primary-100 dark:bg-primary-900/50',
-      change: 12,
-      changeType: 'increase'
+      icon: BookOpen,
+      color: 'text-white',
+      bgColor: 'bg-blue-500'
     },
     {
       label: 'Disetujui',
       value: animatedValues.approvedBookings,
-      icon: TrendingUp,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100 dark:bg-green-900/50',
-      change: 8,
-      changeType: 'increase'
+      icon: CheckCircle,
+      color: 'text-white',
+      bgColor: 'bg-green-500'
     },
     {
       label: 'Menunggu',
       value: animatedValues.pendingBookings,
       icon: Clock,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-100 dark:bg-yellow-900/50',
-      change: -3,
-      changeType: 'decrease'
+      color: 'text-white',
+      bgColor: 'bg-yellow-500'
     },
     {
       label: 'Ditolak',
       value: animatedValues.rejectedBookings,
-      icon: Users,
-      color: 'text-red-600',
-      bgColor: 'bg-red-100 dark:bg-red-900/50',
-      change: 2,
-      changeType: 'increase'
+      icon: XCircle,
+      color: 'text-white',
+      bgColor: 'bg-red-500'
     },
     {
       label: 'Total Ruangan',
       value: animatedValues.totalRooms,
       icon: Building,
-      color: 'text-secondary',
-      bgColor: 'bg-secondary-100 dark:bg-secondary-900/50'
+      color: 'text-white',
+      bgColor: 'bg-blue-500'
     },
     {
       label: 'Total Tamu',
       value: animatedValues.totalTours,
-      icon: MapPin,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-100 dark:bg-indigo-900/50'
+      icon: Users,
+      color: 'text-white',
+      bgColor: 'bg-blue-500'
     },
     {
       label: 'Total Pengguna',
       value: animatedValues.totalUsers,
       icon: Users,
-      color: 'text-cyan-600',
-      bgColor: 'bg-cyan-100 dark:bg-cyan-900/50'
+      color: 'text-white',
+      bgColor: 'bg-blue-500'
     },
     {
       label: 'Tingkat Persetujuan',
       value: animatedValues.approvalRate,
-      icon: TrendingUp,
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-100 dark:bg-emerald-900/50',
-      change: 5,
-      changeType: 'increase'
+      icon: Percent,
+      color: 'text-white',
+      bgColor: 'bg-blue-500'
     }
   ]
 
@@ -296,7 +284,7 @@ export function GeneralOverviewCards({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1, duration: 0.5 }}
         >
-          <Card className="bg-card backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105">
+          <Card className="group bg-card backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -307,22 +295,10 @@ export function GeneralOverviewCards({
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                       {stat.label.includes('Tingkat') ? `${stat.value}%` : stat.value}
                     </p>
-                    {stat.change !== undefined && stat.changeType && (
-                      <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
-                        stat.changeType === 'increase'
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400'
-                          : stat.changeType === 'decrease'
-                          ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
-                          : 'bg-gray-100 text-gray-700 dark:bg-gray-900/50 dark:text-gray-400'
-                      }`}>
-                        <TrendingUp className={`w-3 h-3 ${stat.changeType === 'decrease' ? 'rotate-180' : ''}`} />
-                        {Math.abs(stat.change)}%
-                      </div>
-                    )}
                   </div>
                 </div>
-                <div className={`w-12 h-12 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
-                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-75 ease-out`}>
+                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
                 </div>
               </div>
             </CardContent>

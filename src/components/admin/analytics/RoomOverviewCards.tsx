@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Users, Building, Clock, BarChart3, LucideIcon } from 'lucide-react'
+import { TrendingUp, Users, Building, Clock, BookOpen, CheckCircle, XCircle, LucideIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Booking, Room } from '@/lib/types'
@@ -19,8 +19,6 @@ interface StatCard {
   icon: LucideIcon
   color: string
   bgColor: string
-  change?: number
-  changeType?: 'increase' | 'decrease' | 'neutral'
   subtitle?: string
 }
 
@@ -218,69 +216,61 @@ export function RoomOverviewCards({
     {
       label: 'Total Reservasi',
       value: animatedValues.totalBookings || roomStats.totalBookings,
-      icon: BarChart3,
-      color: 'text-primary',
-      bgColor: 'bg-primary-100 dark:bg-primary-900/50',
-      change: 12,
-      changeType: 'increase'
+      icon: BookOpen,
+      color: 'text-white',
+      bgColor: 'bg-blue-500'
     },
     {
       label: 'Disetujui',
       value: animatedValues.approvedBookings || roomStats.approvedBookings,
-      icon: TrendingUp,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100 dark:bg-green-900/50',
-      change: 8,
-      changeType: 'increase'
+      icon: CheckCircle,
+      color: 'text-white',
+      bgColor: 'bg-green-500'
     },
     {
       label: 'Menunggu',
       value: animatedValues.pendingBookings || roomStats.pendingBookings,
       icon: Clock,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-100 dark:bg-yellow-900/50',
-      change: -3,
-      changeType: 'decrease'
+      color: 'text-white',
+      bgColor: 'bg-yellow-500'
     },
     {
       label: 'Ditolak',
       value: animatedValues.rejectedBookings || roomStats.rejectedBookings,
-      icon: Users,
-      color: 'text-red-600',
-      bgColor: 'bg-red-100 dark:bg-red-900/50',
-      change: 2,
-      changeType: 'increase'
+      icon: XCircle,
+      color: 'text-white',
+      bgColor: 'bg-red-500'
     },
     {
       label: 'Total Tamu',
       value: animatedValues.totalGuests || roomStats.totalGuests,
       icon: Users,
-      color: 'text-secondary',
-      bgColor: 'bg-secondary-100 dark:bg-secondary-900/50',
+      color: 'text-white',
+      bgColor: 'bg-blue-500',
       subtitle: 'orang'
     },
     {
       label: 'Rata-rata Durasi',
       value: animatedValues.avgDuration || roomStats.avgDuration,
       icon: Clock,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-100 dark:bg-indigo-900/50',
+      color: 'text-white',
+      bgColor: 'bg-blue-500',
       subtitle: 'jam'
     },
     {
       label: 'Rata-rata Tamu',
       value: animatedValues.avgGuestsPerBooking || roomStats.avgGuestsPerBooking,
       icon: Users,
-      color: 'text-secondary',
-      bgColor: 'bg-secondary-100 dark:bg-secondary-900/50',
+      color: 'text-white',
+      bgColor: 'bg-blue-500',
       subtitle: 'orang/booking'
     },
     {
       label: 'Jam Puncak',
       value: 0, // We'll handle this specially in the render
-      icon: TrendingUp,
-      color: 'text-emerald-600',
-      bgColor: 'bg-emerald-100 dark:bg-emerald-900/50',
+      icon: Clock,
+      color: 'text-white',
+      bgColor: 'bg-orange-500',
       subtitle: animatedValues.peakHour || roomStats.peakHour
     }
   ]
@@ -343,7 +333,7 @@ export function RoomOverviewCards({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1, duration: 0.5 }}
             >
-              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105">
+              <Card className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
@@ -356,18 +346,10 @@ export function RoomOverviewCards({
                             ? (stat.subtitle || 'N/A')
                             : `${stat.value}${stat.subtitle || ''}`}
                         </p>
-                        {stat.change !== undefined && stat.changeType && (
-                          <Badge
-                            variant={stat.changeType === 'increase' ? 'default' : 'destructive'}
-                            className="text-xs"
-                          >
-                            {stat.changeType === 'increase' ? '+' : ''}{stat.change}%
-                          </Badge>
-                        )}
                       </div>
                     </div>
-                    <div className={`w-12 h-12 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
-                      <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                    <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-75 ease-out`}>
+                      <stat.icon className={`w-5 h-5 ${stat.color}`} />
                     </div>
                   </div>
                 </CardContent>

@@ -17,7 +17,7 @@ import {
   Building,
   MapPin,
   Clock,
-  BarChart3,
+  BookOpen,
   Check,
   ChevronDown,
   Loader2
@@ -487,7 +487,7 @@ function AnalyticsDashboardContent({
                 className="flex items-center gap-2 data-[state=active]:bg-card dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm transition-all duration-200"
                 aria-label="General analytics tab"
               >
-                <BarChart3 className="w-4 h-4" aria-hidden="true" />
+                <BookOpen className="w-4 h-4" aria-hidden="true" />
                 <span className="hidden sm:inline">General</span>
               </TabsTrigger>
               <TabsTrigger

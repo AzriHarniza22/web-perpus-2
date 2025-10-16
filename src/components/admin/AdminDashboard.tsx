@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Users, Building, Calendar, Clock, AlertTriangle, LogOut, Sparkles, TrendingUp } from 'lucide-react'
+import { Users, Building, Calendar, Clock, AlertTriangle, LogOut, Sparkles, TrendingUp, BookOpen, CheckCircle } from 'lucide-react'
 import { useBookings, useRooms } from '@/lib/api'
 import AdminSidebar from './AdminSidebar'
 import InteractiveCalendar from '@/app/InteractiveCalendar'
@@ -233,10 +233,10 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
             className="flex-shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-3 lg:mb-4"
           >
             {[
-              { icon: Building, label: 'Total Ruangan', value: adminStats.totalRooms.toString(), color: 'from-primary-500 to-cyan-400' },
-              { icon: Users, label: 'Total Pengguna', value: adminStats.totalUsers.toString(), color: 'from-secondary-500 to-accent-400' },
-              { icon: Calendar, label: 'Hari Ini', value: adminStats.todayBookings.toString(), color: 'from-green-500 to-emerald-400' },
-              { icon: Clock, label: 'Besok', value: adminStats.tomorrowBookings.toString(), color: 'from-orange-500 to-red-400' }
+              { icon: BookOpen, label: 'Total Ruangan', value: adminStats.totalRooms.toString(), bgColor: 'bg-blue-500' },
+              { icon: TrendingUp, label: 'Total Pengguna', value: adminStats.totalUsers.toString(), bgColor: 'bg-purple-500' },
+              { icon: CheckCircle, label: 'Hari Ini', value: adminStats.todayBookings.toString(), bgColor: 'bg-green-500' },
+              { icon: Clock, label: 'Besok', value: adminStats.tomorrowBookings.toString(), bgColor: 'bg-orange-500' }
             ].map((stat, index) => (
               <motion.div
                 key={stat.label}
@@ -244,15 +244,15 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2 + index * 0.05, type: "spring", stiffness: 200 }}
               >
-                <Card className="bg-card backdrop-blur-sm hover:shadow-lg transition-all">
+                <Card className="bg-card backdrop-blur-sm hover:shadow-lg transition-all group">
                   <CardContent className="p-2.5 lg:p-3">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
                         <p className="text-[10px] lg:text-xs font-medium text-gray-600 dark:text-gray-400 truncate">{stat.label}</p>
                         <p className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
                       </div>
-                      <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-r ${stat.color} flex items-center justify-center flex-shrink-0`}>
-                        <stat.icon className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+                      <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-75 ease-out`}>
+                        <stat.icon className="w-5 h-5 text-white" />
                       </div>
                     </div>
                   </CardContent>
