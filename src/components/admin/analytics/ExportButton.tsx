@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Download, FileSpreadsheet, FileImage, FileText, Loader2, Check, AlertCircle, Zap, History, Settings } from 'lucide-react'
+import { Download, Loader2, Check, AlertCircle, Zap, History, Settings } from 'lucide-react'
+import { FaFileCsv, FaFilePdf, FaFileExcel } from 'react-icons/fa'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -145,7 +146,7 @@ export function ExportButton({
   const getButtonIcon = (format: keyof ExportState) => {
     switch (exportState[format]) {
       case 'loading':
-        return <Loader2 className="w-4 h-4 animate-spin" />
+        return <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
       case 'success':
         return <Check className="w-4 h-4 text-green-600" />
       case 'error':
@@ -153,11 +154,11 @@ export function ExportButton({
       default:
         switch (format) {
           case 'csv':
-            return <FileText className="w-4 h-4" />
+            return <FaFileCsv className="w-6 h-6 text-green-600" />
           case 'pdf':
-            return <FileImage className="w-4 h-4" />
+            return <FaFilePdf className="w-6 h-6 text-red-600" />
           case 'excel':
-            return <FileSpreadsheet className="w-4 h-4" />
+            return <FaFileExcel className="w-6 h-6 text-green-600" />
         }
     }
   }
@@ -169,7 +170,7 @@ export function ExportButton({
       case 'error':
         return 'destructive'
       default:
-        return 'outline'
+        return 'ghost'
     }
   }
 
@@ -203,22 +204,23 @@ export function ExportButton({
   const hasActiveFilters = filters.dateRange || (filters.selectedRooms && filters.selectedRooms.length > 0) || filters.quickSelect
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn("flex items-center gap-3", className)} role="region" aria-label="Export controls">
       {/* Filter State Display */}
       {hasActiveFilters && (
-        <div className="flex items-center gap-1">
-          <Badge variant="secondary" className="text-xs">
+        <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+          <Badge variant="secondary" className="text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+            <Settings className="w-3 h-3 mr-1" />
             Filter Aktif
           </Badge>
           {filters.dateRange && (
-            <Badge variant="outline" className="text-xs">
-              {format(filters.dateRange.from, 'dd/MM', { locale: id })}
+            <Badge variant="outline" className="text-xs font-medium border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300">
+              📅 {format(filters.dateRange.from, 'dd/MM', { locale: id })}
               {filters.dateRange.to && ` - ${format(filters.dateRange.to, 'dd/MM', { locale: id })}`}
             </Badge>
           )}
           {filters.selectedRooms && filters.selectedRooms.length > 0 && (
-            <Badge variant="outline" className="text-xs">
-              {filters.selectedRooms.length} Ruangan
+            <Badge variant="outline" className="text-xs font-medium border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300">
+              🏢 {filters.selectedRooms.length} Ruangan
             </Badge>
           )}
         </div>
@@ -233,146 +235,98 @@ export function ExportButton({
             size="sm"
             disabled={disabled}
             className={cn(
-              "flex items-center gap-2 shadow-sm transition-all duration-200",
-              "bg-gradient-to-r from-primary to-primary-700 hover:from-primary-700 hover:to-primary-800",
-              "text-white border-0 font-medium",
-              hasActiveFilters && "ring-2 ring-primary-300 dark:ring-primary-600"
+              "flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 ease-in-out",
+              "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800",
+              "text-white border-0 font-semibold text-sm tracking-wide",
+              "hover:scale-[1.02] active:scale-[0.98]",
+              hasActiveFilters && "ring-2 ring-blue-300 dark:ring-blue-500 ring-offset-1",
+              disabled && "opacity-50 cursor-not-allowed hover:scale-100"
             )}
+            aria-label={hasActiveFilters ? "Export filtered data" : "Export data"}
           >
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export Data</span>
             <span className="sm:hidden">Export</span>
             {hasActiveFilters && (
-              <Badge variant="secondary" className="ml-1 bg-white/20 text-white text-xs">
+              <Badge variant="secondary" className="ml-1 bg-white/20 text-white text-xs font-medium border-white/30">
                 Filtered
               </Badge>
             )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-64">
-          {/* Quick Export Options */}
-          <div className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
+        <DropdownMenuContent align="end" className="w-72 p-2 shadow-xl border-0 bg-white dark:bg-gray-900 rounded-xl">
+          {/* Quick Export Options Header */}
+          <div className="px-3 py-2 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 mb-2">
             Quick Export
           </div>
 
-          <DropdownMenuItem className="p-0">
+          <DropdownMenuItem className="p-1 focus:bg-gray-50 dark:focus:bg-gray-800 rounded-lg transition-colors duration-150">
             <Button
               variant={getButtonVariant('csv')}
               size="sm"
-              className="w-full justify-start"
+              className={cn(
+                "w-full justify-start gap-3 h-10 font-medium transition-all duration-200",
+                "hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-sm",
+                exportState.csv === 'loading' && "cursor-not-allowed opacity-70"
+              )}
               disabled={exportState.csv === 'loading'}
               onClick={() => handleExport('csv')}
+              aria-label={`Export as CSV${exportState.csv === 'loading' ? ' (processing)' : ''}`}
             >
-              {getButtonIcon('csv')}
-              <span className="ml-2">{getButtonText('csv')}</span>
+              <div className="flex items-center justify-center w-6 h-6 rounded-md bg-green-100 dark:bg-green-900/30">
+                {getButtonIcon('csv')}
+              </div>
+              <span className="flex-1 text-left">{getButtonText('csv')}</span>
+              {exportState.csv === 'loading' && <Loader2 className="w-4 h-4 animate-spin ml-auto" />}
             </Button>
           </DropdownMenuItem>
 
-          <DropdownMenuItem className="p-0">
+          <DropdownMenuItem className="p-1 focus:bg-gray-50 dark:focus:bg-gray-800 rounded-lg transition-colors duration-150">
             <Button
               variant={getButtonVariant('pdf')}
               size="sm"
-              className="w-full justify-start"
+              className={cn(
+                "w-full justify-start gap-3 h-10 font-medium transition-all duration-200",
+                "hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-sm",
+                exportState.pdf === 'loading' && "cursor-not-allowed opacity-70"
+              )}
               disabled={exportState.pdf === 'loading'}
               onClick={() => handleExport('pdf')}
+              aria-label={`Export as PDF${exportState.pdf === 'loading' ? ' (processing)' : ''}`}
             >
-              {getButtonIcon('pdf')}
-              <span className="ml-2">{getButtonText('pdf')}</span>
+              <div className="flex items-center justify-center w-6 h-6 rounded-md bg-red-100 dark:bg-red-900/30">
+                {getButtonIcon('pdf')}
+              </div>
+              <span className="flex-1 text-left">{getButtonText('pdf')}</span>
+              {exportState.pdf === 'loading' && <Loader2 className="w-4 h-4 animate-spin ml-auto" />}
             </Button>
           </DropdownMenuItem>
 
-          <DropdownMenuItem className="p-0">
+          <DropdownMenuItem className="p-1 focus:bg-gray-50 dark:focus:bg-gray-800 rounded-lg transition-colors duration-150">
             <Button
               variant={getButtonVariant('excel')}
               size="sm"
-              className="w-full justify-start"
+              className={cn(
+                "w-full justify-start gap-3 h-10 font-medium transition-all duration-200",
+                "hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-sm",
+                exportState.excel === 'loading' && "cursor-not-allowed opacity-70"
+              )}
               disabled={exportState.excel === 'loading'}
               onClick={() => handleExport('excel')}
+              aria-label={`Export as Excel${exportState.excel === 'loading' ? ' (processing)' : ''}`}
             >
-              {getButtonIcon('excel')}
-              <span className="ml-2">{getButtonText('excel')}</span>
+              <div className="flex items-center justify-center w-6 h-6 rounded-md bg-green-100 dark:bg-green-900/30">
+                {getButtonIcon('excel')}
+              </div>
+              <span className="flex-1 text-left">{getButtonText('excel')}</span>
+              {exportState.excel === 'loading' && <Loader2 className="w-4 h-4 animate-spin ml-auto" />}
             </Button>
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
-
-          {/* Advanced Options */}
-          <div className="px-2 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
-            Advanced
-          </div>
-
-
-          {/* Export History */}
-          {exportHistory.length > 0 && (
-            <DropdownMenuItem className="p-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start"
-                onClick={() => setShowHistory(!showHistory)}
-              >
-                <History className="w-4 h-4 mr-2" />
-                <span>Export History ({exportHistory.length})</span>
-              </Button>
-            </DropdownMenuItem>
-          )}
-
-          <DropdownMenuSeparator />
-
-          {/* Export Summary */}
-          <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
-            <div className="flex justify-between">
-              <span>Total Exports:</span>
-              <span>{exportHistory.length}</span>
-            </div>
-            <div className="flex justify-between mt-1">
-              <span>Success Rate:</span>
-              <span>
-                {exportHistory.length > 0
-                  ? Math.round((exportHistory.filter(h => h.status === 'success').length / exportHistory.length) * 100)
-                  : 0
-                }%
-              </span>
-            </div>
-          </div>
+          <DropdownMenuSeparator className="my-2" />
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Individual Export Buttons (Alternative Layout) */}
-      <div className="hidden md:flex gap-1">
-        <Button
-          variant={getButtonVariant('csv')}
-          size="sm"
-          disabled={exportState.csv === 'loading' || disabled}
-          onClick={() => handleExport('csv')}
-          className="px-2"
-          title={`Export ${currentTab} data sebagai CSV`}
-        >
-          {getButtonIcon('csv')}
-        </Button>
-
-        <Button
-          variant={getButtonVariant('pdf')}
-          size="sm"
-          disabled={exportState.pdf === 'loading' || disabled}
-          onClick={() => handleExport('pdf')}
-          className="px-2"
-          title={`Export ${currentTab} data sebagai PDF`}
-        >
-          {getButtonIcon('pdf')}
-        </Button>
-
-        <Button
-          variant={getButtonVariant('excel')}
-          size="sm"
-          disabled={exportState.excel === 'loading' || disabled}
-          onClick={() => handleExport('excel')}
-          className="px-2"
-          title={`Export ${currentTab} data sebagai Excel`}
-        >
-          {getButtonIcon('excel')}
-        </Button>
-      </div>
     </div>
   )
 }
