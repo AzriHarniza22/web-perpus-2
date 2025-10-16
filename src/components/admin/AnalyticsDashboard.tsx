@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useEffect, memo } from 'react'
 import { motion } from 'framer-motion'
 import { DateRange } from 'react-day-picker'
-import { format, isWithinInterval } from 'date-fns'
+import { format, isWithinInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns'
 import { id } from 'date-fns/locale'
 import {
   CalendarIcon,
@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { DateRangePicker } from '@/components/ui/date-range-picker'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { GeneralOverviewCards } from '@/components/admin/analytics/GeneralOverviewCards'
@@ -114,6 +114,7 @@ function AnalyticsDashboardContent({
     setDateRange,
     setSelectedRooms,
     setSearchQuery,
+    updateFilterState,
     clearAllFilters,
     validation
   } = useFilterState({
@@ -137,13 +138,87 @@ function AnalyticsDashboardContent({
 
   // Quick date filter handlers - Optimized with useCallback
   const handleQuickSelect = useCallback((period: string) => {
-    setQuickSelect(period)
-  }, [setQuickSelect])
+    // Calculate the corresponding date range
+    const now = new Date()
+    let dateRange: DateRange | undefined
+
+    switch (period) {
+      case 'this-week':
+        dateRange = {
+          from: startOfWeek(now, { weekStartsOn: 1 }), // Monday
+          to: endOfWeek(now, { weekStartsOn: 1 })
+        }
+        break
+      case 'this-month':
+        dateRange = {
+          from: startOfMonth(now),
+          to: endOfMonth(now)
+        }
+        break
+      case 'this-year':
+        dateRange = {
+          from: startOfYear(now),
+          to: endOfYear(now)
+        }
+        break
+      default:
+        dateRange = undefined
+    }
+
+    // Set both quickSelect and dateRange at once to avoid clearing each other
+    updateFilterState({
+      quickSelect: period,
+      dateRange
+    })
+  }, [updateFilterState])
 
   const clearDateFilter = useCallback(() => {
-    setDateRange(undefined)
-    setQuickSelect(null)
-  }, [setDateRange, setQuickSelect])
+    updateFilterState({
+      dateRange: undefined,
+      quickSelect: null
+    })
+  }, [updateFilterState])
+
+  // Separate date input handlers
+  const handleStartDateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const startDate = e.target.value ? new Date(e.target.value) : undefined
+    const currentRange = filterState.dateRange
+    const endDate = currentRange?.to
+
+    // Validate that start date is not after end date
+    if (startDate && endDate && startDate > endDate) {
+      // Don't update if invalid
+      return
+    }
+
+    updateFilterState({
+      dateRange: {
+        from: startDate,
+        to: endDate
+      },
+      quickSelect: null // Clear quick select when using custom dates
+    })
+  }, [filterState.dateRange, updateFilterState])
+
+  const handleEndDateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const endDate = e.target.value ? new Date(e.target.value) : undefined
+    const currentRange = filterState.dateRange
+    const startDate = currentRange?.from
+
+    // Validate that end date is not before start date
+    if (startDate && endDate && endDate < startDate) {
+      // Don't update if invalid
+      return
+    }
+
+    updateFilterState({
+      dateRange: {
+        from: startDate,
+        to: endDate
+      },
+      quickSelect: null // Clear quick select when using custom dates
+    })
+  }, [filterState.dateRange, updateFilterState])
 
   // clearAllFilters is now provided by useFilterState hook
 
@@ -294,13 +369,8 @@ function AnalyticsDashboardContent({
         <Card className="bg-card backdrop-blur-sm border-2">
           <CardContent className="p-3">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-primary dark:text-primary-foreground" aria-hidden="true" />
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300" id="global-filters-label">Filter Global:</span>
-              </div>
-
               {/* Enhanced Quick Date Filters */}
-              <div className="flex gap-1.5" role="group" aria-labelledby="global-filters-label">
+              <div className="flex gap-1.5">
                 {[
                   { key: 'this-week', label: 'Minggu Ini', active: filterState.quickSelect === 'this-week' },
                   { key: 'this-month', label: 'Bulan Ini', active: filterState.quickSelect === 'this-month' },
@@ -314,26 +384,46 @@ function AnalyticsDashboardContent({
                     className={cn(
                       "text-xs font-medium transition-all duration-200",
                       period.active
-                        ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
-                        : "hover:bg-gray-50 dark:hover:bg-gray-700"
+                        ? "bg-blue-600 hover:bg-blue-700 !text-white shadow-sm"
+                        : "hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white"
                     )}
                     aria-pressed={period.active}
                     aria-label={`${period.active ? 'Active: ' : ''}Filter periode ${period.label}`}
                   >
-                    {period.active && <Check className="w-3 h-3 mr-1" aria-hidden="true" />}
+                    {period.active && <Check className="w-3 h-3 mr-1 text-white" aria-hidden="true" />}
                     {period.label}
                   </Button>
                 ))}
               </div>
 
-              {/* Enhanced Custom Date Range */}
-              <div className="flex items-center gap-2">
-                <DateRangePicker
-                  date={filterState.dateRange}
-                  onDateChange={(range) => setDateRange(range)}
-                  placeholder="Pilih rentang tanggal"
-                  className="w-[220px]"
-                />
+              {/* Enhanced Custom Date Range - Separate Inputs */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <label htmlFor="start-date" className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                    Tanggal Mulai:
+                  </label>
+                  <Input
+                    id="start-date"
+                    type="date"
+                    value={filterState.dateRange?.from ? format(filterState.dateRange.from, 'yyyy-MM-dd') : ''}
+                    onChange={handleStartDateChange}
+                    className="w-[140px] h-9"
+                    aria-label="Start date"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label htmlFor="end-date" className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                    Tanggal Akhir:
+                  </label>
+                  <Input
+                    id="end-date"
+                    type="date"
+                    value={filterState.dateRange?.to ? format(filterState.dateRange.to, 'yyyy-MM-dd') : ''}
+                    onChange={handleEndDateChange}
+                    className="w-[140px] h-9"
+                    aria-label="End date"
+                  />
+                </div>
                 {filterState.dateRange && (
                   <Button
                     variant="ghost"
@@ -343,106 +433,6 @@ function AnalyticsDashboardContent({
                     aria-label="Clear date filter"
                   >
                     <X className="h-4 w-4 text-red-500" />
-                  </Button>
-                )}
-              </div>
-
-              {/* Enhanced Multi-Room Filter - Only show on room tab */}
-              {activeTab === 'room' && (
-                <div className="flex items-center gap-2">
-                  <Select
-                    value={filterState.selectedRooms.length > 0 ? filterState.selectedRooms.join(',') : 'all'}
-                    onValueChange={(value) => {
-                      if (value === 'all') {
-                        setSelectedRooms([])
-                      } else if (value.startsWith('room-')) {
-                        const roomId = value.replace('room-', '')
-                        if (filterState.selectedRooms.includes(roomId)) {
-                          setSelectedRooms(filterState.selectedRooms.filter((id: string) => id !== roomId))
-                        } else {
-                          setSelectedRooms([...filterState.selectedRooms, roomId])
-                        }
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Pilih ruangan">
-                        {filterState.selectedRooms.length === 0
-                          ? "Semua Ruangan"
-                          : `${filterState.selectedRooms.length} ruangan dipilih`
-                        }
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Ruangan</SelectItem>
-                      {rooms?.map((room) => (
-                        <SelectItem key={room.id} value={`room-${room.id}`}>
-                          <div className="flex items-center gap-2">
-                            {filterState.selectedRooms.includes(room.id) && <Check className="w-3 h-3" />}
-                            {room.name}
-                          </div>
-                        </SelectItem>
-                      )) || []}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              {/* Enhanced Active Filters Display */}
-              <div className="flex flex-wrap gap-2 ml-2">
-                {filterState.dateRange && (
-                  <Badge
-                    variant="default"
-                    className="flex items-center gap-1.5 bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground"
-                  >
-                    <CalendarIcon className="w-3 h-3" />
-                    <span className="font-medium">
-                      {format(filterState.dateRange.from!, "dd/MM/yyyy", { locale: id })}
-                      {filterState.dateRange.to && ` - ${format(filterState.dateRange.to, "dd/MM/yyyy", { locale: id })}`}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearDateFilter}
-                      className="h-4 w-4 p-0 ml-1 hover:bg-primary/20 dark:hover:bg-primary/30"
-                      aria-label="Remove date filter"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </Badge>
-                )}
-                {filterState.selectedRooms.length > 0 && (
-                  <Badge
-                    variant="default"
-                    className="flex items-center gap-1.5 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                  >
-                    <Building className="w-3 h-3" />
-                    <span className="font-medium">
-                      {filterState.selectedRooms.length === 1
-                        ? rooms?.find((r) => r.id === filterState.selectedRooms[0])?.name
-                        : `${filterState.selectedRooms.length} ruangan`
-                      }
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedRooms([])}
-                      className="h-4 w-4 p-0 ml-1 hover:bg-green-200 dark:hover:bg-green-800"
-                      aria-label="Remove room filter"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </Badge>
-                )}
-                {(filterState.dateRange || filterState.selectedRooms.length > 0) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearAllFilters}
-                    className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
-                    aria-label="Clear all filters"
-                  >
-                    Clear All
                   </Button>
                 )}
               </div>

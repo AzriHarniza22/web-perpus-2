@@ -205,28 +205,6 @@ export function ExportButton({
 
   return (
     <div className={cn("flex items-center gap-3", className)} role="region" aria-label="Export controls">
-      {/* Filter State Display */}
-      {hasActiveFilters && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
-          <Badge variant="secondary" className="text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-            <Settings className="w-3 h-3 mr-1" />
-            Filter Aktif
-          </Badge>
-          {filters.dateRange && (
-            <Badge variant="outline" className="text-xs font-medium border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300">
-              📅 {format(filters.dateRange.from, 'dd/MM', { locale: id })}
-              {filters.dateRange.to && ` - ${format(filters.dateRange.to, 'dd/MM', { locale: id })}`}
-            </Badge>
-          )}
-          {filters.selectedRooms && filters.selectedRooms.length > 0 && (
-            <Badge variant="outline" className="text-xs font-medium border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300">
-              🏢 {filters.selectedRooms.length} Ruangan
-            </Badge>
-          )}
-        </div>
-      )}
-
-
       {/* Enhanced Export Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
