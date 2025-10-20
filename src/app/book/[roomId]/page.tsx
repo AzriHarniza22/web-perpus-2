@@ -213,11 +213,12 @@ export default function BookRoomPage() {
                       </CardDescription>
                     </CardHeader>
 
-                    <CardContent className="relative z-10 flex-1 overflow-y-auto">
+                    <CardContent className="relative z-10 flex-1">
                       <InteractiveCalendar
                         bookings={bookings}
                         selectedDate={selectedDate}
                         onDateSelect={setSelectedDate}
+                        size="compact"
                       />
                     </CardContent>
                   </Card>

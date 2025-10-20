@@ -192,7 +192,7 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <InteractiveCalendar bookings={bookings} />
+                <InteractiveCalendar bookings={bookings} layout="horizontal" />
               </CardContent>
             </Card>
           </div>

@@ -7,11 +7,15 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 const InteractiveCalendar = ({
   bookings = [],
   selectedDate: externalSelectedDate,
-  onDateSelect
+  onDateSelect,
+  layout = 'vertical',
+  size = 'default'
 }: {
   bookings?: Array<{ start_time: string; end_time: string; rooms?: { name: string }; status: string; is_tour?: boolean; profiles?: { full_name?: string; email?: string } }>
   selectedDate?: Date
   onDateSelect?: (date: Date) => void
+  layout?: 'horizontal' | 'vertical'
+  size?: 'default' | 'compact'
 }) => {
   const [internalSelectedDate, setInternalSelectedDate] = useState(new Date())
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -121,114 +125,122 @@ const InteractiveCalendar = ({
 
   return (
     <div className="bg-background/20 backdrop-blur-xl rounded-3xl p-6 border border-background/30 shadow-2xl">
-      {/* Calendar Header */}
-      <div className="flex items-center justify-between mb-6">
-        <button
-          onClick={prevMonth}
-          className="p-2 rounded-full bg-background/30 hover:bg-background/40 transition-all calendar-button"
-        >
-          <ChevronLeft size={20} className="text-gray-700" />
-        </button>
-
-        <h3 className="text-xl font-bold text-gray-800">
-          {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-        </h3>
-
-        <button
-          onClick={nextMonth}
-          className="p-2 rounded-full bg-background/30 hover:bg-background/40 transition-all calendar-button"
-        >
-          <ChevronRight size={20} className="text-gray-700" />
-        </button>
-      </div>
-
-      {/* Days of week */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
-        {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map(day => (
-          <div key={day} className="p-2 text-center text-sm font-medium text-gray-600">
-            {day}
-          </div>
-        ))}
-      </div>
-
-      {/* Calendar Days */}
-      <div className="grid grid-cols-7 gap-1 mb-6">
-        {days.map((day, index) => {
-          const isCurrentMonth = isSameMonth(day)
-          const isTodayDate = isToday(day)
-          const dateStatus = getDateStatus(day)
-          const isSelected = selectedDate.toDateString() === day.toDateString()
-
-          return (
+      <div className={`grid gap-6 ${layout === 'horizontal' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+        {/* Calendar Section */}
+        <div>
+          {/* Calendar Header */}
+          <div className="flex items-center justify-between mb-6">
             <button
-              key={index}
-              onClick={() => handleDateSelect(day)}
-              className={`
-                relative p-2 text-sm rounded-lg calendar-button
-                ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-700'}
-                ${dateStatus === 'approved' && !isTodayDate ? `bg-red-100 text-red-600 ${isSelected ? 'ring-2 ring-red-200' : ''}` : ''}
-                ${dateStatus === 'pending' && !isTodayDate ? `bg-yellow-100 text-yellow-600 ${isSelected ? 'ring-2 ring-yellow-200' : ''}` : ''}
-                ${isTodayDate ? 'bg-primary text-white font-bold' : ''}
-                ${isSelected ? 'bg-blue-500 text-white' : ''}
-              `}
+              onClick={prevMonth}
+              className="p-2 rounded-full bg-background/30 hover:bg-background/40 transition-all calendar-button"
             >
-              {day.getDate()}
-              {dateStatus && (
-                <div className={`absolute top-1 right-1 w-2 h-2 rounded-full ${dateStatus === 'approved' ? 'bg-red-400' : 'bg-yellow-400'}`}></div>
-              )}
+              <ChevronLeft size={20} className="text-gray-700" />
             </button>
-          )
-        })}
-      </div>
 
-      {/* Selected Date Info */}
-      <div
-        key={selectedDate.toDateString()}
-        className="bg-background/30 rounded-2xl p-4 fade-in-up"
-      >
-        <h4 className="font-bold text-gray-800 mb-3">
-          📅 {formatDate(selectedDate)}
-        </h4>
+            <h3 className="text-xl font-bold text-gray-800">
+              {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+            </h3>
 
-        <div className="space-y-2 max-h-32 overflow-y-auto">
-          {getBookedTimes(selectedDate).length > 0 ? (
-            getBookedTimes(selectedDate).map((booking, index) => (
-              <div
-                key={index}
-                className="p-2 rounded-lg text-sm fade-in-left"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className={`${
-                  booking.status === 'approved'
-                    ? 'bg-red-100 text-red-800 border-l-4 border-red-400'
-                    : 'bg-yellow-100 text-yellow-800 border-l-4 border-yellow-400'
-                }`}>
-                  <div className="font-medium">
-                    {booking.isTour ? '🚌 Tour' : '🏢 Room'}: {booking.room}
-                  </div>
-                  <div className="text-xs">
-                    🕐 {formatTime(booking.start)} - {formatTime(booking.end)}
-                  </div>
-                  <div className="text-xs capitalize">
-                    📋 {booking.status === 'approved' ? 'Disetujui' : 'Menunggu'}
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div
-              className="text-center py-4 text-gray-600 fade-in"
+            <button
+              onClick={nextMonth}
+              className="p-2 rounded-full bg-background/30 hover:bg-background/40 transition-all calendar-button"
             >
-              <div className="text-2xl mb-2">✨</div>
-              <div className="text-sm">Tidak ada booking untuk tanggal ini</div>
-              <div className="text-xs text-gray-500 mt-1">Hari yang sempurna untuk reservasi!</div>
+              <ChevronRight size={20} className="text-gray-700" />
+            </button>
+          </div>
+
+          {/* Days of week */}
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map(day => (
+              <div key={day} className="p-2 text-center text-sm font-medium text-gray-600">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar Days */}
+          <div className={`grid grid-cols-7 gap-1 overflow-hidden ${size === 'compact' ? 'h-64' : 'h-80'}`}>
+            {days.map((day, index) => {
+              const isCurrentMonth = isSameMonth(day)
+              const isTodayDate = isToday(day)
+              const dateStatus = getDateStatus(day)
+              const isSelected = selectedDate.toDateString() === day.toDateString()
+
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleDateSelect(day)}
+                  className={`
+                    relative p-2 text-sm rounded-lg calendar-button
+                    ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-700'}
+                    ${dateStatus === 'approved' && !isTodayDate ? `bg-red-100 text-red-600 ${isSelected ? 'ring-2 ring-red-200' : ''}` : ''}
+                    ${dateStatus === 'pending' && !isTodayDate ? `bg-yellow-100 text-yellow-600 ${isSelected ? 'ring-2 ring-yellow-200' : ''}` : ''}
+                    ${isTodayDate ? 'bg-primary text-white font-bold' : ''}
+                    ${isSelected ? 'bg-blue-500 text-white' : ''}
+                  `}
+                >
+                  {day.getDate()}
+                  {dateStatus && (
+                    <div className={`absolute top-1 right-1 w-2 h-2 rounded-full ${dateStatus === 'approved' ? 'bg-red-400' : 'bg-yellow-400'}`}></div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Reservations Section */}
+        <div>
+          {/* Selected Date Info */}
+          <div
+            key={selectedDate.toDateString()}
+            className="bg-background/30 rounded-2xl p-4 fade-in-up h-full"
+          >
+            <h4 className="font-bold text-gray-800 mb-3">
+              📅 {formatDate(selectedDate)}
+            </h4>
+
+            <div className={`space-y-2 overflow-y-auto ${size === 'compact' ? 'max-h-80' : 'max-h-64'}`}>
+              {getBookedTimes(selectedDate).length > 0 ? (
+                getBookedTimes(selectedDate).map((booking, index) => (
+                  <div
+                    key={index}
+                    className="p-2 rounded-lg text-sm fade-in-left"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <div className={`${
+                      booking.status === 'approved'
+                        ? 'bg-red-100 text-red-800 border-l-4 border-red-400'
+                        : 'bg-yellow-100 text-yellow-800 border-l-4 border-yellow-400'
+                    }`}>
+                      <div className="font-medium">
+                        {booking.isTour ? '🚌 Tour' : '🏢 Room'}: {booking.room}
+                      </div>
+                      <div className="text-xs">
+                        🕐 {formatTime(booking.start)} - {formatTime(booking.end)}
+                      </div>
+                      <div className="text-xs capitalize">
+                        📋 {booking.status === 'approved' ? 'Disetujui' : 'Menunggu'}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div
+                  className="text-center py-4 text-gray-600 fade-in"
+                >
+                  <div className="text-2xl mb-2">✨</div>
+                  <div className="text-sm">Tidak ada booking untuk tanggal ini</div>
+                  <div className="text-xs text-gray-500 mt-1">Hari yang sempurna untuk reservasi!</div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="mt-4 flex items-center justify-center gap-4 text-xs">
+      <div className="mt-6 flex items-center justify-center gap-4 text-xs">
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 bg-primary rounded-full"></div>
           <span className="text-gray-600">Hari ini</span>

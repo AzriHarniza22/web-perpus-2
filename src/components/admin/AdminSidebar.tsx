@@ -37,7 +37,7 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
     },
     {
       href: '/admin/approvals',
-      label: 'Persetujuan Terpadu',
+      label: 'Persetujuan',
       icon: CheckCircle,
       active: pathname === '/admin/approvals'
     },

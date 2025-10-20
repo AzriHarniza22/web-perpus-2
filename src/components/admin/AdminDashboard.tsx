@@ -283,7 +283,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                   </CardHeader>
                   <CardContent className="p-2 lg:p-3 pt-0 flex-1 min-h-0 overflow-hidden">
                     <div className="h-full rounded-lg overflow-hidden">
-                      <InteractiveCalendar bookings={bookings} />
+                      <InteractiveCalendar bookings={bookings} layout="horizontal" />
                     </div>
                   </CardContent>
                 </Card>
@@ -291,15 +291,15 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
             </div>
 
             {/* Right Side Panel - 1 column, scrollable content */}
-            <div className="flex flex-col gap-3 lg:gap-4 min-h-0 lg:overflow-auto">
+            <div className="flex flex-col gap-3 lg:gap-4 min-h-0">
               {/* Pending Approvals */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="flex-shrink-0"
+                className="flex-1 min-h-0"
               >
-                <Card className="bg-card backdrop-blur-sm">
+                <Card className="bg-card backdrop-blur-sm h-full flex flex-col">
                   <CardHeader className="pb-2 lg:pb-3">
                     <CardTitle className="flex items-center text-sm lg:text-base">
                       <AlertTriangle className="w-4 h-4 mr-2 text-yellow-600" />
@@ -309,46 +309,44 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                       {adminStats.pendingApprovals} menunggu persetujuan
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="p-2 lg:p-3 pt-0">
-                    <div className="max-h-48 lg:max-h-60 overflow-y-auto">
-                      {adminStats.pendingApprovals > 0 ? (
-                        <div className="space-y-2">
-                          {bookings
-                            .filter(booking => booking.status === 'pending')
-                            .slice(0, 4)
-                            .map((booking) => (
-                              <div key={booking.id} className="p-2 lg:p-2.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                                <div className="flex items-start justify-between mb-1">
-                                  <p className="font-medium text-gray-900 dark:text-white text-xs lg:text-sm truncate flex-1">
-                                    {booking.rooms?.name}
-                                  </p>
-                                  <Badge variant="secondary" className="text-[10px] lg:text-xs ml-2 flex-shrink-0">
-                                    Pending
-                                  </Badge>
-                                </div>
-                                <p className="text-[10px] lg:text-xs text-gray-600 dark:text-gray-400 truncate">
-                                  {booking.profiles?.full_name}
+                  <CardContent className="p-2 lg:p-3 pt-0 flex-1 overflow-y-auto">
+                    {adminStats.pendingApprovals > 0 ? (
+                      <div className="space-y-2">
+                        {bookings
+                          .filter(booking => booking.status === 'pending')
+                          .slice(0, 4)
+                          .map((booking) => (
+                            <div key={booking.id} className="p-1 lg:p-1.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                              <div className="flex items-start justify-between mb-0.5">
+                                <p className="font-medium text-gray-900 dark:text-white text-[10px] lg:text-xs truncate flex-1">
+                                  {booking.rooms?.name}
                                 </p>
-                                <p className="text-[10px] lg:text-xs text-gray-500 dark:text-gray-500">
-                                  {new Date(booking.start_time).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} • {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                                </p>
+                                <Badge variant="secondary" className="text-[10px] lg:text-xs ml-2 flex-shrink-0">
+                                  Pending
+                                </Badge>
                               </div>
-                            ))}
-                          {adminStats.pendingApprovals > 4 && (
-                            <p className="text-[10px] lg:text-xs text-gray-500 dark:text-gray-400 text-center pt-1">
-                              +{adminStats.pendingApprovals - 4} lagi
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-center py-4">
-                          <div className="text-green-500 text-xl mb-1">✅</div>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            Semua sudah diproses
+                              <p className="text-[9px] lg:text-[10px] text-gray-600 dark:text-gray-400 truncate">
+                                {booking.profiles?.full_name}
+                              </p>
+                              <p className="text-[9px] lg:text-[10px] text-gray-500 dark:text-gray-500">
+                                {new Date(booking.start_time).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} • {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          ))}
+                        {adminStats.pendingApprovals > 4 && (
+                          <p className="text-[10px] lg:text-xs text-gray-500 dark:text-gray-400 text-center pt-1">
+                            +{adminStats.pendingApprovals - 4} lagi
                           </p>
-                        </div>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <div className="text-green-500 text-xl mb-1">✅</div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          Semua sudah diproses
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -358,9 +356,9 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="flex-shrink-0"
+                className="flex-1 min-h-0"
               >
-                <Card className="bg-card backdrop-blur-sm">
+                <Card className="bg-card backdrop-blur-sm h-full flex flex-col">
                   <CardHeader className="pb-2 lg:pb-3">
                     <CardTitle className="flex items-center text-sm lg:text-base">
                       <TrendingUp className="w-4 h-4 mr-2 text-primary" />
@@ -370,104 +368,102 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                       Hari ini dan besok
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="p-2 lg:p-3 pt-0">
-                    <div className="max-h-48 lg:max-h-60 overflow-y-auto">
-                      {(() => {
-                        const today = new Date()
-                        today.setHours(0, 0, 0, 0)
-                        const tomorrow = new Date(today)
-                        tomorrow.setDate(tomorrow.getDate() + 1)
-                        const dayAfterTomorrow = new Date(tomorrow)
-                        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1)
+                  <CardContent className="p-2 lg:p-3 pt-0 flex-1 overflow-y-auto">
+                    {(() => {
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0)
+                      const tomorrow = new Date(today)
+                      tomorrow.setDate(tomorrow.getDate() + 1)
+                      const dayAfterTomorrow = new Date(tomorrow)
+                      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1)
 
-                        const upcomingBookings = bookings
-                          .filter(booking => {
-                            const bookingDate = new Date(booking.start_time)
-                            return bookingDate >= today &&
-                                   bookingDate < dayAfterTomorrow &&
-                                   (booking.status === 'approved' || booking.status === 'pending')
-                          })
-                          .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
-                          .slice(0, 6)
-
-                        const todayBookings = upcomingBookings.filter(booking => {
+                      const upcomingBookings = bookings
+                        .filter(booking => {
                           const bookingDate = new Date(booking.start_time)
-                          return bookingDate >= today && bookingDate < tomorrow
+                          return bookingDate >= today &&
+                                 bookingDate < dayAfterTomorrow &&
+                                 (booking.status === 'approved' || booking.status === 'pending')
                         })
+                        .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
+                        .slice(0, 6)
 
-                        const tomorrowBookings = upcomingBookings.filter(booking => {
-                          const bookingDate = new Date(booking.start_time)
-                          return bookingDate >= tomorrow && bookingDate < dayAfterTomorrow
-                        })
+                      const todayBookings = upcomingBookings.filter(booking => {
+                        const bookingDate = new Date(booking.start_time)
+                        return bookingDate >= today && bookingDate < tomorrow
+                      })
 
-                        if (upcomingBookings.length === 0) {
-                          return (
-                            <div className="text-center py-4">
-                              <div className="text-gray-400 text-2xl mb-1">📅</div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
-                                Belum ada reservasi
-                              </p>
-                            </div>
-                          )
-                        }
+                      const tomorrowBookings = upcomingBookings.filter(booking => {
+                        const bookingDate = new Date(booking.start_time)
+                        return bookingDate >= tomorrow && bookingDate < dayAfterTomorrow
+                      })
 
+                      if (upcomingBookings.length === 0) {
                         return (
-                          <div className="space-y-3">
-                            {todayBookings.length > 0 && (
-                              <div>
-                                <h4 className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
-                                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></div>
-                                  Hari Ini
-                                </h4>
-                                <div className="space-y-1.5">
-                                  {todayBookings.map((booking) => (
-                                    <div key={booking.id} className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                                      <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-gray-900 dark:text-white text-xs truncate">
-                                          {booking.rooms?.name}
-                                        </p>
-                                        <p className="text-[10px] text-gray-600 dark:text-gray-400 truncate">
-                                          {booking.profiles?.full_name} • {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                                        </p>
-                                      </div>
-                                      <Badge variant={booking.status === 'approved' ? 'default' : 'secondary'} className="ml-2 flex-shrink-0 text-[9px] lg:text-[10px] px-1.5 py-0">
-                                        {booking.status}
-                                      </Badge>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {tomorrowBookings.length > 0 && (
-                              <div>
-                                <h4 className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
-                                  <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-1.5"></div>
-                                  Besok
-                                </h4>
-                                <div className="space-y-1.5">
-                                  {tomorrowBookings.map((booking) => (
-                                    <div key={booking.id} className="flex items-center justify-between p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
-                                      <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-gray-900 dark:text-white text-xs truncate">
-                                          {booking.rooms?.name}
-                                        </p>
-                                        <p className="text-[10px] text-gray-600 dark:text-gray-400 truncate">
-                                          {booking.profiles?.full_name} • {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                                        </p>
-                                      </div>
-                                      <Badge variant={booking.status === 'approved' ? 'default' : 'secondary'} className="ml-2 flex-shrink-0 text-[9px] lg:text-[10px] px-1.5 py-0">
-                                        {booking.status}
-                                      </Badge>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
+                          <div className="text-center py-4">
+                            <div className="text-gray-400 text-2xl mb-1">📅</div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Belum ada reservasi
+                            </p>
                           </div>
                         )
-                      })()}
-                    </div>
+                      }
+
+                      return (
+                        <div className="space-y-3">
+                          {todayBookings.length > 0 && (
+                            <div>
+                              <h4 className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
+                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></div>
+                                Hari Ini
+                              </h4>
+                              <div className="space-y-1.5">
+                                {todayBookings.map((booking) => (
+                                  <div key={booking.id} className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium text-gray-900 dark:text-white text-xs truncate">
+                                        {booking.rooms?.name}
+                                      </p>
+                                      <p className="text-[10px] text-gray-600 dark:text-gray-400 truncate">
+                                        {booking.profiles?.full_name} • {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                      </p>
+                                    </div>
+                                    <Badge variant={booking.status === 'approved' ? 'default' : 'secondary'} className="ml-2 flex-shrink-0 text-[9px] lg:text-[10px] px-1.5 py-0">
+                                      {booking.status}
+                                    </Badge>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {tomorrowBookings.length > 0 && (
+                            <div>
+                              <h4 className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
+                                <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-1.5"></div>
+                                Besok
+                              </h4>
+                              <div className="space-y-1.5">
+                                {tomorrowBookings.map((booking) => (
+                                  <div key={booking.id} className="flex items-center justify-between p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium text-gray-900 dark:text-white text-xs truncate">
+                                        {booking.rooms?.name}
+                                      </p>
+                                      <p className="text-[10px] text-gray-600 dark:text-gray-400 truncate">
+                                        {booking.profiles?.full_name} • {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                      </p>
+                                    </div>
+                                    <Badge variant={booking.status === 'approved' ? 'default' : 'secondary'} className="ml-2 flex-shrink-0 text-[9px] lg:text-[10px] px-1.5 py-0">
+                                      {booking.status}
+                                    </Badge>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })()}
                   </CardContent>
                 </Card>
               </motion.div>

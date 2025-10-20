@@ -13,7 +13,7 @@ import { Loading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/hooks/useAuth'
-import { Sparkles, ArrowLeft, CalendarIcon } from 'lucide-react'
+import { Sparkles, CalendarIcon } from 'lucide-react'
 
 import { Booking } from '@/lib/api'
 
@@ -162,39 +162,13 @@ export default function BookTourPage() {
         sidebarCollapsed={sidebarCollapsed}
       />
 
-      {/* Back Button Section - Perfect equal spacing with header */}
-      <div className={`relative transition-all duration-300 ${
-        sidebarCollapsed ? 'ml-16' : 'ml-64'
-      }`}>
-        {/* Responsive spacer matching header height for perfect symmetry */}
-        <div className="h-[62px] sm:h-[68px] lg:h-[72px]"></div>
 
-        {/* Back button container - perfectly centered with responsive padding */}
-        <div className="relative px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
-          <div className="max-w-full flex justify-start">
-            {/* Back navigation button - responsive optimized positioning */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="px-3 sm:px-4"
-              onClick={() => router.push('/')}
-            >
-              <ArrowLeft className="w-4 h-4 sm:mr-2" />
-              <span className="hidden md:inline lg:inline">Kembali ke Beranda</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Reduced responsive spacer for more compact layout */}
-        <div className="h-[1px] sm:h-[1px] lg:h-[1px]"></div>
-        </div>
-
-       <main className={`flex-1 px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 pb-2 sm:pb-3 pt-0 transition-all duration-300 ${
+       <main className={`flex-1 px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 pb-2 sm:pb-3 pt-24 transition-all duration-300 ${
          sidebarCollapsed ? 'ml-16' : 'ml-64'
        }`}>
 
         {/* Full Height Content Area - Perfect height with new spacing */}
-       <div className="h-[calc(100vh-168px)] sm:h-[calc(100vh-174px)] lg:h-[calc(100vh-176px)] flex flex-col">
+       <div className="h-[calc(100vh-106px)] sm:h-[calc(100vh-112px)] lg:h-[calc(100vh-116px)] flex flex-col">
           {/* Optimized 3-Card Grid Layout - Equal width cards with responsive spacing */}
           <div className="flex flex-col md:flex-row gap-2 sm:gap-3 lg:gap-3 xl:gap-4 flex-1 min-h-0">
                 {/* Tour Info Card - Equal width on all screen sizes */}
@@ -222,11 +196,12 @@ export default function BookTourPage() {
                       </CardDescription>
                     </CardHeader>
 
-                    <CardContent className="relative z-10 flex-1 overflow-y-auto">
+                    <CardContent className="relative z-10 flex-1">
                       <InteractiveCalendar
                         bookings={bookings}
                         selectedDate={selectedDate}
                         onDateSelect={setSelectedDate}
+                        size="compact"
                       />
                     </CardContent>
                   </Card>

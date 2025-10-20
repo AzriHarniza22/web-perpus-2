@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { useRooms, useUpsertRoom, useDeleteRoom, useToggleRoomActive, type Room } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { Plus, Edit, Trash2, Power, Building, Users, CheckCircle, Sparkles, X } from 'lucide-react'
+import { ImageCarousel } from '@/components/ui/image-carousel'
 
 
 export default function RoomManagement() {
@@ -121,9 +122,10 @@ export default function RoomManagement() {
     capacity: room.capacity
   })))
 
-  // Check for inactive rooms
-  const activeRooms = rooms?.filter((room: Room) => room.is_active) || []
-  const inactiveRooms = rooms?.filter((room: Room) => !room.is_active) || []
+  // Filter out Library Tour and check for inactive rooms
+  const filteredRooms = rooms?.filter((room: Room) => room.name !== 'Library Tour') || []
+  const activeRooms = filteredRooms.filter((room: Room) => room.is_active) || []
+  const inactiveRooms = filteredRooms.filter((room: Room) => !room.is_active) || []
 
   console.log('Active rooms count:', activeRooms.length)
   console.log('Inactive rooms count:', inactiveRooms.length)
@@ -247,7 +249,7 @@ export default function RoomManagement() {
       </div>
 
       {/* Room List */}
-      {rooms.length === 0 ? (
+       {filteredRooms.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -267,8 +269,8 @@ export default function RoomManagement() {
           <p className="text-gray-600 dark:text-gray-400">Tambahkan ruangan pertama untuk memulai</p>
         </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {rooms.map((room: Room, index: number) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+           {filteredRooms.map((room: Room, index: number) => (
             <motion.div
               key={room.id}
               initial={{ opacity: 0, y: 20 }}
@@ -277,70 +279,68 @@ export default function RoomManagement() {
               whileHover={{ y: -10, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Card className="bg-card backdrop-blur-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col h-full">
-                {/* Background Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 dark:from-primary/20 dark:via-secondary/20 dark:to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <Card className="bg-card backdrop-blur-sm shadow-md hover:shadow-xl transition-all duration-500 cursor-pointer group relative overflow-hidden flex flex-col h-full border border-gray-200 dark:border-gray-800">
+               {/* Header with Image or Icon */}
+               {room.photos && room.photos.length > 1 ? (
+                 <div className="h-48 bg-muted relative overflow-hidden">
+                   <ImageCarousel photos={room.photos} alt={room.name} />
+                 </div>
+               ) : (
+                 <div className="h-48 bg-muted relative overflow-hidden">
+                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300 rounded-md" />
+                   <motion.div
+                     whileHover={{ scale: 1.05 }}
+                     transition={{ duration: 0.3 }}
+                     className="absolute inset-0 flex items-center justify-center rounded-md overflow-hidden"
+                   >
+                     {room.photos && room.photos.length === 1 ? (
+                       <Image
+                         src={room.photos[0]}
+                         alt={room.name}
+                         fill
+                         className="object-cover transition-transform duration-500 group-hover:scale-110"
+                       />
+                     ) : (
+                       <Building className="w-16 h-16 text-white/80" />
+                     )}
+                   </motion.div>
+                 </div>
+               )}
 
-                {/* Header with Image or Icon */}
-                <div className="aspect-video bg-gradient-to-r from-primary/60 via-primary/70 to-primary/80 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300" />
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    className="absolute inset-0 flex items-center justify-center"
-                  >
-                    {room.photos && room.photos.length > 0 ? (
-                      <Image
-                        src={room.photos[0]}
-                        alt={room.name}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <Building className="w-16 h-16 text-white/80" />
-                    )}
-                  </motion.div>
-                  {/* Floating elements */}
-                  <motion.div
-                    animate={{
-                      y: [0, -10, 0],
-                      rotate: [0, 5, 0]
-                    }}
-                    transition={{ duration: 4, repeat: Infinity }}
-                    className="absolute -top-2 -right-2 w-12 h-12 bg-background/20 rounded-full"
-                  />
-                </div>
-
-                <CardHeader className="relative z-10">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-h-[60px]">
-                      <CardTitle className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-foreground transition-colors">
+                <CardHeader className="relative z-10 pb-4 px-6 h-20">
+                  <div className="flex items-start justify-between h-full">
+                    <div className="flex-1">
+                      <CardTitle className="text-xl font-bold text-foreground transition-colors duration-300 line-clamp-2">
                         {room.name}
                       </CardTitle>
-                      <CardDescription className="text-gray-600 dark:text-gray-300 mt-1">
-                        {room.description}
-                      </CardDescription>
                     </div>
-                    <div className="flex items-center gap-1 bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="flex items-center gap-1 bg-muted text-muted-foreground px-3 py-1 rounded-full text-sm font-medium">
                       <Users className="w-4 h-4" />
                       {room.capacity}
                     </div>
                   </div>
                 </CardHeader>
 
-                <CardContent className="relative z-10 flex flex-col flex-grow">
-                  <div className="mb-6 min-h-[100px]">
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                      <Sparkles className="w-4 h-4 mr-2 text-secondary" />
+                <CardContent className="relative z-10 flex flex-col flex-grow px-6">
+                  <div className="h-16">
+                    <CardDescription className="text-muted-foreground line-clamp-2">
+                      {room.description}
+                    </CardDescription>
+                  </div>
+
+                  <div className="flex-grow">
+                    <h4 className="font-semibold text-foreground mb-3 flex items-center">
+                      <Sparkles className="w-4 h-4 mr-2 text-muted-foreground" />
                       Fasilitas
                     </h4>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mb-6">
                       {room.facilities && room.facilities.map((facility, idx) => (
                         <motion.div
                           key={idx}
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
                           transition={{ delay: index * 0.1 + idx * 0.05 }}
-                          className="flex items-center gap-1 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-xs font-medium"
+                          className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-xs font-medium hover:bg-green-200 dark:hover:bg-green-800/40 transition-colors duration-200"
                         >
                           <CheckCircle className="w-3 h-3" />
                           {facility}
@@ -349,7 +349,7 @@ export default function RoomManagement() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between mt-auto">
+                  <div className="flex items-center justify-between mt-auto mb-4">
                     <Badge variant={room.is_active ? "default" : "secondary"} className="text-xs">
                       {room.is_active ? 'Aktif' : 'Tidak Aktif'}
                     </Badge>
