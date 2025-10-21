@@ -6,12 +6,15 @@ import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Clock } from 'lucide-react'
+import { Clock, TrendingUp, CheckCircle, XCircle, Users, Building, BookOpen, LogOut } from 'lucide-react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import BookingApprovals from '@/components/admin/BookingApprovals'
+import { useBookings, useRooms } from '@/lib/api'
+import { ApprovalsOverviewCards } from '@/components/admin/analytics/ApprovalsOverviewCards'
 
 interface Profile {
   id: string;
@@ -22,6 +25,36 @@ interface Profile {
   role: 'user' | 'admin';
   created_at: string;
   updated_at: string;
+}
+
+function ApprovalsContent() {
+  const { data: bookingsData, isLoading: bookingsLoading } = useBookings()
+  const { data: rooms } = useRooms()
+  return (
+    <div className="space-y-6">
+      {/* Overview Statistics Cards */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
+      >
+        <ApprovalsOverviewCards
+          bookings={bookingsData?.bookings || []}
+          rooms={rooms || []}
+          isLoading={bookingsLoading}
+        />
+      </motion.div>
+
+      {/* Enhanced Booking Approvals */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <BookingApprovals />
+      </motion.div>
+    </div>
+  )
 }
 
 export default function ApprovalsPage() {
@@ -171,53 +204,73 @@ export default function ApprovalsPage() {
           sidebarCollapsed ? 'ml-16' : 'ml-64'
         }`}
       >
-        <div className="px-6 py-4 flex justify-between items-center">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Persetujuan Ruangan & Tour
-            </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Kelola semua permintaan reservasi dan tour</p>
-          </motion.div>
-          <div className="flex items-center space-x-4">
-            <motion.span
+          <div className="px-4 sm:px-6 py-4 flex justify-between items-center">
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-gray-600 dark:text-gray-300 hidden md:block"
+              className="min-w-0 flex-1"
             >
-              Selamat datang, {profile?.full_name}
-            </motion.span>
-            <ThemeToggle />
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent truncate">
+                Dashboard Persetujuan
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
+                Kelola semua permintaan reservasi ruangan dan tour
+              </p>
+            </motion.div>
+            <div className="flex items-center space-x-2 sm:space-x-4 ml-4">
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-gray-600 dark:text-gray-300 hidden lg:block text-sm"
+              >
+                Selamat datang, {profile?.full_name}
+              </motion.span>
+              <ThemeToggle />
+              <form action="/auth/signout" method="post">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="submit"
+                  className="hidden sm:flex"
+                  aria-label="Keluar dari sistem"
+                >
+                  <LogOut className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Keluar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="submit"
+                  className="sm:hidden p-2"
+                  aria-label="Keluar dari sistem"
+                >
+                  <LogOut className="w-4 h-4" aria-hidden="true" />
+                </Button>
+              </form>
+            </div>
           </div>
-        </div>
       </motion.header>
 
-      <main className={`p-6 transition-all duration-300 ${
-        sidebarCollapsed ? 'ml-16' : 'ml-64'
-      }`}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Persetujuan Terpadu
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            Kelola semua permintaan reservasi ruangan dan tour dalam satu tempat
-          </p>
-        </motion.div>
+      {/* Main Content */}
+      <main
+        className={`transition-all duration-300 ${
+          sidebarCollapsed ? 'ml-16' : 'ml-64'
+        }`}
+        role="main"
+      >
+        <div className="p-4 sm:p-6">
 
-        {/* Enhanced BookingApprovals Component */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <BookingApprovals />
-        </motion.div>
+          {/* Page Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 sm:mb-8"
+          >
+          </motion.div>
+
+          {/* Approvals Content */}
+          <ApprovalsContent />
+        </div>
       </main>
     </div>
   )

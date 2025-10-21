@@ -1,13 +1,40 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useBookings, useUpdateBookingStatus } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { CheckCircle, XCircle, Clock, FileText, Users, Calendar, MapPin, Eye, File, Sparkles, Building, Grid3X3 } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import {
+  Check,
+  X,
+  Clock,
+  FileText,
+  Users,
+  Calendar,
+  MapPin,
+  Eye,
+  File,
+  Sparkles,
+  Building,
+  Grid3X3,
+  Search,
+  SortAsc,
+  SortDesc,
+  AlertTriangle,
+  MoreHorizontal,
+  Star,
+  UserCheck,
+  CalendarDays,
+  Phone,
+  Mail,
+  Bell,
+  BellOff
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BookingWithRelations } from '@/lib/api'
 import BookingDetailModal from '@/components/admin/BookingDetailModal'
@@ -17,7 +44,7 @@ const bookingTypeConfigs = {
   room: {
     icon: Building,
     color: { primary: 'primary', secondary: 'primary', background: 'primary/10' },
-    gradient: 'from-primary to-primary',
+    bgColor: 'bg-primary',
     label: 'Reservasi Ruangan',
     badgeBg: 'primary/10',
     badgeBorder: 'primary/20'
@@ -25,7 +52,7 @@ const bookingTypeConfigs = {
   tour: {
     icon: Sparkles,
     color: { primary: 'secondary', secondary: 'secondary', background: 'secondary/10' },
-    gradient: 'from-secondary to-secondary',
+    bgColor: 'bg-secondary',
     label: 'Pemesanan Tour',
     badgeBg: 'secondary/10',
     badgeBorder: 'secondary/20'
@@ -41,6 +68,8 @@ const filterConfigs = {
 
 export default function BookingApprovals() {
   const [bookingType, setBookingType] = useState<'all' | 'room' | 'tour'>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest')
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<BookingWithRelations | null>(null)
 
@@ -68,6 +97,41 @@ export default function BookingApprovals() {
       description: booking.event_description || 'Deskripsi tour tidak tersedia'
     }
   }
+
+  // Enhanced filtering and sorting
+  const filteredAndSortedBookings = useMemo(() => {
+    let filtered = bookings
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(booking => {
+        const isTourBooking = booking.is_tour || false
+        const tourInfo = isTourBooking ? getTourInfo(booking) : null
+        const name = isTourBooking ? tourInfo?.name : booking.rooms?.name
+        const userName = booking.profiles?.full_name || ''
+        const userEmail = booking.profiles?.email || ''
+
+        return name?.toLowerCase().includes(query) ||
+               userName.toLowerCase().includes(query) ||
+               userEmail.toLowerCase().includes(query)
+      })
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        case 'oldest':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        default:
+          return 0
+      }
+    })
+
+    return filtered
+  }, [bookings, searchQuery, sortBy])
 
   const updateBookingStatus = (id: string, status: string) => {
     updateBookingStatusMutation.mutate({ id, status })
@@ -115,179 +179,299 @@ export default function BookingApprovals() {
 
   return (
     <div className="space-y-6">
-      {/* Enhanced Header with Filter */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Persetujuan Reservasi
-          </h2>
-          <p className="text-muted-foreground">Tinjau dan kelola permintaan reservasi yang menunggu persetujuan</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Filter:</span>
-          <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 bg-card shadow-sm">
-            {(Object.keys(filterConfigs) as Array<keyof typeof filterConfigs>).map((filterKey) => {
-              const filter = filterConfigs[filterKey]
-              const Icon = filter.icon
-              const isActive = bookingType === filter.key
 
-              return (
-                <button
-                  key={filter.key}
-                  onClick={() => setBookingType(filter.key as 'all' | 'room' | 'tour')}
-                  className={`px-4 py-2 text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
-                    isActive
-                      ? `${filter.color} ${filter.bgColor} border-2 border-opacity-50`
-                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  } ${
-                    filter.key === 'all' ? 'rounded-l-lg' :
-                    filter.key === 'tour' ? 'rounded-r-lg' : ''
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? filter.color : 'opacity-60'}`} />
-                  <span>{filter.label}</span>
-                </button>
-              )
-            })}
+      {/* Compact Filter and Search Controls */}
+      <Card className="group bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all duration-200 border-2">
+        <CardContent className="p-3">
+          <div className="flex flex-col md:flex-row gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Cari berdasarkan nama ruangan/tour, nama pengguna, atau email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-8"
+              />
+            </div>
+
+            {/* Type Filters */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Tampilkan:</span>
+              <div className="flex rounded-lg border bg-card">
+                {Object.keys(filterConfigs).map((filterKey) => {
+                  const config = filterConfigs[filterKey as keyof typeof filterConfigs]
+                  const Icon = config.icon
+                  const isActive = bookingType === config.key
+
+                  return (
+                    <button
+                      key={config.key}
+                      onClick={() => setBookingType(config.key as 'all' | 'room' | 'tour')}
+                      className={`px-2 py-1.5 text-xs font-medium transition-all duration-200 flex items-center gap-1.5 rounded-md ${
+                        isActive
+                          ? `${config.color} ${config.bgColor} shadow-sm`
+                          : 'text-muted-foreground hover:bg-primary hover:text-white hover:border-primary'
+                      } ${config.key === 'all' ? 'rounded-l-md' : config.key === 'tour' ? 'rounded-r-md' : ''}`}
+                    >
+                      <Icon className={`w-3.5 h-3.5 ${isActive ? '' : 'opacity-60'}`} />
+                      <span>{config.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Sort Options */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Urutkan:</span>
+              <div className="flex gap-1">
+                {[
+                  { key: 'newest', label: 'Terbaru', icon: SortDesc },
+                  { key: 'oldest', label: 'Terlama', icon: SortAsc }
+                ].map((sort) => (
+                  <Button
+                    key={sort.key}
+                    variant={sortBy === sort.key ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSortBy(sort.key as 'newest' | 'oldest')}
+                    className={`px-2 h-8 text-xs ${sortBy !== sort.key ? 'hover:bg-primary hover:text-white hover:border-primary' : ''}`}
+                  >
+                    <sort.icon className="w-3 h-3 mr-1" />
+                    <span className="hidden sm:inline">{sort.label}</span>
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <AnimatePresence>
-        {bookings.map((booking, index) => {
-          // Determine booking type from API response
-          const isTourBooking = booking.is_tour || false
-          const bookingTypeKey = isTourBooking ? 'tour' : 'room'
-          const config = bookingTypeConfigs[bookingTypeKey]
-          const Icon = config.icon
-          const tourInfo = bookingTypeKey === 'tour' ? getTourInfo(booking) : null
+      {/* Enhanced Booking Table */}
+      <AnimatePresence mode="popLayout">
+        {filteredAndSortedBookings.length > 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-card rounded-lg border shadow-sm overflow-hidden group-hover:shadow-lg transition-all duration-200"
+          >
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead className="font-semibold text-left">Reservasi</TableHead>
+                  <TableHead className="font-semibold text-left">Pengguna</TableHead>
+                  <TableHead className="font-semibold text-left">Jadwal</TableHead>
+                  <TableHead className="font-semibold text-left">Detail</TableHead>
+                  <TableHead className="font-semibold text-left">Status</TableHead>
+                  <TableHead className="font-semibold text-center">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAndSortedBookings.map((booking, index) => {
+                  // Determine booking type from API response
+                  const isTourBooking = booking.is_tour || false
+                  const bookingTypeKey = isTourBooking ? 'tour' : 'room'
+                  const config = bookingTypeConfigs[bookingTypeKey]
+                  const Icon = config.icon
+                  const tourInfo = bookingTypeKey === 'tour' ? getTourInfo(booking) : null
 
-          return (
-            <motion.div
-              key={booking.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className={`bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50 hover:shadow-primary/10`}>
-                <CardContent className="py-0 px-4">
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="flex-1 space-y-3">
-                      {/* Enhanced Header with Type-specific Styling */}
-                      <div className="flex items-center justify-between">
-                        <h3 className={`text-lg font-bold flex items-center bg-gradient-to-r ${config.gradient} bg-clip-text text-transparent`}>
-                          <div className={`w-8 h-8 bg-gradient-to-br ${config.gradient} rounded-full flex items-center justify-center mr-3 shadow-lg`}>
-                            <Icon className="w-4 h-4 text-white" />
+                  const timeDiff = Math.floor((new Date(booking.start_time).getTime() - new Date().getTime()) / (1000 * 60 * 60))
+                  const isUrgent = timeDiff <= 24 && timeDiff > 0 // Starting within 24 hours
+
+                  return (
+                    <motion.tr
+                      key={booking.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ delay: index * 0.02 }}
+                      className={`hover:bg-muted/30 transition-colors ${
+                        isUrgent ? 'bg-orange-50/20 dark:bg-orange-950/10' : ''
+                      }`}
+                    >
+                      {/* Booking Info Column */}
+                      <TableCell className="py-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 ${config.bgColor} rounded-md flex items-center justify-center flex-shrink-0`}>
+                            <Icon className="w-3 h-3 text-white" />
                           </div>
-                          {bookingTypeKey === 'tour' ? tourInfo?.name : booking.rooms?.name}
-                        </h3>
-                        <Badge className={`bg-${config.badgeBg} text-primary dark:bg-${config.badgeBg} dark:text-primary-foreground border border-${config.badgeBorder} dark:border-primary/30 px-3 py-1`}>
-                          <Clock className="w-3 h-3 mr-1 text-gray-600" />
-                          Menunggu
-                        </Badge>
-                      </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate text-gray-900 dark:text-white">
+                              {bookingTypeKey === 'tour' ? tourInfo?.name : booking.rooms?.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              #{booking.id.slice(-8).toUpperCase()}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
 
-                    {/* Enhanced User Info with Type-specific Styling */}
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={booking.profiles?.profile_photo || undefined} alt={booking.profiles?.full_name} />
-                        <AvatarFallback className={`text-xs bg-gradient-to-br ${config.gradient} text-white`}>
-                          {booking.profiles?.full_name ? booking.profiles.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white text-sm">
-                          {booking.profiles?.full_name}
-                        </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          {booking.profiles?.email}
-                        </p>
-                      </div>
-                    </div>
+                      {/* User Info Column */}
+                      <TableCell className="py-3">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-8 h-8 flex-shrink-0">
+                            <AvatarImage src={booking.profiles?.profile_photo || undefined} alt={booking.profiles?.full_name} />
+                            <AvatarFallback className={`text-xs ${config.bgColor} text-white text-[10px] flex items-center justify-center`}>
+                              {booking.profiles?.full_name ? booking.profiles.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate text-gray-900 dark:text-white">
+                              {booking.profiles?.full_name}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {booking.profiles?.email}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
 
-                    {/* Enhanced Date and Time with Type-specific Icons */}
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-8 h-8 bg-${config.color.background} dark:bg-${config.color.primary}/20 rounded-full flex items-center justify-center`}>
-                        <Calendar className={`w-4 h-4 text-${config.color.primary} dark:text-${config.color.primary}-foreground`} />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white text-sm">
-                          {formatDateTime(booking.start_time)}
-                        </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                          sampai {formatDateTime(booking.end_time)}
-                          {bookingTypeKey === 'tour' && tourInfo && ` • ${tourInfo.duration} menit`}
-                        </p>
-                      </div>
-                    </div>
-                    </div>
+                      {/* Schedule Info Column */}
+                      <TableCell className="py-3">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
+                          <div>
+                            <p className="font-medium text-sm text-gray-900 dark:text-white">
+                              {new Date(booking.start_time).toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric'
+                              })}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(booking.start_time).toLocaleTimeString('id-ID', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })} - {new Date(booking.end_time).toLocaleTimeString('id-ID', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
 
-                    {/* Enhanced Action Buttons */}
-                    <div className="flex flex-col gap-2 lg:flex-shrink-0 min-w-[180px]">
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewDetails(booking)}
-                        className={`w-full justify-start bg-card border border-gray-200 dark:border-gray-600 hover:border-primary/30 dark:hover:border-primary/50 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all`}
-                      >
-                        <Eye className={`w-4 h-4 mr-2 text-${config.color.primary}`} />
-                        Lihat Detail
-                      </Button>
-                    </motion.div>
+                      {/* Details Column */}
+                      <TableCell className="py-3">
+                        <div className="flex items-center gap-2">
+                          {bookingTypeKey === 'tour' ? <Users className="w-4 h-4 text-secondary flex-shrink-0" /> : <Building className="w-4 h-4 text-secondary flex-shrink-0" />}
+                          <div>
+                            <p className="font-medium text-sm text-gray-900 dark:text-white">
+                              {booking.guest_count || 1} {bookingTypeKey === 'tour' ? 'Peserta' : 'Orang'}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
 
-                    {booking.proposal_file && (
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          asChild
-                          className="w-full justify-start bg-card border border-gray-200 dark:border-gray-600 hover:border-secondary/30 dark:hover:border-secondary/50 text-gray-900 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-100 transition-all"
-                        >
-                          <a
-                            href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <File className="w-4 h-4 mr-2 text-secondary" />
-                            Lihat Proposal
-                          </a>
-                        </Button>
-                      </motion.div>
-                    )}
+                      {/* Status Column */}
+                      <TableCell className="py-3">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex gap-1">
+                            {isUrgent && (
+                              <Badge variant="outline" className="w-fit bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800 text-xs px-1.5 py-0">
+                                <AlertTriangle className="w-3 h-3 mr-1" />
+                                Urgent
+                              </Badge>
+                            )}
+                            <Badge variant="outline" className="w-fit bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800 text-xs px-1.5 py-0">
+                              <Clock className="w-3 h-3 mr-1" />
+                              Pending
+                            </Badge>
+                          </div>
+                        </div>
+                      </TableCell>
 
-                    <div className="flex gap-2">
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
-                        <Button
-                          onClick={() => updateBookingStatus(booking.id, 'approved')}
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700 text-white font-medium shadow-md hover:shadow-green-500/25 transition-all"
-                          disabled={updateBookingStatusMutation.isPending}
-                        >
-                          <CheckCircle className="w-3 h-3 mr-1 text-green-600" />
-                          Setujui
-                        </Button>
-                      </motion.div>
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
-                        <Button
-                          onClick={() => updateBookingStatus(booking.id, 'rejected')}
-                          variant="destructive"
-                          size="sm"
-                          disabled={updateBookingStatusMutation.isPending}
-                        >
-                          <XCircle className="w-3 h-3 mr-1 text-red-600" />
-                          Tolak
-                        </Button>
-                      </motion.div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                      {/* Actions Column */}
+                      <TableCell className="py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          {/* Primary Action Row */}
+                          <div className="flex items-center gap-1">
+                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                              <Button
+                                onClick={() => handleViewDetails(booking)}
+                                variant="outline"
+                                size="sm"
+                                className="h-7 px-2 text-xs hover:bg-primary hover:text-white hover:border-primary transition-colors duration-200"
+                              >
+                                <Eye className="w-3 h-3" />
+                              </Button>
+                            </motion.div>
+
+                            {booking.proposal_file && (
+                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  asChild
+                                  className="h-7 px-2 text-xs hover:bg-primary hover:text-white hover:border-primary transition-colors duration-200"
+                                >
+                                  <a
+                                    href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <File className="w-3 h-3" />
+                                  </a>
+                                </Button>
+                              </motion.div>
+                            )}
+                          </div>
+
+                          {/* Decision Actions Row */}
+                          <div className="flex items-center gap-1">
+                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                              <Button
+                                onClick={() => updateBookingStatus(booking.id, 'approved')}
+                                size="sm"
+                                className="h-7 bg-green-600 hover:bg-green-700 text-white font-medium text-xs px-3 shadow-sm"
+                                disabled={updateBookingStatusMutation.isPending}
+                              >
+                                <Check className="w-4 h-4 mr-1.5" />
+                                Setujui
+                              </Button>
+                            </motion.div>
+
+                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                              <Button
+                                onClick={() => updateBookingStatus(booking.id, 'rejected')}
+                                variant="destructive"
+                                size="sm"
+                                className="h-7 text-xs px-3"
+                                disabled={updateBookingStatusMutation.isPending}
+                              >
+                                <X className="w-4 h-4 mr-1.5" />
+                                Tolak
+                              </Button>
+                            </motion.div>
+                          </div>
+                        </div>
+                      </TableCell>
+                    </motion.tr>
+                  )
+                })}
+              </TableBody>
+            </Table>
           </motion.div>
-          )
-        })}
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-16 bg-card rounded-lg border group-hover:shadow-lg transition-all duration-200"
+          >
+            <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              {bookingType === 'room' ? <Building className="w-10 h-10 text-primary" /> : bookingType === 'tour' ? <Sparkles className="w-10 h-10 text-secondary" /> : <Check className="w-10 h-10 text-primary" />}
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              {searchQuery ? 'Tidak Ada Hasil Pencarian' : 'Tidak Ada Permintaan Menunggu'}
+            </h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              {searchQuery
+                ? `Tidak ditemukan permintaan yang sesuai dengan pencarian "${searchQuery}".`
+                : `Semua permintaan ${bookingType === 'all' ? '' : bookingType === 'room' ? 'reservasi ruangan' : 'pemesanan tour'} sudah diputuskan.`
+              }
+            </p>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {bookings.length === 0 && (
@@ -299,7 +483,7 @@ export default function BookingApprovals() {
           {bookingType === 'all' ? (
             <>
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                 Semua Reservasi Sudah Diputuskan
