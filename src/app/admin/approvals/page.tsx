@@ -264,7 +264,7 @@ export default function ApprovalsPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 sm:mb-8"
+            className="mb-0"
           >
           </motion.div>
 

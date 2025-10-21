@@ -283,7 +283,7 @@ export function GeneralOverviewCards({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1, duration: 0.5 }}
-        >
+        >library-reservation-3@0.1.0
           <Card className="group bg-card backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">

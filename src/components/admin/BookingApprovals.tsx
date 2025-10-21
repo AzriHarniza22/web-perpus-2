@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useBookings, useUpdateBookingStatus } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
+import { useToastContext } from '@/components/ToastProvider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -33,7 +34,9 @@ import {
   Phone,
   Mail,
   Bell,
-  BellOff
+  BellOff,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BookingWithRelations } from '@/lib/api'
@@ -70,8 +73,10 @@ export default function BookingApprovals() {
   const [bookingType, setBookingType] = useState<'all' | 'room' | 'tour'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest')
+  const [sortField, setSortField] = useState<'created_at' | 'start_time'>('created_at')
   const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<BookingWithRelations | null>(null)
+  const toast = useToastContext()
 
   // Use API filtering instead of client-side filtering
   const isTourFilter = bookingType === 'all' ? undefined : bookingType === 'tour'
@@ -120,26 +125,52 @@ export default function BookingApprovals() {
 
     // Apply sorting
     filtered.sort((a, b) => {
+      const fieldA = sortField === 'created_at' ? a.created_at : a.start_time
+      const fieldB = sortField === 'created_at' ? b.created_at : b.start_time
+
       switch (sortBy) {
         case 'newest':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          return new Date(fieldB).getTime() - new Date(fieldA).getTime()
         case 'oldest':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          return new Date(fieldA).getTime() - new Date(fieldB).getTime()
         default:
           return 0
       }
     })
 
     return filtered
-  }, [bookings, searchQuery, sortBy])
+  }, [bookings, searchQuery, sortBy, sortField])
 
   const updateBookingStatus = (id: string, status: string) => {
-    updateBookingStatusMutation.mutate({ id, status })
+    updateBookingStatusMutation.mutate({ id, status }, {
+      onSuccess: () => {
+        if (status === 'approved') {
+          toast.success('Reservasi berhasil disetujui', 'Permintaan reservasi telah dikonfirmasi.')
+        } else if (status === 'rejected') {
+          toast.success('Reservasi berhasil ditolak', 'Permintaan reservasi telah dibatalkan.')
+        }
+      },
+      onError: (error) => {
+        console.error('Error updating booking status:', error)
+        toast.error('Gagal memperbarui status reservasi', 'Terjadi kesalahan saat memproses permintaan.')
+      }
+    })
   }
 
   const handleViewDetails = (booking: BookingWithRelations) => {
     setSelectedBooking(booking)
     setDetailModalOpen(true)
+  }
+
+  const handleSort = (field: 'created_at' | 'start_time') => {
+    if (sortField === field) {
+      // Toggle sort direction if same field
+      setSortBy(sortBy === 'newest' ? 'oldest' : 'newest')
+    } else {
+      // Set new field and default to newest
+      setSortField(field)
+      setSortBy('newest')
+    }
   }
 
   const formatDateTime = (dateString: string) => {
@@ -181,7 +212,7 @@ export default function BookingApprovals() {
     <div className="space-y-6">
 
       {/* Compact Filter and Search Controls */}
-      <Card className="group bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all duration-200 border-2">
+      <Card className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 border-2">
         <CardContent className="p-3">
           <div className="flex flex-col md:flex-row gap-3">
             {/* Search Input */}
@@ -257,13 +288,44 @@ export default function BookingApprovals() {
           >
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/50 hover:bg-muted/50">
-                  <TableHead className="font-semibold text-left">Reservasi</TableHead>
-                  <TableHead className="font-semibold text-left">Pengguna</TableHead>
-                  <TableHead className="font-semibold text-left">Jadwal</TableHead>
-                  <TableHead className="font-semibold text-left">Detail</TableHead>
-                  <TableHead className="font-semibold text-left">Status</TableHead>
-                  <TableHead className="font-semibold text-center">Aksi</TableHead>
+                <TableRow className="bg-white/90 dark:bg-gray-800/90 hover:bg-white/90 dark:hover:bg-gray-800/90">
+                  <TableHead className="font-semibold text-left pl-25">Reservasi</TableHead>
+                  <TableHead className="font-semibold text-left pl-21">Pengguna</TableHead>
+                  <TableHead className="font-semibold text-center pl-8">
+                    <button
+                      onClick={() => handleSort('start_time')}
+                      className="flex items-center justify-center gap-1 hover:text-primary transition-colors w-full"
+                    >
+                      <span>Jadwal</span>
+                      {sortField === 'start_time' ? (
+                        sortBy === 'newest' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                      ) : (
+                        <div className="flex flex-col -space-y-1">
+                          <ChevronUp className="w-2 h-2 opacity-30" />
+                          <ChevronDown className="w-2 h-2 opacity-30" />
+                        </div>
+                      )}
+                    </button>
+                  </TableHead>
+                  <TableHead className="font-semibold text-center">
+                    <button
+                      onClick={() => handleSort('created_at')}
+                      className="flex items-center justify-center gap-1 hover:text-primary transition-colors w-full"
+                    >
+                      <span>Dibuat</span>
+                      {sortField === 'created_at' ? (
+                        sortBy === 'newest' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                      ) : (
+                        <div className="flex flex-col -space-y-1">
+                          <ChevronUp className="w-2 h-2 opacity-30" />
+                          <ChevronDown className="w-2 h-2 opacity-30" />
+                        </div>
+                      )}
+                    </button>
+                  </TableHead>
+                  <TableHead className="font-semibold text-center">Detail</TableHead>
+                  <TableHead className="font-semibold text-center">Status</TableHead>
+                  <TableHead className="font-semibold text-center pl-10">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -327,8 +389,8 @@ export default function BookingApprovals() {
                       </TableCell>
 
                       {/* Schedule Info Column */}
-                      <TableCell className="py-3">
-                        <div className="flex items-center gap-2">
+                      <TableCell className="py-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
                           <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
                           <div>
                             <p className="font-medium text-sm text-gray-900 dark:text-white">
@@ -351,9 +413,30 @@ export default function BookingApprovals() {
                         </div>
                       </TableCell>
 
-                      {/* Details Column */}
+                      {/* Created Date Column */}
                       <TableCell className="py-3">
                         <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-secondary flex-shrink-0" />
+                          <div>
+                            <p className="font-medium text-sm text-gray-900 dark:text-white">
+                              {new Date(booking.created_at).toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'short'
+                              })}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(booking.created_at).toLocaleTimeString('id-ID', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      {/* Details Column */}
+                      <TableCell className="py-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
                           {bookingTypeKey === 'tour' ? <Users className="w-4 h-4 text-secondary flex-shrink-0" /> : <Building className="w-4 h-4 text-secondary flex-shrink-0" />}
                           <div>
                             <p className="font-medium text-sm text-gray-900 dark:text-white">
@@ -364,9 +447,9 @@ export default function BookingApprovals() {
                       </TableCell>
 
                       {/* Status Column */}
-                      <TableCell className="py-3">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex gap-1">
+                      <TableCell className="py-3 text-center">
+                        <div className="flex flex-col gap-1 items-center">
+                          <div className="flex gap-1 justify-center">
                             {isUrgent && (
                               <Badge variant="outline" className="w-fit bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800 text-xs px-1.5 py-0">
                                 <AlertTriangle className="w-3 h-3 mr-1" />

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Clock, CheckCircle, XCircle, Users, Building, BookOpen, TrendingUp, Calendar, LucideIcon, AlertTriangle, ArrowUpIcon, ArrowDownIcon } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Booking, Room } from '@/lib/types'
 import { BookingWithRelations } from '@/lib/api'
 
@@ -278,10 +278,10 @@ export function ApprovalsOverviewCards({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1, duration: 0.5 }}
         >
-          <Card className="group bg-card/50 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105">
+          <Card className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <div className="space-y-1 flex-1">
+                <div className="space-y-1">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
                     {stat.label}
                   </p>
@@ -299,7 +299,7 @@ export function ApprovalsOverviewCards({
                     )}
                   </div>
                 </div>
-                <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-75 ease-out flex-shrink-0 ml-3`}>
+                <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-75 ease-out`}>
                   <stat.icon className={`w-5 h-5 ${stat.color}`} />
                 </div>
               </div>
