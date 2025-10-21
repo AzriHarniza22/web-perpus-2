@@ -222,9 +222,7 @@ export function ApprovalsOverviewCards({
       value: animatedValues.totalPending,
       icon: Clock,
       color: 'text-white',
-      bgColor: 'bg-yellow-500',
-      change: weeklyTrend.change,
-      trend: weeklyTrend.trend
+      bgColor: 'bg-yellow-500'
     },
     {
       label: 'Permintaan Hari Ini',
@@ -287,14 +285,14 @@ export function ApprovalsOverviewCards({
                   </p>
                   <div className="flex items-center gap-2">
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {stat.label === 'Tingkat Persetujuan' ? `${stat.value}%` : stat.value}
+                      {stat.value}
                     </p>
                     {stat.trend && stat.trend !== 'neutral' && (
                       <div className={`flex items-center text-xs px-1.5 py-0.5 rounded-full ${
                         stat.trend === 'up' ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' : 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
                       }`}>
                         {stat.trend === 'up' ? <ArrowUpIcon className="w-3 h-3" /> : <ArrowDownIcon className="w-3 h-3" />}
-                        {stat.change}%
+                        {stat.change}
                       </div>
                     )}
                   </div>

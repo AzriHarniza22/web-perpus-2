@@ -35,8 +35,9 @@ import {
   Mail,
   Bell,
   BellOff,
-  ChevronUp,
-  ChevronDown
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BookingWithRelations } from '@/lib/api'
@@ -298,12 +299,9 @@ export default function BookingApprovals() {
                     >
                       <span>Jadwal</span>
                       {sortField === 'start_time' ? (
-                        sortBy === 'newest' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                        sortBy === 'newest' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
                       ) : (
-                        <div className="flex flex-col -space-y-1">
-                          <ChevronUp className="w-2 h-2 opacity-30" />
-                          <ChevronDown className="w-2 h-2 opacity-30" />
-                        </div>
+                        <ArrowUpDown className="w-3 h-3 opacity-50" />
                       )}
                     </button>
                   </TableHead>
@@ -314,12 +312,9 @@ export default function BookingApprovals() {
                     >
                       <span>Dibuat</span>
                       {sortField === 'created_at' ? (
-                        sortBy === 'newest' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                        sortBy === 'newest' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
                       ) : (
-                        <div className="flex flex-col -space-y-1">
-                          <ChevronUp className="w-2 h-2 opacity-30" />
-                          <ChevronDown className="w-2 h-2 opacity-30" />
-                        </div>
+                        <ArrowUpDown className="w-3 h-3 opacity-50" />
                       )}
                     </button>
                   </TableHead>
