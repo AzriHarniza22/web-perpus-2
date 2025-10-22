@@ -93,16 +93,16 @@ export function DataTable<T extends { id: string }>({
   return (
     <div className="space-y-4">
       <div className="rounded-md border">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
               {columns.map((column) => (
-                <TableHead key={column.key} className={column.className}>
+                <TableHead key={column.key} className={`${column.className} text-xs font-medium`}>
                   {column.sortable ? (
                     <Button
                       variant="ghost"
                       onClick={() => handleSort(column.key)}
-                      className="h-auto p-0 font-medium hover:bg-transparent"
+                      className="h-auto p-0 font-medium hover:bg-transparent text-xs"
                     >
                       {column.header}
                       {getSortIcon(column.key)}
@@ -117,9 +117,9 @@ export function DataTable<T extends { id: string }>({
           <TableBody>
             {data.length ? (
               data.map((item) => (
-                <TableRow key={item.id}>
+                <TableRow key={item.id} className="h-12">
                   {columns.map((column) => (
-                    <TableCell key={column.key} className={column.className}>
+                    <TableCell key={column.key} className={`${column.className} text-xs align-top py-2`}>
                       {column.render(item)}
                     </TableCell>
                   ))}

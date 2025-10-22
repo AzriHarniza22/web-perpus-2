@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { RefreshCw, History, Filter, FileText, Sparkles, Eye, Search, X, Calendar, Building, RotateCcw } from 'lucide-react'
+import { RefreshCw, History, Filter, FileText, Sparkles, Eye, Search, X, Calendar, Building, RotateCcw, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 
 import { useBookings, useUpdateBookingStatus, useRooms } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
@@ -151,6 +151,42 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
     }
   }
 
+  const getStatusBadgeClassName = (status: string) => {
+    switch (status) {
+      case 'approved': return 'bg-green-500 text-white hover:bg-green-600'
+      case 'rejected': return 'bg-red-500 text-white hover:bg-red-600'
+      case 'completed': return 'bg-blue-500 text-white hover:bg-blue-600'
+      case 'cancelled': return 'bg-gray-500 text-white hover:bg-gray-600'
+      default: return 'bg-yellow-400 text-white hover:bg-yellow-500'
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'approved': return 'Disetujui'
+      case 'rejected': return 'Ditolak'
+      case 'completed': return 'Selesai'
+      case 'cancelled': return 'Dibatalkan'
+      default: return 'Menunggu'
+    }
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return <CheckCircle className="w-3 h-3" />
+      case 'rejected':
+        return <XCircle className="w-3 h-3" />
+      case 'completed':
+        return <CheckCircle className="w-3 h-3" />
+      case 'cancelled':
+        return <XCircle className="w-3 h-3" />
+      case 'pending':
+      default:
+        return <AlertCircle className="w-3 h-3" />
+    }
+  }
+
   const getBookingTypeIcon = (booking: BookingWithRelations) => {
     // Use is_tour column to determine if it's a tour booking
     const isTour = booking.is_tour || false
@@ -206,65 +242,6 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
 
   const columns = [
     {
-      key: 'type',
-      header: 'Type',
-      render: (booking: BookingWithRelations) => {
-        const TypeIcon = getBookingTypeIcon(booking)
-        const typeLabel = getBookingTypeLabel(booking)
-
-        return (
-          <div className="flex items-center space-x-2">
-            <TypeIcon className="w-4 h-4 text-primary" />
-            <Badge variant="outline" className="text-xs">
-              {typeLabel}
-            </Badge>
-          </div>
-        )
-      },
-      sortable: false,
-    },
-    {
-      key: 'submitted_date',
-      header: 'Tanggal Diajukan',
-      render: (booking: BookingWithRelations) => (
-        <div className="font-medium">
-          {formatDateTime(booking.created_at)}
-        </div>
-      ),
-      sortable: true,
-    },
-    {
-      key: 'reservation_date',
-      header: 'Tanggal Reservasi',
-      render: (booking: BookingWithRelations) => (
-        <div>
-          <div className="font-medium">
-            {formatDateTime(booking.start_time)}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            to {formatDateTime(booking.end_time)}
-          </div>
-        </div>
-      ),
-      sortable: true,
-    },
-    {
-      key: 'accepted_date',
-      header: 'Tanggal Diterima',
-      render: (booking: BookingWithRelations) => {
-        // For accepted bookings, show when they were approved
-        if (booking.status === 'approved' || booking.status === 'completed') {
-          return (
-            <div className="font-medium text-green-600">
-              {formatDateTime(booking.updated_at || booking.created_at)}
-            </div>
-          )
-        }
-        return <span className="text-muted-foreground">-</span>
-      },
-      sortable: true,
-    },
-    {
       key: 'room',
       header: 'Room/Tour',
       render: (booking: BookingWithRelations) => {
@@ -272,82 +249,136 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
 
         if (isTour) {
           // For tour bookings, show tour information from event description
-          const tourName = booking.event_description?.replace('Tour: ', '').split(' - ')[0] || 'Tour Booking'
+          const tourName = booking.event_description?.replace('Tour: ', '').split(' - ')[0] || 'Tour'
           return (
-            <div>
-              <div className="font-medium flex items-center">
-                <Sparkles className="w-4 h-4 mr-2 text-secondary" />
-                {tourName}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Tour Booking
+            <div className="text-sm" title={`${tourName} - Tour Booking`}>
+              <div className="font-medium flex items-center truncate">
+                <Sparkles className="w-3 h-3 mr-1 text-secondary flex-shrink-0" />
+                <span className="truncate">{tourName}</span>
               </div>
             </div>
           )
         } else {
           // For room bookings, show room information
           return (
-            <div>
+            <div className="text-sm" title={`${booking.rooms?.name}${booking.rooms?.capacity ? ` (Capacity: ${booking.rooms.capacity})` : ''}`}>
               <div className="font-medium">{booking.rooms?.name}</div>
-              {booking.rooms?.capacity && (
-                <div className="text-sm text-muted-foreground">
-                  Capacity: {booking.rooms.capacity}
-                </div>
-              )}
             </div>
           )
         }
       },
       sortable: false,
+      className: 'w-35 pl-6',
     },
     {
       key: 'user',
       header: 'User',
       render: (booking: BookingWithRelations) => (
-        <div>
-          <div className="font-medium">{booking.profiles?.full_name}</div>
-          <div className="text-sm text-muted-foreground">
+        <div className="text-sm" title={`${booking.profiles?.full_name} - ${booking.profiles?.email}${booking.profiles?.institution ? ` (${booking.profiles.institution})` : ''}`}>
+          <div className="font-medium truncate">{booking.profiles?.full_name}</div>
+          <div className="text-xs text-muted-foreground truncate">
             {booking.profiles?.email}
           </div>
-          {booking.profiles?.institution && (
-            <div className="text-xs text-muted-foreground">
-              {booking.profiles.institution}
-            </div>
-          )}
         </div>
       ),
       sortable: false,
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (booking: BookingWithRelations) => (
-        <Badge variant={getStatusBadgeVariant(booking.status)}>
-          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-        </Badge>
-      ),
-      sortable: true,
+      className: 'w-32 pl-1',
     },
     {
       key: 'event',
       header: 'Event',
       render: (booking: BookingWithRelations) => (
-        <div className="max-w-xs">
+        <div className="text-sm max-w-48" title={booking.event_description || 'No description'}>
           {booking.event_description ? (
-            <div className="truncate" title={booking.event_description}>
+            <div className="truncate">
               {booking.event_description}
             </div>
           ) : (
             <span className="text-muted-foreground">-</span>
           )}
           {booking.notes && (
-            <div className="text-xs text-muted-foreground mt-1 truncate" title={booking.notes}>
-              Notes: {booking.notes}
+            <div className="text-xs text-muted-foreground mt-0.5 truncate" title={booking.notes}>
+              {booking.notes}
             </div>
           )}
         </div>
       ),
       sortable: false,
+      className: 'w-30 pl-0',
+    },
+    {
+      key: 'submitted_date',
+      header: 'Diajukan',
+      render: (booking: BookingWithRelations) => (
+        <div className="text-sm font-medium" title={formatDateTime(booking.created_at)}>
+          {new Date(booking.created_at).toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })}
+        </div>
+      ),
+      sortable: true,
+      className: 'w-20 pl-1',
+    },
+    {
+      key: 'reservation_date',
+      header: 'Reservasi',
+      render: (booking: BookingWithRelations) => (
+        <div className="text-sm" title={`${formatDateTime(booking.start_time)} - ${formatDateTime(booking.end_time)}`}>
+          <div className="font-medium">
+            {new Date(booking.start_time).toLocaleDateString('id-ID', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {new Date(booking.start_time).toLocaleTimeString('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })} - {new Date(booking.end_time).toLocaleTimeString('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </div>
+        </div>
+      ),
+      sortable: true,
+      className: 'w-20 pl-1',
+    },
+    {
+      key: 'accepted_date',
+      header: 'Diterima',
+      render: (booking: BookingWithRelations) => {
+        // For accepted bookings, show when they were approved
+        if (booking.status === 'approved' || booking.status === 'completed') {
+          return (
+            <div className="text-sm font-medium text-green-600" title={formatDateTime(booking.updated_at || booking.created_at)}>
+              {new Date(booking.updated_at || booking.created_at).toLocaleDateString('id-ID', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })}
+            </div>
+          )
+        }
+        return <span className="text-muted-foreground text-xs">-</span>
+      },
+      sortable: true,
+      className: 'w-20 pl-1',
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (booking: BookingWithRelations) => (
+        <Badge className={`inline-flex items-center justify-center gap-1 text-xs px-2 py-1 whitespace-nowrap w-24 ${getStatusBadgeClassName(booking.status)}`}>
+          {getStatusIcon(booking.status)}
+          {getStatusLabel(booking.status)}
+        </Badge>
+      ),
+      sortable: true,
+      className: 'w-20 pl-2',
     },
     {
       key: 'actions',
@@ -355,24 +386,25 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
       render: (booking: BookingWithRelations) => {
         if (readonly) {
           return (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleViewDetails(booking)}
-                className="flex items-center"
+                className="flex items-center text-xs px-2 py-1 h-7"
+                title="View Details"
               >
-                <Eye className="w-4 h-4 mr-2" />
-                Lihat Detail
+                <Eye className="w-3 h-3" />
               </Button>
               {booking.proposal_file && (
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild className="text-xs px-2 py-1 h-7">
                   <a
                     href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    title="View Proposal"
                   >
-                    View Proposal
+                    <FileText className="w-3 h-3" />
                   </a>
                 </Button>
               )}
@@ -381,44 +413,48 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
         }
 
         return (
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
             <Button
               variant="outline"
               size="sm"
               onClick={() => handleViewDetails(booking)}
-              className="flex items-center"
+              className="flex items-center text-xs px-2 py-1 h-7"
+              title="View Details"
             >
-              <Eye className="w-4 h-4 mr-2" />
-              Lihat Detail
+              <Eye className="w-3 h-3" />
             </Button>
 
             {booking.proposal_file && (
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" asChild className="text-xs px-2 py-1 h-7">
                 <a
                   href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  title="View Proposal"
                 >
-                  View Proposal
+                  <FileText className="w-3 h-3" />
                 </a>
               </Button>
             )}
 
             {booking.status === 'pending' ? (
-              <div className="flex space-x-1">
+              <div className="flex space-x-0.5">
                 <Button
                   size="sm"
                   onClick={() => updateBookingStatus(booking.id, 'approved')}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1 h-7"
+                  title="Approve"
                 >
-                  Approve
+                  ✓
                 </Button>
                 <Button
                   size="sm"
                   variant="destructive"
                   onClick={() => updateBookingStatus(booking.id, 'rejected')}
+                  className="text-xs px-2 py-1 h-7"
+                  title="Reject"
                 >
-                  Reject
+                  ✗
                 </Button>
               </div>
             ) : (
@@ -426,7 +462,7 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
                 value={booking.status}
                 onValueChange={(value) => updateBookingStatus(booking.id, value)}
               >
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="w-20 h-7 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -442,6 +478,7 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
         )
       },
       sortable: false,
+      className: 'w-18 ',
     },
   ]
 
@@ -614,7 +651,6 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
                         <div className="flex items-center gap-2">
                           <Building className="w-3 h-3" />
                           {room.name}
-                          {room.capacity && <Badge variant="outline" className="text-xs">{room.capacity}</Badge>}
                         </div>
                       </SelectItem>
                     ))}
@@ -720,18 +756,20 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
           </p>
         </CardHeader>
         <CardContent className="p-0">
-          <DataTable
-            columns={columns}
-            data={filteredBookings}
-            pageSize={pageSize}
-            onPageSizeChange={handlePageSizeChange}
-            onSortingChange={handleSortingChange}
-            currentPage={currentPage}
-            onPageChange={handlePageChange}
-            sortKey={sortKey}
-            sortDirection={sortDirection}
-            totalItems={bookingsData?.totalCount || 0}
-          />
+          <div className="overflow-x-auto">
+            <DataTable
+              columns={columns}
+              data={filteredBookings}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              onSortingChange={handleSortingChange}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+              sortKey={sortKey}
+              sortDirection={sortDirection}
+              totalItems={bookingsData?.totalCount || 0}
+            />
+          </div>
         </CardContent>
       </Card>
 
