@@ -1,17 +1,20 @@
 'use client'
 
 import * as React from 'react'
-import { DateRange } from 'react-day-picker'
-import { RefreshCw, History, Filter, FileText, Sparkles, Eye } from 'lucide-react'
+import { RefreshCw, History, Filter, FileText, Sparkles, Eye, Search, X, Calendar, Building, RotateCcw } from 'lucide-react'
 
 import { useBookings, useUpdateBookingStatus, useRooms } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
+import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DataTable } from '@/components/ui/data-table'
-import { FilterPanel } from '@/components/ui/filter-panel'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import BookingDetailModal from '@/components/admin/BookingDetailModal'
 import type { BookingWithRelations } from '@/lib/api'
 
@@ -41,10 +44,13 @@ interface UnifiedBookingManagementProps {
 }
 
 export default function UnifiedBookingManagement({ readonly = false }: UnifiedBookingManagementProps) {
+  const queryClient = useQueryClient()
+
   // Filter states
   const [search, setSearch] = React.useState('')
   const [status, setStatus] = React.useState<string[]>([])
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>()
+  const [startDate, setStartDate] = React.useState<Date | undefined>()
+  const [endDate, setEndDate] = React.useState<Date | undefined>()
   const [roomIds, setRoomIds] = React.useState<string[]>([])
   const [bookingView, setBookingView] = React.useState<'all' | 'room' | 'tour'>('all')
 
@@ -59,9 +65,9 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
   const [selectedBooking, setSelectedBooking] = React.useState<BookingWithRelations | null>(null)
 
   // Convert date range to API format
-  const apiDateRange = dateRange?.from && dateRange?.to ? {
-    start: dateRange.from.toISOString(),
-    end: dateRange.to.toISOString()
+  const apiDateRange = startDate && endDate ? {
+    start: startDate.toISOString(),
+    end: endDate.toISOString()
   } : undefined
 
   // Map column keys to API field names
@@ -162,7 +168,8 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
   const handleClearFilters = () => {
     setSearch('')
     setStatus([])
-    setDateRange(undefined)
+    setStartDate(undefined)
+    setEndDate(undefined)
     setRoomIds([])
     setBookingView('all')
     setCurrentPage(1)
@@ -172,9 +179,10 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
     setCurrentPage(1) // Reset to first page when applying filters
   }
 
-  const handleSortingChange = (key: string, direction: 'asc' | 'desc' | null) => {
-    setSortKey(key)
-    setSortDirection(direction === null ? 'desc' : direction)
+  const handleSortingChange = (key: string | undefined, direction: 'asc' | 'desc' | null | undefined) => {
+    if (key) setSortKey(key)
+    if (direction && direction !== null) setSortDirection(direction)
+    else if (direction === null) setSortDirection('desc') // Reset to default
   }
 
   const handlePageChange = (page: number) => {
@@ -189,6 +197,11 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
   const handleViewDetails = (booking: BookingWithRelations) => {
     setSelectedBooking(booking)
     setDetailModalOpen(true)
+  }
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['bookings'] })
+    queryClient.invalidateQueries({ queryKey: ['rooms'] })
   }
 
   const columns = [
@@ -432,190 +445,311 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
     },
   ]
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center">
-              <History className="w-8 h-8 mr-3 text-primary" />
-              History Management
-            </h1>
-            <p className="text-muted-foreground">Unified view of all reservations and tour bookings</p>
-          </div>
-          <Button variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
-
-        {/* View Filter Buttons */}
-        <div className="flex items-center space-x-2">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-            {['all', 'room', 'tour'].map((view) => (
-              <Button
-                key={view}
-                variant={bookingView === view ? 'default' : 'ghost'}
-                size="sm"
-                className="capitalize"
-              >
-                {view === 'all' ? 'All Bookings' : view}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <FilterPanel
-          search={search}
-          onSearchChange={setSearch}
-          status={status}
-          onStatusChange={setStatus}
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
-          roomIds={roomIds}
-          onRoomIdsChange={setRoomIds}
-          rooms={rooms}
-          onClearFilters={handleClearFilters}
-          onApplyFilters={handleApplyFilters}
-          bookingType={bookingView}
-          onBookingTypeChange={setBookingView}
-        />
-
-        <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="border rounded-lg p-4">
-              <Skeleton className="h-4 w-3/4 mb-2" />
-              <Skeleton className="h-3 w-1/2 mb-1" />
-              <Skeleton className="h-3 w-1/3" />
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center">
-            <History className="w-8 h-8 mr-3 text-primary" />
-            History Management
-          </h1>
-          <p className="text-muted-foreground">Unified view of all reservations and tour bookings</p>
-        </div>
-        <Button variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
-
-      {/* View Filter Buttons */}
-      <div className="flex items-center space-x-2">
-        <Filter className="w-4 h-4 text-muted-foreground" />
-        <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-          {[
-            { value: 'all', label: 'All Bookings' },
-            { value: 'room', label: 'Room Only' },
-            { value: 'tour', label: 'Tour Only' }
-          ].map((view) => (
-            <Button
-              key={view.value}
-              variant={bookingView === view.value ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setBookingView(view.value as 'all' | 'room' | 'tour')}
-              className="capitalize"
-            >
-              {view.label}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      <FilterPanel
-        search={search}
-        onSearchChange={setSearch}
-        status={status}
-        onStatusChange={setStatus}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
-        roomIds={roomIds}
-        onRoomIdsChange={setRoomIds}
-        rooms={rooms}
-        onClearFilters={handleClearFilters}
-        onApplyFilters={handleApplyFilters}
-        bookingType={bookingView}
-        onBookingTypeChange={setBookingView}
-      />
-
-      {/* Sorting Controls */}
-      <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <div className="flex items-center space-x-2">
-          <label className="text-sm font-medium">Sort by:</label>
-          <Select value={sortKey} onValueChange={(value) => handleSortingChange(value, sortDirection)}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Select field to sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="submitted_date">Tanggal Diajukan</SelectItem>
-              <SelectItem value="reservation_date">Tanggal Reservasi</SelectItem>
-              <SelectItem value="accepted_date">Tanggal Diterima</SelectItem>
-              <SelectItem value="status">Status</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <label className="text-sm font-medium">Order:</label>
-          <Select value={sortDirection} onValueChange={(value: 'asc' | 'desc') => handleSortingChange(sortKey, value)}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="asc">Ascending</SelectItem>
-              <SelectItem value="desc">Descending</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {(sortKey !== 'submitted_date' || sortDirection !== 'desc') && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSortKey('submitted_date')
-              setSortDirection('desc')
-            }}
-          >
-            Reset Sort
-          </Button>
-        )}
-      </div>
-
-      <DataTable
-        columns={columns}
-        data={filteredBookings}
-        pageSize={pageSize}
-        onPageSizeChange={handlePageSizeChange}
-        onSortingChange={handleSortingChange}
-        currentPage={currentPage}
-        onPageChange={handlePageChange}
-        sortKey={sortKey}
-        sortDirection={sortDirection}
-        totalItems={bookingsData?.totalCount || 0}
-      />
-
-      {filteredBookings.length === 0 && (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center mx-auto mb-4">
-            <History className="w-8 h-8 text-primary dark:text-primary-400" />
+      {/* Compact Filter Panel */}
+      <Card className="bg-card backdrop-blur-sm border shadow-sm">
+        <CardContent className="py-0 px-6 space-y-3">
+          {/* Category Tabs */}
+          <div className="flex items-center gap-2">
+            <Label className="text-sm font-medium">Kategori:</Label>
+            <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+              {[
+                { value: 'all' as const, label: 'All' },
+                { value: 'room' as const, label: 'Room' },
+                { value: 'tour' as const, label: 'Tour' }
+              ].map((tab) => (
+                <Button
+                  key={tab.value}
+                  variant={bookingView === tab.value ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setBookingView(tab.value)}
+                  disabled={isLoading}
+                  className="text-xs px-3 py-1 h-7 transition-all"
+                >
+                  {tab.label}
+                </Button>
+              ))}
+            </div>
           </div>
-          <p className="text-muted-foreground text-lg">No bookings found</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Try adjusting your filters or search terms
+
+          {/* Compact Single Row Layout */}
+          <div className="flex flex-wrap items-end gap-4">
+            {/* Search Bar */}
+            <div className="flex-1 min-w-64">
+              <Label className="flex items-center gap-2 text-sm mb-2">
+                <Search className="w-4 h-4" />
+                Pencarian
+              </Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Cari berdasarkan nama, waktu, atau ruangan"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  disabled={isLoading}
+                  className="pl-9 h-10"
+                />
+                {search && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSearch('')}
+                    disabled={isLoading}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Status Filter */}
+            <div className="min-w-40">
+              <Label className="flex items-center gap-2 text-sm mb-2">
+                <div className="w-3 h-3 rounded-full bg-gray-400 flex-shrink-0" />
+                Status
+              </Label>
+              <Select
+                value={status.length === 0 ? "all" : status.length === 1 ? status[0] : "multiple"}
+                onValueChange={(value) => {
+                  if (value === 'all') {
+                    setStatus([])
+                  } else {
+                    const newStatus = status.includes(value)
+                      ? status.filter(s => s !== value)
+                      : [...status, value]
+                    setStatus(newStatus)
+                  }
+                }}
+                disabled={isLoading}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="All statuses">
+                    {status.length === 0 && "All statuses"}
+                    {status.length === 1 && status[0].charAt(0).toUpperCase() + status[0].slice(1)}
+                    {status.length > 1 && `${status.length} selected`}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Date Range */}
+            <div className="min-w-48">
+              <Label className="flex items-center gap-2 text-sm mb-2">
+                <Calendar className="w-4 h-4" />
+                Tanggal
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  value={startDate ? startDate.toISOString().split('T')[0] : ''}
+                  onChange={(e) => {
+                    const date = e.target.value ? new Date(e.target.value) : undefined
+                    setStartDate(date)
+                    if (date && endDate && date > endDate) {
+                      setEndDate(undefined)
+                    }
+                  }}
+                  disabled={isLoading}
+                  className="h-10 text-sm flex-1"
+                />
+                <Input
+                  type="date"
+                  value={endDate ? endDate.toISOString().split('T')[0] : ''}
+                  onChange={(e) => {
+                    const date = e.target.value ? new Date(e.target.value) : undefined
+                    if (date && startDate && date < startDate) {
+                      // Show error - end date cannot be before start date
+                      return
+                    }
+                    setEndDate(date)
+                  }}
+                  disabled={isLoading}
+                  className="h-10 text-sm flex-1"
+                />
+              </div>
+            </div>
+
+            {/* Room Filter - Only show for All or Room */}
+            {(bookingView === 'all' || bookingView === 'room') && (
+              <div className="min-w-40">
+                <Label className="flex items-center gap-2 text-sm mb-2">
+                  <Building className="w-4 h-4" />
+                  Rooms
+                </Label>
+                <Select
+                  value={roomIds.length === 0 ? "all" : roomIds.length === 1 ? roomIds[0] : "multiple"}
+                  onValueChange={(value) => {
+                    if (value === 'all') {
+                      setRoomIds([])
+                    } else {
+                      const newRoomIds = roomIds.includes(value)
+                        ? roomIds.filter(id => id !== value)
+                        : [...roomIds, value]
+                      setRoomIds(newRoomIds)
+                    }
+                  }}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="All rooms">
+                      {roomIds.length === 0 && "All rooms"}
+                      {roomIds.length === 1 && rooms.find((r: any) => r.id === roomIds[0])?.name}
+                      {roomIds.length > 1 && `${roomIds.length} selected`}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Rooms</SelectItem>
+                    {rooms.map((room: any) => (
+                      <SelectItem key={room.id} value={room.id}>
+                        <div className="flex items-center gap-2">
+                          <Building className="w-3 h-3" />
+                          {room.name}
+                          {room.capacity && <Badge variant="outline" className="text-xs">{room.capacity}</Badge>}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          {/* Date Validation Error - Show below the row */}
+          {startDate && endDate && startDate > endDate && (
+            <Alert variant="destructive" className="text-xs">
+              <AlertDescription>End date must be after start date</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Active Filter Tags */}
+          {(status.length > 0 || roomIds.length > 0) && (
+            <div className="flex flex-wrap gap-1.5">
+              {status.map((s) => (
+                <Badge
+                  key={s}
+                  variant="secondary"
+                  className="flex items-center gap-1 text-xs"
+                >
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                  <button
+                    onClick={() => setStatus(status.filter(st => st !== s))}
+                    disabled={isLoading}
+                    className="hover:text-destructive ml-1 disabled:opacity-50"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+              {roomIds.map((id) => {
+                const room = rooms.find((r: any) => r.id === id)
+                return room ? (
+                  <Badge
+                    key={id}
+                    variant="outline"
+                    className="flex items-center gap-1 text-xs bg-green-50 text-green-700 border-green-200"
+                  >
+                    <Building className="w-3 h-3" />
+                    {room.name}
+                    <button
+                      onClick={() => setRoomIds(roomIds.filter(rid => rid !== id))}
+                      disabled={isLoading}
+                      className="hover:text-red-600 ml-1 disabled:opacity-50"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ) : null
+              })}
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex justify-between items-center">
+            <Button
+              variant="outline"
+              onClick={handleClearFilters}
+              disabled={!search && status.length === 0 && !startDate && !endDate && roomIds.length === 0 && bookingView === 'all' || isLoading}
+              size="sm"
+              className="h-8"
+            >
+              <RotateCcw className="w-3 h-3 mr-2" />
+              Clear All
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2 h-8"
+              onClick={handleRefresh}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <RefreshCw className="w-3 h-3" />
+              )}
+              Refresh Data
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Data Table Card */}
+      <Card className="bg-card backdrop-blur-sm border shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              <span>Bookings Data</span>
+              <Badge variant="outline" className="ml-2">
+                {filteredBookings.length} / {bookingsData?.totalCount || 0} items
+              </Badge>
+            </div>
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Complete list of bookings with detailed information and actions
           </p>
-        </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <DataTable
+            columns={columns}
+            data={filteredBookings}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
+            onSortingChange={handleSortingChange}
+            currentPage={currentPage}
+            onPageChange={handlePageChange}
+            sortKey={sortKey}
+            sortDirection={sortDirection}
+            totalItems={bookingsData?.totalCount || 0}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Empty State */}
+      {filteredBookings.length === 0 && (
+        <Card className="bg-card backdrop-blur-sm border shadow-sm">
+          <CardContent className="py-16">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <History className="w-8 h-8 text-primary/60" />
+              </div>
+              <p className="text-muted-foreground text-lg font-medium">No bookings found</p>
+              <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
+                Try adjusting your filters, search terms, or view options to find the bookings you're looking for.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       <BookingDetailModal

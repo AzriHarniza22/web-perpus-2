@@ -13,10 +13,12 @@ import {
   Filter,
   Calendar,
   Building,
-  Clock,
-  RotateCcw
+  RotateCcw,
+  Eye,
+  ArrowUpDown,
+  Sliders
 } from 'lucide-react'
-import { DateRange } from 'react-day-picker'
+
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 
@@ -32,7 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DateRangePicker } from '@/components/ui/date-range-picker'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
@@ -48,8 +50,10 @@ interface FilterPanelProps {
   onSearchChange: (value: string) => void
   status: string[]
   onStatusChange: (statuses: string[]) => void
-  dateRange: DateRange | undefined
-  onDateRangeChange: (range: DateRange | undefined) => void
+  startDate: Date | undefined
+  onStartDateChange: (date: Date | undefined) => void
+  endDate: Date | undefined
+  onEndDateChange: (date: Date | undefined) => void
   roomIds: string[]
   onRoomIdsChange: (ids: string[]) => void
   rooms: Room[]
@@ -57,6 +61,14 @@ interface FilterPanelProps {
   onApplyFilters: () => void
   bookingType?: 'all' | 'room' | 'tour'
   onBookingTypeChange?: (type: 'all' | 'room' | 'tour') => void
+  // View Options
+  bookingView?: 'all' | 'room' | 'tour'
+  onBookingViewChange?: (view: 'all' | 'room' | 'tour') => void
+  filteredBookings?: any[]
+  // Sort Options
+  sortKey?: string
+  sortDirection?: 'asc' | 'desc'
+  onSortingChange?: (key?: string, direction?: 'asc' | 'desc') => void
   isLoading?: boolean
   validationErrors?: string[]
   validationWarnings?: string[]
@@ -100,8 +112,10 @@ export function EnhancedFilterPanel({
   onSearchChange,
   status,
   onStatusChange,
-  dateRange,
-  onDateRangeChange,
+  startDate,
+  onStartDateChange,
+  endDate,
+  onEndDateChange,
   roomIds,
   onRoomIdsChange,
   rooms,
@@ -109,13 +123,20 @@ export function EnhancedFilterPanel({
   onApplyFilters,
   bookingType = 'all',
   onBookingTypeChange,
+  // View Options
+  bookingView = 'all',
+  onBookingViewChange,
+  filteredBookings = [],
+  // Sort Options
+  sortKey = 'submitted_date',
+  sortDirection = 'desc',
+  onSortingChange,
   isLoading = false,
   validationErrors = [],
   validationWarnings = [],
   className
 }: FilterPanelProps) {
   const [isExpanded, setIsExpanded] = useState(true)
-  const [showAdvanced, setShowAdvanced] = useState(false)
 
   const statusOptions = [
     { value: 'pending', label: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
@@ -130,12 +151,12 @@ export function EnhancedFilterPanel({
     let complexity = 0
     if (search) complexity += 10
     if (status.length > 0) complexity += status.length * 5
-    if (dateRange) complexity += 15
+    if (startDate || endDate) complexity += 15
     if (roomIds.length > 0) complexity += roomIds.length * 3
     if (bookingType !== 'all') complexity += 5
 
     return Math.min(complexity, 100)
-  }, [search, status, dateRange, roomIds, bookingType])
+  }, [search, status, startDate, endDate, roomIds, bookingType])
 
   const getComplexityColor = (complexity: number) => {
     if (complexity < 30) return 'text-green-600'
@@ -171,82 +192,42 @@ export function EnhancedFilterPanel({
     }
   }
 
-  const hasActiveFilters = search || status.length > 0 || dateRange || roomIds.length > 0 || bookingType !== 'all'
+  const hasActiveFilters = search || status.length > 0 || startDate || endDate || roomIds.length > 0 || bookingType !== 'all'
 
   const activeFilterCount = [
     search ? 1 : 0,
     status.length,
-    dateRange ? 1 : 0,
+    (startDate || endDate) ? 1 : 0,
     roomIds.length,
     bookingType !== 'all' ? 1 : 0
   ].reduce((a, b) => a + b, 0)
 
+  const isDefaultSorting = sortKey === 'submitted_date' && sortDirection === 'desc'
+
   return (
-    <Card className={cn("mb-6 bg-card backdrop-blur-sm border-2", className)}>
-      <CardHeader className="pb-3">
+    <Card className={cn("mb-6 bg-card backdrop-blur-sm border", className)}>
+      <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-primary dark:text-primary-400" />
-              <CardTitle className="text-lg">Filter Analytics</CardTitle>
+              <Sliders className="w-5 h-5 text-primary" />
+              <CardTitle className="text-lg">Data Controls</CardTitle>
             </div>
-
-            {/* Filter Status Indicators */}
-            <div className="flex items-center gap-2">
-              {hasActiveFilters && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  {activeFilterCount} Aktif
-                </Badge>
-              )}
-
-              {filterComplexity > 0 && (
-                <Badge
-                  variant="outline"
-                  className={cn("text-xs", getComplexityColor(filterComplexity))}
-                >
-                  Kompleksitas: {getComplexityLabel(filterComplexity)}
-                </Badge>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Performance Indicator */}
-            {filterComplexity > 20 && (
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full transition-all duration-300",
-                      filterComplexity < 30 ? "bg-green-500" :
-                      filterComplexity < 60 ? "bg-yellow-500" : "bg-red-500"
-                    )}
-                    style={{ width: `${filterComplexity}%` }}
-                  />
-                </div>
-              </div>
+            {hasActiveFilters && (
+              <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                <CheckCircle className="w-3 h-3" />
+                {activeFilterCount} active
+              </Badge>
             )}
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-1"
-            >
-              {isExpanded ? (
-                <>
-                  <ChevronUp className="h-4 w-4" />
-                  <span className="hidden sm:inline">Sembunyikan</span>
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-4 w-4" />
-                  <span className="hidden sm:inline">Tampilkan</span>
-                </>
-              )}
-            </Button>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1"
+          >
+            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
         </div>
       </CardHeader>
 
@@ -258,20 +239,18 @@ export function EnhancedFilterPanel({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               {/* Validation Messages */}
               {(validationErrors.length > 0 || validationWarnings.length > 0) && (
                 <div className="space-y-2">
                   {validationErrors.map((error, index) => (
-                    <Alert key={`error-${index}`} variant="destructive">
-                      <AlertTriangle className="h-4 w-4" />
+                    <Alert key={`error-${index}`} variant="destructive" className="text-sm">
                       <AlertDescription>{error}</AlertDescription>
                     </Alert>
                   ))}
                   {validationWarnings.map((warning, index) => (
                     <Alert key={`warning-${index}`} className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
-                      <Info className="h-4 w-4 text-yellow-600" />
-                      <AlertDescription className="text-yellow-800 dark:text-yellow-200">
+                      <AlertDescription className="text-yellow-800 dark:text-yellow-200 text-sm">
                         {warning}
                       </AlertDescription>
                     </Alert>
@@ -279,261 +258,263 @@ export function EnhancedFilterPanel({
                 </div>
               )}
 
-              {/* Quick Filters */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  Filter Cepat
-                </Label>
-                <div className="flex flex-wrap gap-2">
-                  {quickFilters.map((filter) => (
-                    <Button
-                      key={filter.key}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        // This would need to be handled by parent component
-                        // For now, just clear date range
-                        onDateRangeChange(undefined)
-                      }}
-                      className={cn(
-                        "flex items-center gap-1.5 transition-all duration-200",
-                        "hover:scale-105"
-                      )}
-                    >
-                      {filter.icon}
-                      {filter.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+              {/* Compact Top Toolbar - View & Sort */}
+              <div className="flex flex-col sm:flex-row gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                {/* View Options */}
+                {onBookingViewChange && (
+                  <div className="flex-1 flex items-center gap-3">
+                    <Eye className="w-4 h-4 text-primary flex-shrink-0" />
+                    <div className="flex gap-1 bg-white dark:bg-gray-700 p-1 rounded-md border shadow-sm">
+                      {[
+                        { value: 'all' as const, label: 'All', count: filteredBookings.length },
+                        { value: 'room' as const, label: 'Room', count: filteredBookings.filter(b => !b.is_tour).length },
+                        { value: 'tour' as const, label: 'Tour', count: filteredBookings.filter(b => !!b.is_tour).length }
+                      ].map((view) => (
+                        <Button
+                          key={view.value}
+                          variant={bookingView === view.value ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => onBookingViewChange(view.value)}
+                          className="text-xs px-2 py-1 h-7 transition-all"
+                        >
+                          {view.label} ({view.count})
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-              {/* Main Filters */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Search and Booking Type */}
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="search" className="flex items-center gap-2">
-                      <Search className="w-4 h-4" />
-                      Pencarian
-                    </Label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="search"
-                        placeholder="Cari berdasarkan event, pengguna, atau ruangan..."
-                        value={search}
-                        onChange={(e) => onSearchChange(e.target.value)}
-                        className="pl-9"
-                      />
-                      {search && (
+                {/* Sort Options */}
+                {onSortingChange && (
+                  <div className="flex items-center gap-3">
+                    <ArrowUpDown className="w-4 h-4 text-primary flex-shrink-0" />
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={`${sortKey}-${sortDirection}`}
+                        onValueChange={(value) => {
+                          const [key, dir] = value.split('-')
+                          onSortingChange(key, dir as 'asc' | 'desc')
+                        }}
+                      >
+                        <SelectTrigger className="h-8 w-48">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="submitted_date-desc">Submit Date ↓</SelectItem>
+                          <SelectItem value="reservation_date-desc">Reservation ↓</SelectItem>
+                          <SelectItem value="accepted_date-desc">Accepted Date ↓</SelectItem>
+                          <SelectItem value="status-desc">Status ↓</SelectItem>
+                          <SelectItem value="submitted_date-asc">Submit Date ↑</SelectItem>
+                          <SelectItem value="reservation_date-asc">Reservation ↑</SelectItem>
+                          <SelectItem value="accepted_date-asc">Accepted Date ↑</SelectItem>
+                          <SelectItem value="status-asc">Status ↑</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {!isDefaultSorting && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onSearchChange('')}
-                          className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                          onClick={() => onSortingChange('submitted_date', 'desc')}
+                          className="h-8 px-2"
                         >
-                          <X className="h-3 w-3" />
+                          <RotateCcw className="w-3 h-3" />
                         </Button>
                       )}
                     </div>
                   </div>
-
-                  {onBookingTypeChange && (
-                    <div className="space-y-2">
-                      <Label>Tipe Booking</Label>
-                      <Select value={bookingType} onValueChange={onBookingTypeChange}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Semua booking" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Semua Booking</SelectItem>
-                          <SelectItem value="room">Booking Ruangan</SelectItem>
-                          <SelectItem value="tour">Booking Tour</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                </div>
-
-                {/* Status and Date Range */}
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-gray-400" />
-                      Status
-                    </Label>
-                    <Select
-                      value={status.length === 0 ? "all" : "multiple"}
-                      onValueChange={handleStatusChange}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Semua status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Semua Status</SelectItem>
-                        {statusOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <div className="flex items-center gap-2">
-                              <div className={cn("w-2 h-2 rounded-full", option.color)} />
-                              {option.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    {/* Active Status Tags */}
-                    {status.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {status.map((s) => {
-                          const option = statusOptions.find(opt => opt.value === s)
-                          return (
-                            <Badge
-                              key={s}
-                              variant="secondary"
-                              className={cn("flex items-center gap-1", option?.color)}
-                            >
-                              {option?.label}
-                              <button
-                                onClick={() => handleStatusChange(s)}
-                                className="hover:text-destructive"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Rentang Tanggal
-                    </Label>
-                    <DateRangePicker
-                      date={dateRange}
-                      onDateChange={onDateRangeChange}
-                      placeholder="Pilih rentang tanggal"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Room Selection */}
-              <div className="space-y-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowAdvanced(!showAdvanced)}
-                  className="flex items-center gap-2"
-                >
-                  <Building className="w-4 h-4" />
-                  Filter Ruangan Lanjutan
-                  {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </Button>
-
-                {showAdvanced && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="space-y-3 overflow-hidden"
-                  >
-                  <div className="space-y-2">
-                    <Label>Pilih Ruangan</Label>
-                    <Select
-                      value={roomIds.length === 0 ? "all" : "multiple"}
-                      onValueChange={handleRoomChange}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Semua ruangan" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Semua Ruangan</SelectItem>
-                        {rooms.map((room) => (
-                          <SelectItem key={room.id} value={room.id}>
-                            <div className="flex items-center gap-2">
-                              <Building className="w-3 h-3" />
-                              {room.name}
-                              {room.capacity && <Badge variant="outline" className="text-xs">{room.capacity}</Badge>}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    {/* Active Room Tags */}
-                    {roomIds.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {roomIds.map((id) => {
-                          const room = rooms.find(r => r.id === id)
-                          return (
-                            <Badge
-                              key={id}
-                              variant="outline"
-                              className="flex items-center gap-1 bg-green-50 text-green-700 border-green-200"
-                            >
-                              <Building className="w-3 h-3" />
-                              {room?.name || id}
-                              <button
-                                onClick={() => handleRoomChange(id)}
-                                className="hover:text-red-600"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                  </motion.div>
                 )}
               </div>
 
+              {/* Compact Three-Column Layout - Search | Status | Date */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Search */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-sm">
+                    <Search className="w-4 h-4" />
+                    Search
+                  </Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Events, users, rooms..."
+                      value={search}
+                      onChange={(e) => onSearchChange(e.target.value)}
+                      className="pl-9 h-9"
+                    />
+                    {search && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onSearchChange('')}
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-sm">
+                    <div className="w-3 h-3 rounded-full bg-gray-400 flex-shrink-0" />
+                    Status
+                  </Label>
+                  <Select
+                    value={status.length === 0 ? "all" : "multiple"}
+                    onValueChange={handleStatusChange}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="All statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      {statusOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div className="flex items-center gap-2">
+                            <div className={cn("w-2 h-2 rounded-full", option.color)} />
+                            {option.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Date Range - Next to Status */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-sm">
+                    <Calendar className="w-4 h-4" />
+                    Tanggal
+                  </Label>
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <Input
+                        type="date"
+                        value={startDate ? format(startDate, 'yyyy-MM-dd') : ''}
+                        onChange={(e) => onStartDateChange(e.target.value ? new Date(e.target.value) : undefined)}
+                        className="h-9 text-xs"
+                      />
+                      <Label className="text-xs text-muted-foreground mt-1 block">Awal</Label>
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        type="date"
+                        value={endDate ? format(endDate, 'yyyy-MM-dd') : ''}
+                        onChange={(e) => onEndDateChange(e.target.value ? new Date(e.target.value) : undefined)}
+                        className="h-9 text-xs"
+                      />
+                      <Label className="text-xs text-muted-foreground mt-1 block">Akhir</Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Separate Row for Rooms - appears after date */}
+              {(bookingView === 'all' || bookingView === 'room') && (
+                <div className="max-w-sm">
+                  <Label className="flex items-center gap-2 text-sm">
+                    <Building className="w-4 h-4" />
+                    Rooms
+                  </Label>
+                  <Select
+                    value={roomIds.length === 0 ? "all" : "multiple"}
+                    onValueChange={handleRoomChange}
+                  >
+                    <SelectTrigger className="h-9 w-full">
+                      <SelectValue placeholder="All rooms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Rooms</SelectItem>
+                      {rooms.map((room) => (
+                        <SelectItem key={room.id} value={room.id}>
+                          <div className="flex items-center gap-2">
+                            <Building className="w-3 h-3" />
+                            {room.name}
+                            {room.capacity && <Badge variant="outline" className="text-xs">{room.capacity}</Badge>}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Status Tags (if any active) */}
+              {status.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {status.map((s) => {
+                    const option = statusOptions.find(opt => opt.value === s)
+                    return option ? (
+                      <Badge
+                        key={s}
+                        variant="secondary"
+                        className={cn("flex items-center gap-1 text-xs", option.color)}
+                      >
+                        {option.label}
+                        <button
+                          onClick={() => handleStatusChange(s)}
+                          className="hover:text-destructive ml-1"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ) : null
+                  })}
+                </div>
+              )}
+
+              {/* Active Room Tags */}
+              {roomIds.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {roomIds.map((id) => {
+                    const room = rooms.find(r => r.id === id)
+                    return room ? (
+                      <Badge
+                        key={id}
+                        variant="outline"
+                        className="flex items-center gap-1 text-xs bg-green-50 text-green-700 border-green-200"
+                      >
+                        <Building className="w-3 h-3" />
+                        {room.name}
+                        <button
+                          onClick={() => handleRoomChange(id)}
+                          className="hover:text-red-600 ml-1"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ) : null
+                  })}
+                </div>
+              )}
+
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row justify-between gap-3 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2">
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     onClick={onClearFilters}
                     disabled={!hasActiveFilters || isLoading}
-                    className="flex items-center gap-2"
+                    size="sm"
+                    className="h-8"
                   >
-                    <RotateCcw className="w-4 h-4" />
-                    Bersihkan Semua
-                  </Button>
-
-                  {hasActiveFilters && (
-                    <Badge variant="outline" className="flex items-center gap-1 self-center">
-                      <span className="text-xs">{activeFilterCount} filter aktif</span>
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsExpanded(false)}
-                    disabled={isLoading}
-                  >
-                    Batal
+                    <RotateCcw className="w-3 h-3 mr-2" />
+                    Clear All
                   </Button>
                   <Button
                     onClick={onApplyFilters}
                     disabled={isLoading || validationErrors.length > 0}
-                    className="min-w-24"
+                    size="sm"
+                    className="h-8 px-4"
                   >
                     {isLoading ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                        Memproses...
+                        <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Applying...
                       </>
                     ) : (
-                      'Terapkan Filter'
+                      'Apply Filters'
                     )}
                   </Button>
                 </div>

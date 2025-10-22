@@ -299,9 +299,9 @@ export default function BookingApprovals() {
                     >
                       <span>Jadwal</span>
                       {sortField === 'start_time' ? (
-                        sortBy === 'newest' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                        sortBy === 'newest' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />
                       ) : (
-                        <ArrowUpDown className="w-3 h-3 opacity-50" />
+                        <ArrowUpDown className="w-4 h-4 opacity-50" />
                       )}
                     </button>
                   </TableHead>
@@ -312,9 +312,9 @@ export default function BookingApprovals() {
                     >
                       <span>Dibuat</span>
                       {sortField === 'created_at' ? (
-                        sortBy === 'newest' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                        sortBy === 'newest' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />
                       ) : (
-                        <ArrowUpDown className="w-3 h-3 opacity-50" />
+                        <ArrowUpDown className="w-4 h-4 opacity-50" />
                       )}
                     </button>
                   </TableHead>
