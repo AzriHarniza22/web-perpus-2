@@ -8,15 +8,24 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
   try {
     console.log('🔄 [REGISTER] Starting registration process')
 
-    const body = await request.json() as RegistrationData
+    const body = await request.json() as Partial<RegistrationData>
     const { email } = body
 
     console.log('🔄 [REGISTER] Received request for email:', email)
     console.log('🔄 [REGISTER] Request body:', JSON.stringify(body, null, 2))
 
-    // 1. Validate input data
+    // 1. Validate input data (skip confirmPassword validation for API)
     console.log('🔄 [REGISTER] Step 1: Validating input data')
-    const validationErrors = validateRegistrationData(body)
+    // Create a complete RegistrationData object for validation, excluding confirmPassword check
+    const validationData: RegistrationData = {
+      email: body.email || '',
+      password: body.password || '',
+      confirmPassword: body.password || '', // Use password as confirmPassword for API validation
+      fullName: body.fullName || '',
+      institution: body.institution || '',
+      phone: body.phone || ''
+    }
+    const validationErrors = validateRegistrationData(validationData)
     if (validationErrors.length > 0) {
       console.log('❌ [REGISTER] Validation failed:', validationErrors)
       return NextResponse.json({
@@ -29,7 +38,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     // 2. Sanitize input data
     console.log('🔄 [REGISTER] Step 2: Sanitizing input data')
-    const sanitizedData = sanitizeRegistrationData(body)
+    const sanitizedData = sanitizeRegistrationData(validationData)
     console.log('✅ [REGISTER] Sanitized data:', JSON.stringify(sanitizedData, null, 2))
 
     // 3. Get Supabase clients
@@ -58,7 +67,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       email: sanitizedData.email,
       password: sanitizedData.password,
       options: {
-        emailRedirectTo: `${request.nextUrl.origin}/auth/callback`
+        emailRedirectTo: `${request.nextUrl.origin}/auth/callback`,
+        data: {
+          name: sanitizedData.fullName, // Supabase standard field for display name
+          full_name: sanitizedData.fullName,
+          institution: sanitizedData.institution,
+          phone: sanitizedData.phone
+        }
       }
     })
 

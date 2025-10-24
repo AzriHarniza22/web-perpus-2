@@ -26,6 +26,13 @@ export function validateRegistrationData(data: RegistrationData): ValidationErro
     errors.push({ field: 'password', message: `Password must be at least ${PASSWORD_MIN_LENGTH} characters` })
   }
 
+  // Confirm password validation
+  if (!data.confirmPassword) {
+    errors.push({ field: 'confirmPassword', message: 'Please confirm your password' })
+  } else if (data.password !== data.confirmPassword) {
+    errors.push({ field: 'confirmPassword', message: 'Passwords do not match' })
+  }
+
   // Full name validation - optimized string check
   const trimmedName = data.fullName?.trim()
   if (!trimmedName) {
@@ -51,6 +58,7 @@ export function sanitizeRegistrationData(data: RegistrationData): RegistrationDa
   return {
     email: data.email.toLowerCase().trim(),
     password: data.password,
+    confirmPassword: data.confirmPassword,
     fullName: data.fullName.trim(),
     institution: data.institution?.trim() || '',
     phone: data.phone?.trim() || ''

@@ -29,7 +29,7 @@ interface AuthState {
 const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   profile: null,
-  isLoading: true,
+  isLoading: false,
   fetchUser: async () => {
     set({ isLoading: true })
     const { data: { user } } = await supabase.auth.getUser()

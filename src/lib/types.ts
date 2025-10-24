@@ -17,6 +17,7 @@ export type Profile = User
 export interface RegistrationData {
   email: string
   password: string
+  confirmPassword: string
   fullName: string
   institution: string
   phone: string
