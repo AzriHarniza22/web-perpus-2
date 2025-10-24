@@ -82,20 +82,36 @@ export const dbHelpers = {
     }
   },
 
-  async createProfile(supabase: SupabaseClient, profileData: Omit<Profile, 'id' | 'created_at' | 'updated_at'>) {
+  async createProfile(supabase: SupabaseClient, profileData: Omit<Profile, 'created_at' | 'updated_at'>) {
     try {
+      console.log('🔄 [DB] Creating profile with data:', JSON.stringify(profileData, null, 2))
+
       const { data, error } = await supabase
         .from('profiles')
         .insert(profileData)
         .select()
         .single()
 
+      console.log('🔄 [DB] Profile creation response:', {
+        hasData: !!data,
+        hasError: !!error,
+        errorDetails: error ? {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        } : null
+      })
+
       if (error) {
+        console.error('❌ [DB] Profile creation failed with error:', error)
         throw new DatabaseError('Failed to create profile', { originalError: error })
       }
 
+      console.log('✅ [DB] Profile created successfully:', data.id)
       return data
     } catch (error) {
+      console.error('❌ [DB] Profile creation exception:', error)
       throw new DatabaseError('Profile creation failed', { originalError: error })
     }
   },
