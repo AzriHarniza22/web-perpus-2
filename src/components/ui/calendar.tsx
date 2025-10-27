@@ -176,6 +176,7 @@ function CalendarDayButton({
   className,
   day,
   modifiers,
+  onClick,
   ...props
 }: React.ComponentProps<typeof DayButton>) {
   const defaultClassNames = getDefaultClassNames()
@@ -184,6 +185,14 @@ function CalendarDayButton({
   React.useEffect(() => {
     if (modifiers.focused) ref.current?.focus()
   }, [modifiers.focused])
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (modifiers.disabled) {
+      alert("Cannot select past dates for reservations")
+      return
+    }
+    onClick?.(event)
+  }
 
   return (
     <Button
@@ -205,6 +214,7 @@ function CalendarDayButton({
         defaultClassNames.day,
         className
       )}
+      onClick={handleClick}
       {...props}
     />
   )

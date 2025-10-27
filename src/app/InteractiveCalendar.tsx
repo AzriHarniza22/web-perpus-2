@@ -169,7 +169,15 @@ const InteractiveCalendar = ({
               return (
                 <button
                   key={index}
-                  onClick={() => handleDateSelect(day)}
+                  onClick={() => {
+                    const now = new Date()
+                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+                    if (day < today) {
+                      alert("Cannot select past dates for reservations")
+                      return
+                    }
+                    handleDateSelect(day)
+                  }}
                   className={`
                     relative p-2 text-sm rounded-lg calendar-button
                     ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-700'}
@@ -177,6 +185,7 @@ const InteractiveCalendar = ({
                     ${dateStatus === 'pending' && !isTodayDate ? `bg-yellow-100 text-yellow-600 ${isSelected ? 'ring-2 ring-yellow-200' : ''}` : ''}
                     ${isTodayDate ? 'bg-primary text-white font-bold' : ''}
                     ${isSelected ? 'bg-blue-500 text-white' : ''}
+                    ${day < new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()) ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
                 >
                   {day.getDate()}

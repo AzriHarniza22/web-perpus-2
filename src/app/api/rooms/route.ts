@@ -20,15 +20,12 @@ export async function GET(request: NextRequest) {
       }
     )
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+    // Allow anonymous access for viewing active rooms
+    // The RLS policy will handle filtering to only active rooms for anonymous users
     const { data: rooms, error } = await supabase
       .from('rooms')
       .select('*')
+      .eq('is_active', true) // Only return active rooms for anonymous access
       .order('name')
 
     if (error) {

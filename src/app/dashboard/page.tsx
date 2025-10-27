@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/hooks/useAuth'
@@ -14,14 +14,18 @@ import { useBookings } from '@/lib/api'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import InteractiveCalendar from '../InteractiveCalendar'
+import { useToastContext } from '@/components/ToastProvider'
 
 
 export default function DashboardPage() {
-  const { user, isLoading, logout, isAuthenticated } = useAuth()
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const router = useRouter()
-  const { data: bookingsData } = useBookings({})
-  const bookings = useMemo(() => bookingsData?.bookings || [], [bookingsData])
+   const { user, isLoading, logout, isAuthenticated } = useAuth()
+   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+   const [toastShown, setToastShown] = useState(false)
+   const router = useRouter()
+   const searchParams = useSearchParams()
+   const { success } = useToastContext()
+   const { data: bookingsData } = useBookings({})
+   const bookings = useMemo(() => bookingsData?.bookings || [], [bookingsData])
 
   const stats = useMemo(() => {
     if (!isAuthenticated || !user) {
@@ -75,6 +79,19 @@ export default function DashboardPage() {
       router.push('/login')
     }
   }, [isLoading, isAuthenticated, router])
+
+  // Check for success query parameter and show toast
+  useEffect(() => {
+    const successParam = searchParams.get('success')
+    if (successParam && isAuthenticated && !toastShown) {
+      success(successParam)
+      setToastShown(true)
+      // Clear the query parameter
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.delete('success')
+      window.history.replaceState({}, '', newUrl.toString())
+    }
+  }, [searchParams, success, isAuthenticated, toastShown])
 
   const handleSignOut = useCallback(async () => {
     console.log('Dashboard: handleSignOut called')

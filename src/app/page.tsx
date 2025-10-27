@@ -6,51 +6,22 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, Users, Clock, CheckCircle, ArrowRight, Play, MapPin, Phone, Mail, Menu, X, Building, Award, Shield, Zap, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import { useCalendarBookings, useRooms, type Room } from '@/lib/api'
 import { useAuth } from '@/hooks/useAuth'
+import Image from 'next/image'
+import { ImageCarousel } from '@/components/ui/image-carousel'
 
 import InteractiveCalendar from '@/app/InteractiveCalendar'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { supabase } from '@/lib/supabase'
 import { Loading } from '@/components/ui/loading'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { useMotionValue, useSpring, useInView } from 'framer-motion'
 
-// Custom AnimatedCounter component using Framer Motion
-const AnimatedCounter = ({ from, to, duration = 2, separator = ',' }: { from: number; to: number; duration?: number; separator?: string }) => {
-  const nodeRef = useRef<HTMLSpanElement>(null)
-  const motionValue = useMotionValue(from)
-  const springValue = useSpring(motionValue, { duration: duration * 1000 })
-  const isInView = useInView(nodeRef, { once: true })
-
-  useEffect(() => {
-    if (isInView) {
-      motionValue.set(to)
-    }
-  }, [motionValue, to, isInView])
-
-  useEffect(() => {
-    springValue.on('change', (latest) => {
-      if (nodeRef.current) {
-        nodeRef.current.textContent = Math.floor(latest).toString().replace(/\B(?=(\d{3})+(?!\d))/g, separator)
-      }
-    })
-  }, [springValue, separator])
-
-  return <span ref={nodeRef}>{from}</span>
-}
 
 const HomePage = () => {
   const { user, isLoading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('home')
-  const [currentTestimonial, setCurrentTestimonial] = useState(0)
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false)
   const router = useRouter()
   const { data: bookings = [] } = useCalendarBookings()
   const { data: rooms = [] } = useRooms()
@@ -71,51 +42,12 @@ const HomePage = () => {
   }
 
 
-  const testimonials = [
-    {
-      name: 'Ahmad Rahman',
-      role: 'Mahasiswa',
-      avatar: '/avatars/ahmad.jpg',
-      content: 'Sistem reservasi ini sangat membantu saya dalam mengatur jadwal belajar. Interface yang user-friendly dan responsif.',
-      rating: 5,
-    },
-    {
-      name: 'Siti Nurhaliza',
-      role: 'Dosen',
-      avatar: '/avatars/siti.jpg',
-      content: 'Sebagai dosen, saya sangat terbantu dengan fitur notifikasi real-time. Proses booking yang cepat dan mudah.',
-      rating: 5,
-    },
-    {
-      name: 'Budi Santoso',
-      role: 'Staff Administrasi',
-      avatar: '/avatars/budi.jpg',
-      content: 'Dashboard analytics sangat berguna untuk monitoring penggunaan ruangan. Data yang akurat dan real-time.',
-      rating: 5,
-    },
-  ]
 
-  const newsletterSchema = z.object({
-    email: z.string().email('Email tidak valid'),
-  })
-
-  const newsletterForm = useForm<z.infer<typeof newsletterSchema>>({
-    resolver: zodResolver(newsletterSchema),
-    defaultValues: {
-      email: '',
-    },
-  })
-
-  const onNewsletterSubmit = (values: z.infer<typeof newsletterSchema>) => {
-    console.log('Newsletter signup:', values)
-    // Handle newsletter signup - could integrate with Supabase or email service
-    newsletterForm.reset()
-  }
 
   // Scroll-based animations
   const heroRef = useRef(null)
-  const featuresRef = useRef(null)
   const roomsRef = useRef(null)
+  const featuresRef = useRef(null)
   const contactRef = useRef(null)
 
   // Floating particles animation
@@ -142,7 +74,7 @@ const HomePage = () => {
   // Handle scroll for navbar
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['home', 'features', 'rooms', 'contact']
+      const sections = ['home', 'rooms', 'features', 'contact']
       const scrollPosition = window.scrollY + 100
 
       sections.forEach(section => {
@@ -208,21 +140,30 @@ const HomePage = () => {
         animate={{ y: 0 }}
         className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+              className="flex items-center space-x-3"
             >
-              Perpustakaan Aceh
+              <Image
+                src="/logo.svg"
+                alt="Perpustakaan Aceh Logo"
+                width={40}
+                height={40}
+                className="w-10 h-10"
+              />
+              <div className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Perpustakaan Aceh
+              </div>
             </motion.div>
 
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-8">
               {[
                 { name: 'Beranda', id: 'home' },
-                { name: 'Fitur', id: 'features' },
                 { name: 'Ruangan', id: 'rooms' },
+                { name: 'Fitur', id: 'features' },
                 { name: 'Kontak', id: 'contact' }
               ].map(item => (
                 <motion.a
@@ -289,8 +230,8 @@ const HomePage = () => {
               <div className="px-4 py-4 space-y-4">
                 {[
                   { name: 'Beranda', id: 'home' },
-                  { name: 'Fitur', id: 'features' },
                   { name: 'Ruangan', id: 'rooms' },
+                  { name: 'Fitur', id: 'features' },
                   { name: 'Kontak', id: 'contact' }
                 ].map(item => (
                   <a
@@ -326,55 +267,55 @@ const HomePage = () => {
       <section ref={heroRef} id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background Animation */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900"
+          className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 dark:from-gray-900 dark:via-primary/10 dark:to-secondary/10"
         >
           <div className="absolute inset-0 opacity-30">
             <motion.div
               variants={particleVariants}
               custom={0}
               animate="animate"
-              className="absolute top-20 left-10 w-72 h-72 bg-primary-400 rounded-full mix-blend-multiply filter blur-xl"
+              className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full mix-blend-multiply filter blur-xl"
             />
             <motion.div
               variants={particleVariants}
               custom={1}
               animate="animate"
-              className="absolute top-40 right-10 w-72 h-72 bg-secondary-400 rounded-full mix-blend-multiply filter blur-xl"
+              className="absolute top-40 right-10 w-72 h-72 bg-secondary/20 rounded-full mix-blend-multiply filter blur-xl"
             />
             <motion.div
               variants={particleVariants}
               custom={2}
               animate="animate"
-              className="absolute bottom-32 left-1/2 w-72 h-72 bg-accent-400 rounded-full mix-blend-multiply filter blur-xl"
+              className="absolute bottom-32 left-1/2 w-72 h-72 bg-accent/20 rounded-full mix-blend-multiply filter blur-xl"
             />
             <motion.div
               variants={particleVariants}
               custom={3}
               animate="animate"
-              className="absolute top-1/4 right-1/4 w-48 h-48 bg-indigo-400 rounded-full mix-blend-multiply filter blur-xl"
+              className="absolute top-1/4 right-1/4 w-48 h-48 bg-primary/15 rounded-full mix-blend-multiply filter blur-xl"
             />
             <motion.div
               variants={particleVariants}
               custom={4}
               animate="animate"
-              className="absolute bottom-1/4 left-1/4 w-56 h-56 bg-cyan-400 rounded-full mix-blend-multiply filter blur-xl"
+              className="absolute bottom-1/4 left-1/4 w-56 h-56 bg-secondary/15 rounded-full mix-blend-multiply filter blur-xl"
             />
             <motion.div
               variants={particleVariants}
               custom={5}
               animate="animate"
-              className="absolute top-1/2 left-1/3 w-64 h-64 bg-violet-400 rounded-full mix-blend-multiply filter blur-xl"
+              className="absolute top-1/2 left-1/3 w-64 h-64 bg-accent/15 rounded-full mix-blend-multiply filter blur-xl"
             />
             <motion.div
               variants={particleVariants}
               custom={6}
               animate="animate"
-              className="absolute bottom-1/2 right-1/3 w-40 h-40 bg-emerald-400 rounded-full mix-blend-multiply filter blur-xl"
+              className="absolute bottom-1/2 right-1/3 w-40 h-40 bg-primary/10 rounded-full mix-blend-multiply filter blur-xl"
             />
           </div>
         </motion.div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Hero Text */}
             <motion.div
@@ -414,16 +355,6 @@ const HomePage = () => {
                 >
                   Mulai Reservasi
                   <ArrowRight size={20} className="text-white" />
-                </motion.button>
-                
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setIsDemoModalOpen(true)}
-                  className="px-8 py-4 border-2 border-gray-300 text-gray-700 text-lg font-semibold rounded-full hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2"
-                >
-                  <Play size={20} className="text-primary" />
-                  Lihat Demo
                 </motion.button>
               </motion.div>
 
@@ -466,7 +397,7 @@ const HomePage = () => {
                   rotate: [0, 5, 0]
                 }}
                 transition={{ duration: 4, repeat: Infinity }}
-                className="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-2xl opacity-80"
+                className="absolute -top-6 -right-6 w-24 h-24 bg-gradient-to-r from-primary to-secondary rounded-2xl opacity-80"
               />
               <motion.div
                 animate={{
@@ -474,16 +405,21 @@ const HomePage = () => {
                   rotate: [0, -5, 0]
                 }}
                 transition={{ duration: 3, repeat: Infinity }}
-                className="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-accent-400 to-red-400 rounded-full opacity-60"
+                className="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-accent to-primary rounded-full opacity-60"
               />
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Statistics Section */}
-      <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      {/* Rooms Section */}
+      <section
+        ref={roomsRef}
+        id="rooms"
+        className="py-20 bg-background"
+      >
+        <div className="px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -492,103 +428,95 @@ const HomePage = () => {
             className="text-center mb-16"
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Statistik <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Penggunaan</span>
+              Pilihan <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Ruangan</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Data real-time penggunaan sistem reservasi ruangan kami
+              Berbagai pilihan ruangan dengan fasilitas lengkap untuk kebutuhan Anda
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { label: 'Total Reservasi', value: 1250, suffix: '+' },
-              { label: 'Ruangan Tersedia', value: 15, suffix: '' },
-              { label: 'Pengguna Aktif', value: 500, suffix: '+' },
-              { label: 'Tingkat Kepuasan', value: 98, suffix: '%' },
-            ].map((stat, index) => (
+          <div className="max-w-7xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {rooms.filter((room: Room) => room.name !== 'Library Tour').map((room: Room, index: number) => (
               <motion.div
-                key={index}
+                key={room.id}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-50px" }}
                 variants={{
-                  hidden: { opacity: 0, scale: 0.8 },
+                  hidden: { opacity: 0, y: 30 },
                   visible: {
                     opacity: 1,
-                    scale: 1,
+                    y: 0,
                     transition: { delay: index * 0.1, duration: 0.6, ease: "easeOut" }
                   }
                 }}
-                className="bg-gray-50 dark:bg-gray-800 rounded-3xl p-8 text-center"
+                whileHover={{
+                  y: -10,
+                  rotateY: 5,
+                  transition: { duration: 0.3 }
+                }}
+                drag
+                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                dragElastic={0.1}
+                whileDrag={{ scale: 1.05, rotateY: 10 }}
+                className="bg-card rounded-3xl shadow-xl overflow-hidden group relative cursor-grab active:cursor-grabbing"
               >
-                <div className="text-4xl lg:text-5xl font-bold text-primary dark:text-primary mb-2">
-                  <AnimatedCounter
-                    from={0}
-                    to={stat.value}
-                    duration={2}
-                    separator=","
-                  />
-                  {stat.suffix}
+                {/* Header with Image or Icon */}
+                {room.photos && room.photos.length > 1 ? (
+                  <div className="h-48 bg-muted relative overflow-hidden">
+                    <ImageCarousel photos={room.photos} alt={room.name} />
+                  </div>
+                ) : (
+                  <div className="h-48 bg-muted relative overflow-hidden">
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300 rounded-md" />
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.3 }}
+                      className="absolute inset-0 flex items-center justify-center rounded-md overflow-hidden"
+                    >
+                      {room.photos && room.photos.length === 1 ? (
+                        <Image
+                          src={room.photos[0]}
+                          alt={room.name}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      ) : (
+                        <Building className="w-16 h-16 text-white/80" />
+                      )}
+                    </motion.div>
+                    {/* Floating elements */}
+                  </div>
+                )}
+
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{room.name}</h3>
+                  {room.description && (
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">{room.description}</p>
+                  )}
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 mb-4">
+                    <Users size={16} className="text-gray-600" />
+                    <span>{room.capacity} orang</span>
+                  </div>
+
+                  <div className="space-y-2 mb-6">
+                    {room.facilities.map((facility: string, idx: number) => (
+                      <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
+                        <CheckCircle size={14} className="text-green-600" />
+                        <span className="text-gray-600 dark:text-gray-300">{facility}</span>
+                      </div>
+                    ))}
+                  </div>
+
                 </div>
-                <p className="text-gray-600 dark:text-gray-300">{stat.label}</p>
               </motion.div>
             ))}
-          </div>
-
-          {/* Newsletter Signup */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="mt-16 bg-card rounded-3xl p-8 shadow-xl"
-          >
-            <div className="text-center mb-8">
-              <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                Tetap <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Terhubung</span>
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                Dapatkan update terbaru tentang fitur baru, tips penggunaan, dan berita dari Perpustakaan Aceh
-              </p>
             </div>
-
-            <Form {...newsletterForm}>
-              <form onSubmit={newsletterForm.handleSubmit(onNewsletterSubmit)} className="max-w-md mx-auto">
-                <div className="flex gap-4">
-                  <FormField
-                    control={newsletterForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormControl>
-                          <Input
-                            placeholder="Masukkan email Anda"
-                            {...field}
-                            className="h-12 text-lg"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    type="submit"
-                    className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all"
-                  >
-                    Berlangganan
-                  </motion.button>
-                </div>
-              </form>
-            </Form>
-
-            <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
-              Kami menghormati privasi Anda. Tidak ada spam, janji!
-            </p>
-          </motion.div>
+          </div>
         </div>
       </section>
+
 
       {/* Features Section */}
       <section
@@ -596,7 +524,7 @@ const HomePage = () => {
         id="features"
         className="py-20 bg-gray-50 dark:bg-gray-800"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -612,43 +540,44 @@ const HomePage = () => {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Calendar,
-                title: 'Kalender Interaktif',
-                description: 'Lihat ketersediaan ruangan secara real-time dengan kalender yang mudah digunakan',
-                color: 'from-primary-500 to-cyan-400'
-              },
+          <div className="max-w-7xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  icon: Calendar,
+                  title: 'Kalender Interaktif',
+                  description: 'Lihat ketersediaan ruangan secara real-time dengan kalender yang mudah digunakan',
+                  color: 'from-primary to-secondary'
+                },
               {
                 icon: Clock,
                 title: 'Booking Instan',
                 description: 'Reservasi ruangan hanya dalam hitungan detik dengan sistem otomatis yang cepat',
-                color: 'from-secondary-500 to-accent-400'
+                color: 'from-secondary to-accent'
               },
               {
                 icon: Shield,
                 title: 'Keamanan Terjamin',
                 description: 'Data Anda aman dengan enkripsi tingkat militer dan sistem authentication modern',
-                color: 'from-green-500 to-emerald-400'
+                color: 'from-primary to-accent'
               },
               {
                 icon: Zap,
                 title: 'Notifikasi Real-time',
                 description: 'Dapatkan pemberitahuan instan untuk setiap perubahan status reservasi Anda',
-                color: 'from-yellow-500 to-orange-400'
+                color: 'from-accent to-primary'
               },
               {
                 icon: Users,
                 title: 'Multi-User Support',
                 description: 'Kelola reservasi tim dengan fitur kolaborasi yang powerful dan intuitif',
-                color: 'from-red-500 to-accent-400'
+                color: 'from-secondary to-primary'
               },
               {
                 icon: Award,
                 title: 'Dashboard Analytics',
                 description: 'Analisis penggunaan ruangan dengan dashboard yang comprehensive dan mudah dipahami',
-                color: 'from-indigo-500 to-secondary-400'
+                color: 'from-primary to-secondary'
               }
             ].map((feature, index) => (
               <motion.div
@@ -687,240 +616,14 @@ const HomePage = () => {
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{feature.description}</p>
               </motion.div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-20 bg-gray-50 dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Apa Kata <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Pengguna</span>
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Pendapat pengguna tentang pengalaman mereka menggunakan sistem reservasi kami
-            </p>
-          </motion.div>
-
-          <div className="relative max-w-4xl mx-auto">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentTestimonial}
-                initial={{ opacity: 0, x: 100 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                transition={{ duration: 0.5 }}
-                className="bg-card rounded-3xl p-8 shadow-xl"
-              >
-                <div className="flex items-center mb-6">
-                  <Avatar className="w-16 h-16 mr-4">
-                    <AvatarImage src={testimonials[currentTestimonial].avatar} alt={testimonials[currentTestimonial].name} />
-                    <AvatarFallback>{testimonials[currentTestimonial].name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">{testimonials[currentTestimonial].name}</h3>
-                    <p className="text-gray-600 dark:text-gray-300">{testimonials[currentTestimonial].role}</p>
-                    <div className="flex mt-1">
-                      {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                        <span key={i} className="text-yellow-400">★</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <p className="text-lg text-gray-600 dark:text-gray-300 italic">&ldquo;{testimonials[currentTestimonial].content}&rdquo;</p>
-              </motion.div>
-            </AnimatePresence>
-
-            <div className="flex justify-center mt-8 space-x-4">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setCurrentTestimonial((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1))}
-                className="p-3 bg-background rounded-full shadow-lg hover:shadow-xl transition-shadow"
-              >
-                <ChevronLeft size={24} className="text-gray-600 dark:text-gray-300" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setCurrentTestimonial((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1))}
-                className="p-3 bg-background rounded-full shadow-lg hover:shadow-xl transition-shadow"
-              >
-                <ChevronRight size={24} className="text-gray-600 dark:text-gray-300" />
-              </motion.button>
             </div>
-
-            <div className="flex justify-center mt-6 space-x-2">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentTestimonial(index)}
-                  className={`w-3 h-3 rounded-full transition-colors ${
-                    index === currentTestimonial ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-
-          <Dialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen}>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  Demo Interaktif Sistem Reservasi
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-6">
-                <p className="text-lg text-gray-600 dark:text-gray-300">
-                  Jelajahi fitur-fitur utama sistem reservasi ruangan Perpustakaan Aceh secara interaktif.
-                </p>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Fitur Utama:</h3>
-                    <ul className="space-y-2">
-                      <li className="flex items-center gap-2">
-                        <CheckCircle size={16} className="text-green-600" />
-                        <span>Kalender interaktif real-time</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle size={16} className="text-green-600" />
-                        <span>Booking instan</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle size={16} className="text-green-600" />
-                        <span>Notifikasi otomatis</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle size={16} className="text-green-600" />
-                        <span>Dashboard analytics</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">Kalender Demo</h4>
-                    <div className="text-sm text-gray-600 dark:text-gray-300">
-                      <p>Klik pada tanggal di bawah untuk melihat demo reservasi:</p>
-                      <div className="mt-2 p-2 bg-card rounded border">
-                        <p className="text-xs">📅 Kalender akan muncul di sini</p>
-                        <p className="text-xs mt-1">Ruangan tersedia: 15</p>
-                        <p className="text-xs">Reservasi hari ini: 8</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-primary-50 dark:bg-primary-900/20 rounded-lg p-4">
-                  <h4 className="font-semibold text-primary-900 dark:text-primary-100 mb-2">Cara Menggunakan:</h4>
-                  <ol className="list-decimal list-inside space-y-1 text-sm text-primary-800 dark:text-primary-200">
-                    <li>Daftar akun atau masuk ke sistem</li>
-                    <li>Pilih ruangan yang diinginkan</li>
-                    <li>Tentukan tanggal dan waktu</li>
-                    <li>Konfirmasi reservasi</li>
-                    <li>Dapatkan notifikasi konfirmasi</li>
-                  </ol>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </section>
-
-      {/* Rooms Section */}
-      <section
-        ref={roomsRef}
-        id="rooms"
-        className="py-20 bg-background"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Pilihan <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Ruangan</span>
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Berbagai pilihan ruangan dengan fasilitas lengkap untuk kebutuhan Anda
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {rooms.map((room: Room, index: number) => (
-              <motion.div
-                key={room.id}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
-                variants={{
-                  hidden: { opacity: 0, y: 30 },
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                    transition: { delay: index * 0.1, duration: 0.6, ease: "easeOut" }
-                  }
-                }}
-                whileHover={{
-                  y: -10,
-                  rotateY: 5,
-                  transition: { duration: 0.3 }
-                }}
-                drag
-                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                dragElastic={0.1}
-                whileDrag={{ scale: 1.05, rotateY: 10 }}
-                className="bg-card rounded-3xl shadow-xl overflow-hidden group relative cursor-grab active:cursor-grabbing"
-              >
-                <div className={`h-48 bg-gradient-to-r from-primary via-primary to-primary relative overflow-hidden`}>
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all" />
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    className="absolute inset-0 flex items-center justify-center"
-                  >
-                    <Building size={48} className="text-white/80" />
-                  </motion.div>
-                </div>
-
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{room.name}</h3>
-                  {room.description && (
-                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">{room.description}</p>
-                  )}
-                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 mb-4">
-                    <Users size={16} className="text-gray-600" />
-                    <span>{room.capacity} orang</span>
-                  </div>
-
-                  <div className="space-y-2 mb-6">
-                    {room.facilities.map((facility: string, idx: number) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
-                        <CheckCircle size={14} className="text-green-600" />
-                        <span className="text-gray-600 dark:text-gray-300">{facility}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                </div>
-              </motion.div>
-            ))}
           </div>
         </div>
       </section>
 
       {/* Contact Section */}
       <section ref={contactRef} id="contact" className="py-20 bg-gray-50 dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -936,25 +639,26 @@ const HomePage = () => {
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {[
-              {
-                icon: MapPin,
-                title: 'Alamat',
-                info: 'Jl. Teuku Umar No. 4, Banda Aceh, Aceh 23116',
-                color: 'from-primary-500 to-cyan-400'
-              },
+          <div className="max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-3 gap-8">
+              {[
+                {
+                  icon: MapPin,
+                  title: 'Alamat',
+                  info: 'Jl. Teuku Umar No. 4, Banda Aceh, Aceh 23116',
+                  color: 'from-primary to-secondary'
+                },
               {
                 icon: Phone,
                 title: 'Telepon',
                 info: '+62 651 123456',
-                color: 'from-green-500 to-emerald-400'
+                color: 'from-secondary to-accent'
               },
               {
                 icon: Mail,
                 title: 'Email',
                 info: 'info@perpustakaanaceh.go.id',
-                color: 'from-secondary-500 to-accent-400'
+                color: 'from-accent to-primary'
               }
             ].map((contact, index) => (
               <motion.div
@@ -983,6 +687,7 @@ const HomePage = () => {
                 <p className="text-gray-600 dark:text-gray-300">{contact.info}</p>
               </motion.div>
             ))}
+            </div>
           </div>
         </div>
       </section>
@@ -1003,7 +708,7 @@ const HomePage = () => {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 bg-gradient-to-r from-secondary to-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute inset-0 bg-gradient-to-r from-accent to-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
           />
           <Sparkles size={24} className="relative z-10 text-white" />
           <motion.div
@@ -1027,7 +732,7 @@ const HomePage = () => {
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <motion.div
               whileHover={{ scale: 1.05 }}

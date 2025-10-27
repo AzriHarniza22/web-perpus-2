@@ -148,7 +148,7 @@ export default function BookingApprovals() {
         if (status === 'approved') {
           toast.success('Reservasi berhasil disetujui', 'Permintaan reservasi telah dikonfirmasi.')
         } else if (status === 'rejected') {
-          toast.success('Reservasi berhasil ditolak', 'Permintaan reservasi telah dibatalkan.')
+          toast.warning('Reservasi berhasil ditolak', 'Permintaan reservasi telah dibatalkan.')
         }
       },
       onError: (error) => {

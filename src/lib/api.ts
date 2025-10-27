@@ -284,6 +284,7 @@ export const useRooms = () => {
   return useQuery({
     queryKey: ['rooms'],
     queryFn: async () => {
+      console.log('useRooms: Starting room fetch...')
       const response = await fetch('/api/rooms', {
         method: 'GET',
         headers: {
@@ -292,12 +293,16 @@ export const useRooms = () => {
         credentials: 'include', // Include cookies for authentication
       })
 
+      console.log('useRooms: Response status:', response.status)
       if (!response.ok) {
         const error = await response.json()
+        console.error('useRooms: API error:', error)
         throw new Error(error.error || 'Failed to fetch rooms')
       }
 
       const result = await response.json()
+      console.log('useRooms: Received rooms data:', result.rooms?.length || 0, 'rooms')
+      console.log('useRooms: Rooms data:', result.rooms)
       return result.rooms || []
     },
   })
