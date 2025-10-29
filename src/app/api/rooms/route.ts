@@ -1,5 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
+import {
+  parseQueryParams,
+  applyFilters,
+  applyPaginationAndSorting,
+  encodeCursor
+} from '@/lib/api-middleware'
+
+export const runtime = 'edge'
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,17 +28,45 @@ export async function GET(request: NextRequest) {
       }
     )
 
+    // Parse query parameters for pagination and filtering
+    const queryParams = parseQueryParams(request)
+
     // Allow anonymous access for viewing active rooms
     // The RLS policy will handle filtering to only active rooms for anonymous users
-    const { data: rooms, error } = await supabase
+    let query = supabase
       .from('rooms')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('is_active', true) // Only return active rooms for anonymous access
-      .order('name')
+
+    // Apply filters (if any - currently only is_active filter is applied)
+    query = applyFilters(query, queryParams)
+
+    // Apply pagination and sorting
+    query = applyPaginationAndSorting(query, queryParams)
+
+    const { data: rooms, error, count } = await query
 
     if (error) {
       console.error('Rooms fetch error:', error)
       return NextResponse.json({ error: 'Failed to fetch rooms' }, { status: 500 })
+    }
+
+    // Generate cursors for cursor-based pagination
+    let nextCursor: string | null = null
+    let prevCursor: string | null = null
+
+    if (rooms && rooms.length > 0) {
+      const lastRoom = rooms[rooms.length - 1]
+      const firstRoom = rooms[0]
+
+      // Generate next cursor based on sort field
+      const sortField = queryParams.sortBy || 'name'
+      nextCursor = encodeCursor(lastRoom[sortField])
+
+      // Generate previous cursor if not on first page
+      if (queryParams.cursor && queryParams.cursorDirection === 'next') {
+        prevCursor = encodeCursor(firstRoom[sortField])
+      }
     }
 
     // Debug logging to investigate room count issue
@@ -52,7 +88,19 @@ export async function GET(request: NextRequest) {
     console.log('Inactive rooms:', inactiveRooms.map(room => ({ id: room.id, name: room.name })))
     console.log('=======================')
 
-    return NextResponse.json({ rooms: rooms || [] })
+    const result = {
+      rooms: rooms || [],
+      totalCount: count || 0,
+      currentPage: queryParams.page || 1,
+      totalPages: Math.ceil((count || 0) / (queryParams.limit || 50)),
+      // Cursor pagination metadata
+      nextCursor,
+      prevCursor,
+      hasNext: rooms && rooms.length === (queryParams.limit || 50),
+      hasPrev: !!queryParams.cursor && queryParams.cursorDirection === 'next'
+    }
+
+    return NextResponse.json(result)
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

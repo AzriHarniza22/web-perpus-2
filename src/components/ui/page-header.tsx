@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogOut } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/components/AuthProvider'
 
 interface PageHeaderProps {
   title: string
@@ -23,7 +23,7 @@ export function PageHeader({
   onSignOut,
   sidebarCollapsed = false
 }: PageHeaderProps) {
-  const { profile } = useAuth()
+  // Profile is not available in the new auth system, remove profile usage
 
   return (
     <motion.header
@@ -54,7 +54,6 @@ export function PageHeader({
               className="flex items-center space-x-2 hidden lg:flex"
             >
               <Avatar className="w-7 h-7">
-                <AvatarImage src={profile?.profile_photo || undefined} alt="Profile" />
                 <AvatarFallback className="text-xs">
                   {user.email?.[0].toUpperCase()}
                 </AvatarFallback>

@@ -1,232 +1,87 @@
-'use client'
-
-import { useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import { supabase } from '@/lib/supabase'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Loading } from '@/components/ui/loading'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { ArrowLeft, Mail, CheckCircle, AlertCircle } from 'lucide-react'
-
-function ConfirmPageContent() {
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const registeredEmail = searchParams.get('email')
-
-  const handleResend = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    setMessage('')
-
-    const emailToUse = registeredEmail || email
-
-    if (!emailToUse) {
-      setError('Please enter your email address')
-      setLoading(false)
-      return
-    }
-
-    try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: emailToUse,
-      })
-
-      if (error) throw error
-
-      setMessage('Confirmation email sent! Please check your inbox.')
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
-    } finally {
-      setLoading(false)
-    }
-  }
-
+export default function ConfirmPage({
+  searchParams,
+}: {
+  searchParams: { email?: string }
+}) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Animation */}
-      <div className="absolute inset-0">
-        <motion.div
-          animate={{
-            backgroundPosition: ['0% 0%', '100% 100%'],
-            scale: [1, 1.1, 1]
-          }}
-          transition={{ duration: 20, repeat: Infinity }}
-          className="absolute inset-0 bg-gradient-to-br from-primary-400/10 via-secondary-400/10 to-accent-400/10 dark:from-primary-400/5 dark:via-secondary-400/5 dark:to-accent-400/5"
-        />
-      </div>
-
-      {/* Back Button & Theme Toggle */}
-      <div className="absolute top-4 left-4 z-10">
-        <Link href="/">
-          <Button variant="outline" size="sm" className="bg-background/90 backdrop-blur-sm">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Kembali
-          </Button>
-        </Link>
-      </div>
-      <div className="absolute top-4 right-4 z-10">
-        <ThemeToggle />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="w-full max-w-md relative z-10"
-      >
-        <Card className="backdrop-blur-lg bg-background/90 border-0 shadow-2xl">
-          <CardHeader className="text-center pb-2">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="w-16 h-16 bg-gradient-to-r from-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-4"
-            >
-              <Mail className="w-8 h-8 text-white" />
-            </motion.div>
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Konfirmasi Email
-            </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-300">
-              {registeredEmail ? (
-                `Kami telah mengirim email konfirmasi ke ${registeredEmail}. Silakan periksa inbox Anda.`
-              ) : (
-                'Silakan konfirmasi email Anda untuk melanjutkan proses registrasi.'
-              )}
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-6">
-            <motion.form
-              onSubmit={handleResend}
-              className="space-y-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              {!registeredEmail && (
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium">
-                    Email
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="nama@email.com"
-                      className="pl-10 h-11"
-                      required
-                    />
-                  </div>
-                </div>
-              )}
-
-              <AnimatePresence>
-                {message && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
-                  >
-                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <p className="text-sm text-green-700 dark:text-green-300">{message}</p>
-                  </motion.div>
-                )}
-
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
-                  >
-                    <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                    <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <div className="text-center">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+              <svg
+                className="h-6 w-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <Button
-                  type="submit"
-                  className="w-full h-11 bg-gradient-to-r from-primary to-secondary hover:from-primary hover:to-secondary text-white font-medium"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
-                      />
-                      Mengirim...
-                    </>
-                  ) : (
-                    <>
-                      <Mail className="w-4 h-4 mr-2" />
-                      Kirim Ulang Email Konfirmasi
-                    </>
-                  )}
-                </Button>
-              </motion.div>
-            </motion.form>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <h2 className="mt-6 text-2xl font-bold text-gray-900">
+              Cek Email Anda
+            </h2>
+            <p className="mt-4 text-sm text-gray-600">
+              Kami telah mengirimkan email konfirmasi ke:
+            </p>
+            {searchParams.email && (
+              <p className="mt-2 text-base font-medium text-gray-900">
+                {searchParams.email}
+              </p>
+            )}
+            <div className="mt-6 text-sm text-gray-600 space-y-2">
+              <p>
+                Silakan klik link konfirmasi di email tersebut untuk mengaktifkan akun Anda.
+              </p>
+              <p className="text-xs text-gray-500 mt-4">
+                Tidak menerima email? Cek folder spam/junk Anda atau tunggu beberapa menit.
+              </p>
+            </div>
+          </div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="text-center"
+          <div className="mt-8">
+            <a
+              href="/login"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              <Link href="/login">
-                <Button variant="outline" className="w-full">
-                  Kembali ke Login
-                </Button>
-              </Link>
-            </motion.div>
+              Kembali ke Login
+            </a>
+          </div>
+        </div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="text-center text-sm text-gray-600 dark:text-gray-400"
-            >
-              Sudah konfirmasi email?{' '}
-              <Link
-                href="/login"
-                className="text-primary hover:text-primary dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
+        <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-yellow-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
               >
-                Masuk di sini
-              </Link>
-            </motion.div>
-          </CardContent>
-        </Card>
-      </motion.div>
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800">Catatan Penting</h3>
+              <div className="mt-2 text-sm text-yellow-700">
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Email konfirmasi biasanya tiba dalam 1-5 menit</li>
+                  <li>Link konfirmasi akan kadaluarsa dalam 24 jam</li>
+                  <li>Anda tidak bisa login sebelum mengkonfirmasi email</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  )
-}
-
-export default function ConfirmPage() {
-  return (
-    <Suspense fallback={<Loading variant="inline" />}>
-      <ConfirmPageContent />
-    </Suspense>
   )
 }

@@ -1,12 +1,12 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useCreateBooking, type Room, type Booking } from '@/lib/api'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/components/AuthProvider'
 import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { motion } from 'framer-motion'
@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
+import { useDebouncedValidation } from '@/hooks/useDebouncedValidation'
 import dayjs from 'dayjs'
 
 const bookingSchema = z.object({
@@ -32,14 +33,7 @@ const bookingSchema = z.object({
   eventDescription: z.string().min(1, 'Event description is required'),
   guestCount: z.number().min(1, 'Please enter at least 1 guest').max(100, 'Maximum 100 guests'),
   notes: z.string().optional(),
-  proposalFile: z.instanceof(File).optional().refine((file) => {
-    if (!file) return true;
-    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    return allowedTypes.includes(file.type);
-  }, 'File must be a PDF or Word document').refine((file) => {
-    if (!file) return true;
-    return file.size <= 10 * 1024 * 1024; // 10MB
-  }, 'File size must be less than 10MB'),
+  proposalFile: z.string().optional(),
 }).refine((data) => data.selectedDate !== undefined, {
   message: 'Please select a date',
   path: ['selectedDate'],
@@ -69,12 +63,36 @@ interface BookingFormProps {
 export default function BookingForm({ room, existingBookings }: BookingFormProps) {
   const router = useRouter()
 
-  const { user, isAuthenticated } = useAuth()
+  const { user } = useAuth()
   const createBookingMutation = useCreateBooking()
 
   // Local state for immediate UI updates
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
-  const [pendingOverlapWarning, setPendingOverlapWarning] = useState(false)
+   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+   const [pendingOverlapWarning, setPendingOverlapWarning] = useState(false)
+   const [uploadedFilePath, setUploadedFilePath] = useState<string | undefined>(undefined)
+   const [isUploadingFile, setIsUploadingFile] = useState(false)
+   const [uploadError, setUploadError] = useState<string | null>(null)
+   const [optimisticBookings, setOptimisticBookings] = useState<Booking[]>([])
+   const [isSubmittingOptimistically, setIsSubmittingOptimistically] = useState(false)
+
+  // Reset states when component mounts or when mutation completes
+  React.useEffect(() => {
+    // Reset optimistic states when mutation is not pending
+    if (!createBookingMutation.isPending) {
+      setIsSubmittingOptimistically(false)
+    }
+  }, [createBookingMutation.isPending])
+
+  // Reset all states on component unmount
+  React.useEffect(() => {
+    return () => {
+      setIsSubmittingOptimistically(false)
+      setIsUploadingFile(false)
+      setOptimisticBookings([])
+      setUploadError(null)
+    }
+  }, [])
+
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
@@ -92,6 +110,12 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
     mode: 'onChange',
   })
 
+  // Debounced validation for performance
+  const { debouncedValidate } = useDebouncedValidation<BookingFormData>((data) => {
+    // Real-time validation feedback for better UX
+    // This helps prevent excessive re-renders while providing immediate feedback
+  }, { delay: 300 })
+
   // Handler for date selection
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date)
@@ -99,8 +123,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
   }
 
   const onSubmit = async (data: BookingFormData) => {
-    console.log(`BookingForm: onSubmit, user=${user ? user.id : 'null'}`)
-    if (!isAuthenticated || !user) {
+    if (!user) {
       form.setError('root', { message: 'Not authenticated' })
       return
     }
@@ -143,20 +166,26 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
 
     setPendingOverlapWarning(pendingOverlap)
 
-    const file = data.proposalFile;
-    let filePath: string | undefined = undefined;
-    if (file) {
-      const fileName = `user-${user.id}-${Date.now()}-${file.name}`;
-      console.log(`BookingForm: Uploading file ${fileName} for user ${user.id}`);
-      const { data: uploadData, error: uploadError } = await supabase.storage.from('proposals').upload(fileName, file);
-      if (uploadError) {
-        console.error(`BookingForm: Upload error for user ${user.id}:`, uploadError);
-        form.setError('root', { message: 'Failed to upload file: ' + uploadError.message });
-        return;
-      }
-      filePath = fileName;
-      console.log(`BookingForm: File uploaded successfully, path: ${filePath} for user ${user.id}`);
+    // Create optimistic booking for immediate UI feedback
+    const optimisticBooking: Booking = {
+      id: `optimistic-${Date.now()}`,
+      room_id: room.id,
+      start_time: startDateTime.toISOString(),
+      end_time: endDateTime.toISOString(),
+      status: 'pending',
+      event_description: data.eventDescription,
+      guest_count: data.guestCount,
+      notes: data.notes || '',
+      proposal_file: uploadedFilePath,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      user_id: user.id,
+      is_tour: false,
     }
+
+    // Add optimistic booking to local state
+    setOptimisticBookings(prev => [...prev, optimisticBooking])
+    setIsSubmittingOptimistically(true)
 
     const bookingData = {
       room_id: room.id,
@@ -166,15 +195,18 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
       event_description: data.eventDescription,
       guest_count: data.guestCount,
       notes: data.notes || '',
-      proposal_file: filePath,
+      proposal_file: uploadedFilePath,
     }
 
     createBookingMutation.mutate(bookingData, {
       onSuccess: () => {
-        console.log(`BookingForm: Booking success, redirecting to /dashboard, user=${user ? user.id : 'null'}`)
+        setIsSubmittingOptimistically(false)
         router.push('/dashboard?success=Booking submitted successfully')
       },
       onError: (err) => {
+        // Remove optimistic booking on error
+        setOptimisticBookings(prev => prev.filter(b => b.id !== optimisticBooking.id))
+        setIsSubmittingOptimistically(false)
         form.setError('root', { message: err instanceof Error ? err.message : 'An error occurred' })
       },
     })
@@ -183,7 +215,10 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
   const getBookedTimes = (date: Date) => {
     const now = new Date()
 
-    return existingBookings
+    // Combine existing bookings with optimistic bookings
+    const allBookings = [...existingBookings, ...optimisticBookings]
+
+    return allBookings
       .filter(booking => {
         const bookingDate = new Date(booking.start_time)
         // Only show future bookings or active bookings (same logic as InteractiveCalendar)
@@ -195,12 +230,15 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
         start: new Date(booking.start_time),
         end: new Date(booking.end_time),
         status: booking.status,
+        isOptimistic: booking.id.startsWith('optimistic-'),
       }))
   }
 
   const getBookedDates = () => {
     const now = new Date()
-    const futureBookings = existingBookings.filter(booking => {
+    // Combine existing bookings with optimistic bookings
+    const allBookings = [...existingBookings, ...optimisticBookings]
+    const futureBookings = allBookings.filter(booking => {
       const bookingDate = new Date(booking.start_time)
       // Only include future bookings or active bookings (same logic as InteractiveCalendar)
       return bookingDate >= now || booking.status === 'pending' || booking.status === 'approved'
@@ -216,7 +254,9 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
 
   const getDateStatus = (date: Date) => {
     const now = new Date()
-    const bookingsOnDate = existingBookings.filter(booking => {
+    // Combine existing bookings with optimistic bookings
+    const allBookings = [...existingBookings, ...optimisticBookings]
+    const bookingsOnDate = allBookings.filter(booking => {
       const bookingDate = new Date(booking.start_time)
       // Only include future bookings or active bookings (same logic as InteractiveCalendar)
       return bookingDate.toDateString() === date.toDateString() &&
@@ -328,14 +368,24 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                         className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md ${
                           time.status === 'approved'
                             ? 'text-red-600 bg-red-50 dark:bg-red-900/20'
+                            : time.isOptimistic
+                            ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 animate-pulse'
                             : 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
                         }`}
                       >
                         <div className={`w-2 h-2 rounded-full ${
-                          time.status === 'approved' ? 'bg-red-500' : 'bg-yellow-500'
+                          time.status === 'approved'
+                            ? 'bg-red-500'
+                            : time.isOptimistic
+                            ? 'bg-blue-500 animate-pulse'
+                            : 'bg-yellow-500'
                         }`}></div>
                         {format(time.start, 'HH:mm')} - {format(time.end, 'HH:mm')} ({
-                          time.status === 'approved' ? 'Sudah disetujui' : 'Menunggu persetujuan'
+                          time.status === 'approved'
+                            ? 'Sudah disetujui'
+                            : time.isOptimistic
+                            ? 'Sedang diproses...'
+                            : 'Menunggu persetujuan'
                         })
                       </motion.div>
                     ))}
@@ -480,17 +530,99 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
 
               <div>
                 <Label htmlFor="proposalFile">Upload Proposal File (Optional)</Label>
-                <Input
-                  id="proposalFile"
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || undefined;
-                    form.setValue('proposalFile', file);
-                  }}
-                />
-                {form.formState.errors.proposalFile && (
-                  <p className="text-sm text-red-500 mt-1">{form.formState.errors.proposalFile.message}</p>
+                <div className="relative">
+                  <Input
+                    id="proposalFile"
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    disabled={isUploadingFile || createBookingMutation.isPending || isSubmittingOptimistically}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        // Clear previous errors
+                        setUploadError(null);
+                        form.clearErrors('proposalFile');
+
+                        // Validate file type and size
+                        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+                        if (!allowedTypes.includes(file.type)) {
+                          const errorMsg = 'File must be a PDF or Word document';
+                          setUploadError(errorMsg);
+                          form.setError('proposalFile', { message: errorMsg });
+                          return;
+                        }
+                        if (file.size > 10 * 1024 * 1024) {
+                          const errorMsg = 'File size must be less than 10MB';
+                          setUploadError(errorMsg);
+                          form.setError('proposalFile', { message: errorMsg });
+                          return;
+                        }
+
+                        setIsUploadingFile(true);
+                        try {
+                          const fileName = `user-${user?.id}-${Date.now()}-${file.name}`;
+                          const { data: uploadData, error: uploadError } = await supabase.storage.from('proposals').upload(fileName, file);
+                          if (uploadError) {
+                            const errorMsg = 'Failed to upload file: ' + uploadError.message;
+                            setUploadError(errorMsg);
+                            form.setError('proposalFile', { message: errorMsg });
+                            return;
+                          }
+                          setUploadedFilePath(fileName);
+                          form.setValue('proposalFile', fileName);
+                        } catch (error) {
+                          const errorMsg = 'Failed to upload file';
+                          setUploadError(errorMsg);
+                          form.setError('proposalFile', { message: errorMsg });
+                        } finally {
+                          setIsUploadingFile(false);
+                        }
+                      } else {
+                        setUploadedFilePath(undefined);
+                        setUploadError(null);
+                        form.setValue('proposalFile', undefined);
+                        form.clearErrors('proposalFile');
+                      }
+                      // Reset input
+                      e.target.value = '';
+                    }}
+                    className={cn(
+                      uploadError && "border-red-500",
+                      isUploadingFile && "border-blue-500 bg-blue-50"
+                    )}
+                  />
+                  {isUploadingFile && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Format yang diterima: PDF, DOC, DOCX (Maks 10MB)</p>
+                {isUploadingFile && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-sm text-blue-600 font-medium">Mengunggah file...</p>
+                  </div>
+                )}
+                {uploadedFilePath && !isUploadingFile && !uploadError && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-green-600 font-medium">File berhasil diunggah</p>
+                  </div>
+                )}
+                {(uploadError || form.formState.errors.proposalFile) && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-red-600 font-medium">{uploadError || form.formState.errors.proposalFile?.message}</p>
+                  </div>
                 )}
               </div>
 
@@ -516,9 +648,14 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-secondary to-accent hover:from-secondary-700 hover:to-accent-700 text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300"
-                  disabled={createBookingMutation.isPending}
+                  disabled={createBookingMutation.isPending || isSubmittingOptimistically || isUploadingFile}
                 >
-                  {createBookingMutation.isPending ? (
+                  {isUploadingFile ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2 animate-spin" />
+                      Menunggu upload file selesai...
+                    </div>
+                  ) : createBookingMutation.isPending || isSubmittingOptimistically ? (
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}

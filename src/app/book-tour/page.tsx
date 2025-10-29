@@ -12,7 +12,7 @@ import { PageHeader } from '@/components/ui/page-header'
 import { Loading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/components/AuthProvider'
 import { Sparkles, CalendarIcon } from 'lucide-react'
 
 import { Booking } from '@/lib/api'
@@ -33,7 +33,7 @@ interface Tour {
 
 export default function BookTourPage() {
   const router = useRouter()
-  const { user, isLoading, isAuthenticated } = useAuth()
+  const { user, isLoading } = useAuth()
   const [tour, setTour] = useState<Tour | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,7 +42,7 @@ export default function BookTourPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!isAuthenticated || !user) {
+      if (!user) {
         setLoading(false)
         return
       }
@@ -96,18 +96,18 @@ export default function BookTourPage() {
       setLoading(false)
     }
 
-    if (isAuthenticated && user) {
+    if (user) {
       fetchData()
-    } else if (!isLoading && !isAuthenticated) {
+    } else if (!isLoading && !user) {
       setLoading(false)
     }
-  }, [isAuthenticated, user, isLoading])
+  }, [user, isLoading])
 
   if (isLoading || loading) {
     return <Loading variant="fullscreen" />
   }
 
-  if (!isAuthenticated || !user) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

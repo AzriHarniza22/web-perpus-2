@@ -23,6 +23,11 @@ export interface RegistrationData {
   phone: string
 }
 
+export interface LoginData {
+  email: string
+  password: string
+}
+
 export interface ApiResponse<T = unknown> {
   success: boolean
   message?: string

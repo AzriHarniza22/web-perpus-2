@@ -10,8 +10,11 @@ import {
   ensureProfileExists,
   validateTimeRange,
   checkBookingConflicts,
+  encodeCursor,
   type AuthenticatedRequest
 } from '@/lib/api-middleware'
+
+export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
   return withAuth(request, async (req: AuthenticatedRequest) => {
@@ -44,21 +47,44 @@ export async function GET(request: NextRequest) {
       query = applyPaginationAndSorting(query, queryParams)
 
       const { data: bookings, error, count } = await query
-  
+
       console.log('Supabase query result:', { bookingsCount: bookings?.length, error, count })
-  
+
       if (error) {
         console.error('Bookings fetch error:', error)
         return errorResponse(`Failed to fetch bookings: ${error.message}`, 500)
       }
-  
+
+      // Generate cursors for cursor-based pagination
+      let nextCursor: string | null = null
+      let prevCursor: string | null = null
+
+      if (bookings && bookings.length > 0) {
+        const lastBooking = bookings[bookings.length - 1]
+        const firstBooking = bookings[0]
+
+        // Generate next cursor based on sort field
+        const sortField = queryParams.sortBy || 'created_at'
+        nextCursor = encodeCursor(lastBooking[sortField])
+
+        // Generate previous cursor if not on first page
+        if (queryParams.cursor && queryParams.cursorDirection === 'next') {
+          prevCursor = encodeCursor(firstBooking[sortField])
+        }
+      }
+
       const result = {
         bookings: bookings || [],
         totalCount: count || 0,
         currentPage: queryParams.page || 1,
-        totalPages: Math.ceil((count || 0) / (queryParams.limit || 50))
+        totalPages: Math.ceil((count || 0) / (queryParams.limit || 50)),
+        // Cursor pagination metadata
+        nextCursor,
+        prevCursor,
+        hasNext: bookings && bookings.length === (queryParams.limit || 50),
+        hasPrev: !!queryParams.cursor && queryParams.cursorDirection === 'next'
       }
-  
+
       console.log('API response:', result)
       return NextResponse.json(result)
     } catch (error) {
@@ -97,6 +123,7 @@ export async function POST(request: NextRequest) {
         return errorResponse(timeValidation.error!, 400)
       }
 
+
       // Check for conflicting bookings using utility
       const { hasConflicts, conflicts } = await checkBookingConflicts(
         req.supabase,
@@ -125,7 +152,8 @@ export async function POST(request: NextRequest) {
         event_description,
         proposal_file,
         notes,
-        status: 'pending'
+        status: 'pending',
+        is_tour: false
       }
 
       const { data: booking, error: insertError } = await req.supabase
@@ -150,19 +178,16 @@ export async function POST(request: NextRequest) {
 
       console.log('Booking inserted successfully');
 
-      // Send notification to admin
-      try {
-        console.log('About to send new booking notification to admin');
-        const bookingDetails = {
-          roomName: booking.rooms?.name || 'Unknown Room',
-          time: `${new Date(booking.start_time).toLocaleString()} - ${new Date(booking.end_time).toLocaleString()}`,
-          userName: booking.profiles?.full_name || 'Unknown User'
-        }
-        await sendNewBookingNotificationToAdmin(req.supabase, bookingDetails)
-      } catch (emailError) {
-        console.error('Email notification error:', emailError)
-        // Don't fail the booking if email fails
+      // Send notification to admin asynchronously (fire and forget)
+      console.log('Sending new booking notification to admin asynchronously');
+      const bookingDetails = {
+        roomName: booking.rooms?.name || 'Unknown Room',
+        time: `${new Date(booking.start_time).toLocaleString()} - ${new Date(booking.end_time).toLocaleString()}`,
+        userName: booking.profiles?.full_name || 'Unknown User'
       }
+      sendNewBookingNotificationToAdmin(req.supabase, bookingDetails).catch(emailError => {
+        console.error('Email notification error:', emailError)
+      })
 
       return successResponse({ booking }, 'Booking created successfully', { status: 201 })
     } catch (error) {

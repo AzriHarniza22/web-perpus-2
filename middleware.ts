@@ -15,10 +15,10 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
@@ -27,60 +27,64 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
+  // Refresh session if expired - required for Server Components
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const path = request.nextUrl.pathname
 
-  console.log(`Middleware: Path=${request.nextUrl.pathname}, User=${user ? user.id : 'null'}`)
+  // Define route patterns
+  const isAuthPage = path === '/login' || path === '/signup' || path === '/confirm'
+  const isPublicPage = path === '/' || path.startsWith('/rooms')
+  const isAdminPage = path.startsWith('/admin')
+  const isDashboardPage = path.startsWith('/dashboard')
+  const isProtectedPage = isAdminPage || isDashboardPage
 
-  // Additional debugging for auth callback
-  if (request.nextUrl.pathname.startsWith('/auth/callback')) {
-    console.log('Middleware: Auth callback request details:', {
-      hasCode: !!new URL(request.url).searchParams.get('code'),
-      cookies: request.cookies.getAll().map(c => ({ name: c.name, hasValue: !!c.value })),
-      userAgent: request.headers.get('user-agent')
-    })
+  // Redirect authenticated users away from auth pages
+  if (user && isAuthPage) {
+    const profile = await getProfileRole(supabase, user.id)
+    const redirectTo = profile?.role === 'admin' ? '/admin' : '/dashboard'
+    return NextResponse.redirect(new URL(redirectTo, request.url))
   }
 
-  if (
-    !user &&
-    request.nextUrl.pathname !== '/' &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/register') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/confirm')
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    console.log(`Middleware: Redirecting to /login from ${request.nextUrl.pathname}`)
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  // Redirect unauthenticated users from protected pages
+  if (!user && isProtectedPage) {
+    const redirectUrl = new URL('/login', request.url)
+    // Save original destination for redirect after login
+    redirectUrl.searchParams.set('redirect', path)
+    return NextResponse.redirect(redirectUrl)
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-  // creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object instead of the supabaseResponse object
+  // Check admin authorization for admin pages
+  if (user && isAdminPage) {
+    const profile = await getProfileRole(supabase, user.id)
+    if (profile?.role !== 'admin') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
 
   return supabaseResponse
+}
+
+// Helper function to get user role
+async function getProfileRole(supabase: any, userId: string) {
+  const { data } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .single()
+  return data
 }
 
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
+     * Match all request paths except:
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
+     * - public folder
+     * - images, icons, etc.
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 }

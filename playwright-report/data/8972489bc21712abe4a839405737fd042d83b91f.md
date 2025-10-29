@@ -1,0 +1,62 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Kembali" [ref=e6] [cursor=pointer]:
+      - /url: /
+      - button "Kembali" [ref=e7]:
+        - img
+        - text: Kembali
+    - button "Toggle theme" [ref=e9]:
+      - generic [ref=e10]: Toggle theme
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - heading "Selamat Datang" [level=1] [ref=e18]
+        - paragraph [ref=e19]: Masuk ke akun Anda untuk melakukan reservasi ruangan
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - generic [ref=e22]: Email
+          - generic [ref=e23]:
+            - img [ref=e24]
+            - textbox "Email address" [ref=e27]:
+              - /placeholder: nama@email.com
+              - text: test@example.com
+        - generic [ref=e28]:
+          - generic [ref=e29]: Password
+          - generic [ref=e30]:
+            - img [ref=e31]
+            - textbox "Password" [ref=e34]:
+              - /placeholder: Masukkan password
+              - text: password123
+            - button "Tampilkan password" [ref=e35]:
+              - img [ref=e36]
+        - alert [ref=e39]:
+          - img [ref=e40]
+          - paragraph [ref=e42]: Invalid login credentials
+        - button "Masuk" [ref=e44]:
+          - text: Masuk
+          - img
+      - paragraph [ref=e45]:
+        - text: Belum punya akun?
+        - link "Daftar di sini" [ref=e46] [cursor=pointer]:
+          - /url: /register
+      - paragraph [ref=e47]:
+        - text: Lupa password?
+        - link "Reset di sini" [ref=e48] [cursor=pointer]:
+          - /url: /forgot-password
+  - generic [ref=e53] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e54]:
+      - img [ref=e55]
+    - generic [ref=e58]:
+      - button "Open issues overlay" [ref=e59]:
+        - generic [ref=e60]:
+          - generic [ref=e61]: "1"
+          - generic [ref=e62]: "2"
+        - generic [ref=e63]:
+          - text: Issue
+          - generic [ref=e64]: s
+      - button "Collapse issues badge" [ref=e65]:
+        - img [ref=e66]
+  - alert [ref=e68]
+```

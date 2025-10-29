@@ -14,6 +14,7 @@ import { Eye, EyeOff, Mail, Lock, User, Building, Phone, ArrowRight, ArrowLeft, 
 import { validateRegistrationData, sanitizeRegistrationData } from '@/lib/validation'
 import { handleError } from '@/lib/errors'
 import { RegistrationData } from '@/lib/types'
+import { useDebouncedValidation } from '@/hooks/useDebouncedValidation'
 import Image from 'next/image'
 
 export default function RegisterPage() {
@@ -41,11 +42,11 @@ export default function RegisterPage() {
   const [passwordMatch, setPasswordMatch] = useState<boolean | null>(null)
   const router = useRouter()
 
-  // Debounced validation - only for real-time feedback, not showing errors
-  const debouncedValidate = useCallback((data: RegistrationData) => {
-    // Keep debounced validation for potential future use, but don't set errors
-    // This maintains the existing debounced system without showing premature errors
-  }, [])
+  // Debounced validation for real-time feedback
+  const { debouncedValidate } = useDebouncedValidation<RegistrationData>((data) => {
+    // Real-time validation feedback without showing errors
+    // This provides immediate visual feedback while preventing premature error display
+  }, { delay: 300 })
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target

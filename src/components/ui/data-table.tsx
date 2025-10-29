@@ -42,6 +42,11 @@ interface DataTableProps<T> {
   selectable?: boolean
   selectedRows?: string[]
   onSelectionChange?: (selectedIds: string[]) => void
+  // Cursor pagination props
+  hasNext?: boolean
+  hasPrev?: boolean
+  onNextPage?: () => void
+  onPrevPage?: () => void
 }
 
 export function DataTable<T extends { id: string }>({
@@ -55,6 +60,10 @@ export function DataTable<T extends { id: string }>({
   onPageChange,
   sortKey,
   sortDirection,
+  hasNext,
+  hasPrev,
+  onNextPage,
+  onPrevPage,
 }: DataTableProps<T>) {
   const handlePageSizeChange = (value: string) => {
     const newSize = parseInt(value)
@@ -180,16 +189,16 @@ export function DataTable<T extends { id: string }>({
             <Button
               variant="outline"
               className="h-8 w-8 p-0"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
+              onClick={() => onPrevPage ? onPrevPage() : handlePageChange(currentPage - 1)}
+              disabled={hasPrev !== undefined ? !hasPrev : currentPage === 1}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
               className="h-8 w-8 p-0"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              onClick={() => onNextPage ? onNextPage() : handlePageChange(currentPage + 1)}
+              disabled={hasNext !== undefined ? !hasNext : currentPage === totalPages}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -197,7 +206,7 @@ export function DataTable<T extends { id: string }>({
               variant="outline"
               className="h-8 w-8 p-0"
               onClick={() => handlePageChange(totalPages)}
-              disabled={currentPage === totalPages}
+              disabled={hasNext !== undefined ? !hasNext : currentPage === totalPages}
             >
               <ChevronsRight className="h-4 w-4" />
             </Button>

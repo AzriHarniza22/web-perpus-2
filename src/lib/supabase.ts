@@ -136,5 +136,27 @@ export const dbHelpers = {
   }
 }
 
+// Storage operation helpers
+export const storageHelpers = {
+  // Delete a file from storage
+  async deleteFile(supabase: SupabaseClient, bucket: string, filePath: string) {
+    try {
+      const { error } = await supabase.storage
+        .from(bucket)
+        .remove([filePath])
+
+      if (error) {
+        console.error('Failed to delete file from storage:', error)
+        throw new DatabaseError('Failed to delete file from storage', { originalError: error })
+      }
+
+      console.debug(`File deleted successfully: ${bucket}/${filePath}`)
+    } catch (error) {
+      console.error('Storage delete operation failed:', error)
+      throw error
+    }
+  }
+}
+
 // Export singleton instance for client-side usage
 export const supabase = getSupabase()

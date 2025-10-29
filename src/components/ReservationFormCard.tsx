@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useCreateBooking, type Room, type Booking } from '@/lib/api'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/components/AuthProvider'
 import { supabase } from '@/lib/supabase'
 import { format as formatDate } from 'date-fns'
 import { id } from 'date-fns/locale'
@@ -62,7 +62,7 @@ interface ReservationFormCardProps {
 
 export default function ReservationFormCard({ room, existingBookings, selectedDate }: ReservationFormCardProps) {
   const router = useRouter()
-  const { user, isAuthenticated } = useAuth()
+  const { user } = useAuth()
   const createBookingMutation = useCreateBooking()
   const { success } = useToast()
   const [pendingOverlapWarning, setPendingOverlapWarning] = useState(false)
@@ -86,7 +86,7 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
 
   const onSubmit = async (data: BookingFormData) => {
     console.log(`ReservationFormCard: onSubmit, user=${user ? user.id : 'null'}`)
-    if (!isAuthenticated || !user || !selectedDate) {
+    if (!user || !selectedDate) {
       form.setError('root', { message: 'Not authenticated or no date selected' })
       return
     }

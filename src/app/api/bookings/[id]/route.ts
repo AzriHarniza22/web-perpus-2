@@ -6,6 +6,8 @@ import {
   type AuthenticatedRequest
 } from '@/lib/api-middleware'
 
+export const runtime = 'edge'
+
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   return withAuth(request, async (req: AuthenticatedRequest) => {
     try {

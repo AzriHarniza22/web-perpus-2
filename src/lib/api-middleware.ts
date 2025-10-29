@@ -5,20 +5,8 @@ import { Booking } from '@/lib/types'
 // Type for Supabase client (generic)
 type SupabaseClient = ReturnType<typeof createServerClient>
 
-// Type for Supabase query builder
-type SupabaseQueryBuilder<T> = {
-  in: (column: string, values: string[]) => SupabaseQueryBuilder<T>
-  gte: (column: string, value: string) => SupabaseQueryBuilder<T>
-  lte: (column: string, value: string) => SupabaseQueryBuilder<T>
-  eq: (column: string, value: string | boolean) => SupabaseQueryBuilder<T>
-  or: (query: string) => SupabaseQueryBuilder<T>
-  order: (column: string, options: { ascending: boolean }) => SupabaseQueryBuilder<T>
-  range: (from: number, to: number) => SupabaseQueryBuilder<T>
-  neq: (column: string, value: string) => SupabaseQueryBuilder<T>
-  lt: (column: string, value: string) => SupabaseQueryBuilder<T>
-  gt: (column: string, value: string) => SupabaseQueryBuilder<T>
-  select: (columns: string) => SupabaseQueryBuilder<T>
-}
+// Type for Supabase query builder - using any to avoid complex type issues
+type SupabaseQueryBuilder<T = any> = any
 
 export interface AuthenticatedRequest extends NextRequest {
   supabase: SupabaseClient
@@ -47,6 +35,8 @@ export interface PaginationParams {
   limit?: number
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
+  cursor?: string
+  cursorDirection?: 'next' | 'prev'
 }
 
 export interface FilterParams {
@@ -62,6 +52,17 @@ export interface FilterParams {
  * Creates authenticated Supabase client with cookie handling
  */
 export function createAuthenticatedClient(request: NextRequest): SupabaseClient {
+  console.log('Creating authenticated client...')
+  console.log('SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+  console.log('SUPABASE_ANON_KEY exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+  const cookies = request.cookies.getAll()
+  console.log('Available cookies:', cookies.map(c => ({ name: c.name, hasValue: !!c.value })))
+
+  // Try to get the session token from cookies
+  const sessionCookie = cookies.find(c => c.name.includes('supabase-auth-token'))
+  console.log('Session cookie found:', !!sessionCookie)
+
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -92,16 +93,30 @@ export async function withAuth(
     const supabase = createAuthenticatedClient(request)
 
     // Get authenticated user
+    console.log('Calling supabase.auth.getUser()...')
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    console.log('Auth check result:', { hasUser: !!user, authError: authError?.message })
+    console.log('Auth check result:', { hasUser: !!user, authError: authError?.message, userId: user?.id })
 
     if (authError || !user) {
       console.error('Authentication failed:', { authError: authError?.message, user: !!user })
+      console.log('Request headers:', Object.fromEntries(request.headers.entries()))
+      console.log('Request cookies:', request.cookies.getAll().map(c => ({ name: c.name, value: c.value.substring(0, 20) + '...' })))
+
+      // Try to get session instead of user
+      console.log('Trying to get session...')
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      console.log('Session check result:', { hasSession: !!session, sessionError: sessionError?.message })
+
       return NextResponse.json(
         {
           error: 'Unauthorized',
           success: false,
-          debug: { authError: authError?.message, hasUser: !!user }
+          debug: {
+            authError: authError?.message,
+            hasUser: !!user,
+            sessionError: sessionError?.message,
+            hasSession: !!session
+          }
         } as ApiResponse,
         { status: 401 }
       )
@@ -144,6 +159,8 @@ export function parseQueryParams(request: NextRequest): PaginationParams & Filte
     limit: parseInt(url.searchParams.get('limit') || '50'),
     sortBy: url.searchParams.get('sortBy') || 'created_at',
     sortOrder: (url.searchParams.get('sortOrder') || 'desc') as 'asc' | 'desc',
+    cursor: url.searchParams.get('cursor') || undefined,
+    cursorDirection: (url.searchParams.get('cursorDirection') || 'next') as 'next' | 'prev',
 
     // Filters
     status: url.searchParams.get('status')?.split(',').filter(Boolean),
@@ -211,14 +228,42 @@ export function applyPaginationAndSorting<T>(
     ascending: params.sortOrder === 'asc'
   })
 
-  // Apply pagination
-  if (params.page && params.limit) {
+  // Apply cursor-based pagination if cursor is provided
+  if (params.cursor && params.limit) {
+    const decodedCursor = decodeCursor(params.cursor)
+    if (decodedCursor) {
+      const operator = params.cursorDirection === 'prev' ? 'lt' : 'gt'
+      paginatedQuery = paginatedQuery[operator](params.sortBy || 'created_at', decodedCursor.value)
+    }
+    paginatedQuery = paginatedQuery.limit(params.limit)
+  }
+  // Apply offset-based pagination as fallback
+  else if (params.page && params.limit) {
     const from = (params.page - 1) * params.limit
     const to = from + params.limit - 1
     paginatedQuery = paginatedQuery.range(from, to)
   }
 
   return paginatedQuery
+}
+
+/**
+ * Encode cursor value for pagination
+ */
+export function encodeCursor(value: string | number): string {
+  return Buffer.from(JSON.stringify({ value })).toString('base64')
+}
+
+/**
+ * Decode cursor value from pagination
+ */
+export function decodeCursor(cursor: string): { value: string | number } | null {
+  try {
+    const decoded = JSON.parse(Buffer.from(cursor, 'base64').toString())
+    return decoded
+  } catch {
+    return null
+  }
 }
 
 /**

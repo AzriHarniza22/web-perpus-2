@@ -4,6 +4,8 @@ import { validateRegistrationData, sanitizeRegistrationData } from '@/lib/valida
 import { handleError, formatErrorResponse } from '@/lib/errors'
 import { RegistrationData, ApiResponse, RegistrationResponse } from '@/lib/types'
 
+export const runtime = 'edge'
+
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<RegistrationResponse>>> {
   try {
     console.log('🔄 [REGISTER] Starting registration process')

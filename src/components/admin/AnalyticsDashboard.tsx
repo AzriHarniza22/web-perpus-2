@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback, useEffect, memo } from 'react'
+import { useState, useMemo, useCallback, useEffect, memo, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { DateRange } from 'react-day-picker'
 import { format, isWithinInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns'
@@ -30,33 +30,39 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { GeneralOverviewCards } from '@/components/admin/analytics/GeneralOverviewCards'
-import { MonthlyReservationsChart } from '@/components/admin/analytics/MonthlyReservationsChart'
-import { DailyDistributionChart } from '@/components/admin/analytics/DailyDistributionChart'
-import { PeakHoursChart } from '@/components/admin/analytics/PeakHoursChart'
-import { ReservationHeatmap } from '@/components/admin/analytics/ReservationHeatmap'
-import { RoomOverviewCards } from '@/components/admin/analytics/RoomOverviewCards'
-import { RoomMonthlyChart } from '@/components/admin/analytics/RoomMonthlyChart'
-import { GuestDistributionChart } from '@/components/admin/analytics/GuestDistributionChart'
-import { RoomTimeHeatmap } from '@/components/admin/analytics/RoomTimeHeatmap'
-import { AverageReservationTimeChart } from '@/components/admin/analytics/AverageReservationTimeChart'
-import { AverageGuestsChart } from '@/components/admin/analytics/AverageGuestsChart'
-import { TourOverviewCards } from '@/components/admin/analytics/TourOverviewCards'
-import { TourMonthlyChart } from '@/components/admin/analytics/TourMonthlyChart'
-import { TourGuestsCard } from '@/components/admin/analytics/TourGuestsCard'
-import { TourTimeHeatmap } from '@/components/admin/analytics/TourTimeHeatmap'
-import { TourAverageTimeChart } from '@/components/admin/analytics/TourAverageTimeChart'
-import { UserOverviewCards } from '@/components/admin/analytics/UserOverviewCards'
-import { UserRegistrationChart } from '@/components/admin/analytics/UserRegistrationChart'
-import { TopInstitutionsChart } from '@/components/admin/analytics/TopInstitutionsChart'
-import { TopUsersChart } from '@/components/admin/analytics/TopUsersChart'
-import { InstitutionBookingsChart } from '@/components/admin/analytics/InstitutionBookingsChart'
-import { UserBookingDistributionChart } from '@/components/admin/analytics/UserBookingDistributionChart'
-import { ExportButton } from '@/components/admin/analytics/ExportButton'
 import { ChartDataProvider, useChartData } from '@/components/admin/analytics/ChartDataContext'
 import { useFilterState } from '@/hooks/useFilterState'
 import { exportToCSV, exportToPDF, exportToExcel, exportToEnhancedExcel, ExportData, ExtendedExportOptions } from '@/lib/exportUtils'
 import { Booking, Room, Tour, User } from '@/lib/types'
+
+// Dynamic imports for heavy components - grouped by tab for better code splitting
+const GeneralOverviewCards = lazy(() => import('@/components/admin/analytics/GeneralOverviewCards').then(module => ({ default: module.GeneralOverviewCards })))
+const MonthlyReservationsChart = lazy(() => import('@/components/admin/analytics/MonthlyReservationsChart').then(module => ({ default: module.MonthlyReservationsChart })))
+const DailyDistributionChart = lazy(() => import('@/components/admin/analytics/DailyDistributionChart').then(module => ({ default: module.DailyDistributionChart })))
+const PeakHoursChart = lazy(() => import('@/components/admin/analytics/PeakHoursChart').then(module => ({ default: module.PeakHoursChart })))
+const ReservationHeatmap = lazy(() => import('@/components/admin/analytics/ReservationHeatmap').then(module => ({ default: module.ReservationHeatmap })))
+
+const RoomOverviewCards = lazy(() => import('@/components/admin/analytics/RoomOverviewCards').then(module => ({ default: module.RoomOverviewCards })))
+const RoomMonthlyChart = lazy(() => import('@/components/admin/analytics/RoomMonthlyChart').then(module => ({ default: module.RoomMonthlyChart })))
+const GuestDistributionChart = lazy(() => import('@/components/admin/analytics/GuestDistributionChart').then(module => ({ default: module.GuestDistributionChart })))
+const RoomTimeHeatmap = lazy(() => import('@/components/admin/analytics/RoomTimeHeatmap').then(module => ({ default: module.RoomTimeHeatmap })))
+const AverageReservationTimeChart = lazy(() => import('@/components/admin/analytics/AverageReservationTimeChart').then(module => ({ default: module.AverageReservationTimeChart })))
+const AverageGuestsChart = lazy(() => import('@/components/admin/analytics/AverageGuestsChart').then(module => ({ default: module.AverageGuestsChart })))
+
+const TourOverviewCards = lazy(() => import('@/components/admin/analytics/TourOverviewCards').then(module => ({ default: module.TourOverviewCards })))
+const TourMonthlyChart = lazy(() => import('@/components/admin/analytics/TourMonthlyChart').then(module => ({ default: module.TourMonthlyChart })))
+const TourGuestsCard = lazy(() => import('@/components/admin/analytics/TourGuestsCard').then(module => ({ default: module.TourGuestsCard })))
+const TourTimeHeatmap = lazy(() => import('@/components/admin/analytics/TourTimeHeatmap').then(module => ({ default: module.TourTimeHeatmap })))
+const TourAverageTimeChart = lazy(() => import('@/components/admin/analytics/TourAverageTimeChart').then(module => ({ default: module.TourAverageTimeChart })))
+
+const UserOverviewCards = lazy(() => import('@/components/admin/analytics/UserOverviewCards').then(module => ({ default: module.UserOverviewCards })))
+const UserRegistrationChart = lazy(() => import('@/components/admin/analytics/UserRegistrationChart').then(module => ({ default: module.UserRegistrationChart })))
+const TopInstitutionsChart = lazy(() => import('@/components/admin/analytics/TopInstitutionsChart').then(module => ({ default: module.TopInstitutionsChart })))
+const TopUsersChart = lazy(() => import('@/components/admin/analytics/TopUsersChart').then(module => ({ default: module.TopUsersChart })))
+const InstitutionBookingsChart = lazy(() => import('@/components/admin/analytics/InstitutionBookingsChart').then(module => ({ default: module.InstitutionBookingsChart })))
+const UserBookingDistributionChart = lazy(() => import('@/components/admin/analytics/UserBookingDistributionChart').then(module => ({ default: module.UserBookingDistributionChart })))
+
+const ExportButton = lazy(() => import('@/components/admin/analytics/ExportButton').then(module => ({ default: module.ExportButton })))
 
 interface AnalyticsDashboardProps {
   bookings: Booking[]
@@ -441,20 +447,22 @@ function AnalyticsDashboardContent({
         </Card>
 
         {/* Export Section */}
-        <ExportButton
-          currentTab={activeTab as 'general' | 'room' | 'tour' | 'user'}
-          filters={{
-            dateRange: filterState.dateRange?.from && filterState.dateRange?.to ? {
-              from: filterState.dateRange.from,
-              to: filterState.dateRange.to
-            } : undefined,
-            selectedRooms: filterState.selectedRooms,
-            quickSelect: filterState.quickSelect || undefined
-          }}
-          chartData={chartDataMap}
-          onExport={handleExport}
-          disabled={isLoading}
-        />
+        <Suspense fallback={<div className="h-9 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />}>
+          <ExportButton
+            currentTab={activeTab as 'general' | 'room' | 'tour' | 'user'}
+            filters={{
+              dateRange: filterState.dateRange?.from && filterState.dateRange?.to ? {
+                from: filterState.dateRange.from,
+                to: filterState.dateRange.to
+              } : undefined,
+              selectedRooms: filterState.selectedRooms,
+              quickSelect: filterState.quickSelect || undefined
+            }}
+            chartData={chartDataMap}
+            onExport={handleExport}
+            disabled={isLoading}
+          />
+        </Suspense>
       </motion.div>
 
       {/* Enhanced Tabbed Analytics Content */}
@@ -510,43 +518,51 @@ function AnalyticsDashboardContent({
           {/* General Analytics Tab */}
           <TabsContent value="general" className="space-y-4 mt-2" role="tabpanel" aria-labelledby="general-tab">
             <div aria-label="General analytics content">
-              <GeneralAnalyticsTab
-                bookings={filteredBookings}
-                rooms={rooms}
-                tours={tours}
-                users={users}
-              />
+              <Suspense fallback={<AnalyticsTabSkeleton />}>
+                <GeneralAnalyticsTab
+                  bookings={filteredBookings}
+                  rooms={rooms}
+                  tours={tours}
+                  users={users}
+                />
+              </Suspense>
             </div>
           </TabsContent>
 
           {/* Room Analytics Tab */}
           <TabsContent value="room" className="space-y-4 mt-2" role="tabpanel" aria-labelledby="room-tab">
             <div aria-label="Room analytics content">
-              <RoomAnalyticsTab
-                bookings={filteredBookings}
-                rooms={rooms}
-                selectedRooms={filterState.selectedRooms}
-              />
+              <Suspense fallback={<AnalyticsTabSkeleton />}>
+                <RoomAnalyticsTab
+                  bookings={filteredBookings}
+                  rooms={rooms}
+                  selectedRooms={filterState.selectedRooms}
+                />
+              </Suspense>
             </div>
           </TabsContent>
 
           {/* Tour Analytics Tab */}
           <TabsContent value="tour" className="space-y-4 mt-2" role="tabpanel" aria-labelledby="tour-tab">
             <div aria-label="Tour analytics content">
-              <TourAnalyticsTab
-                bookings={filteredBookings}
-                tours={tours}
-              />
+              <Suspense fallback={<AnalyticsTabSkeleton />}>
+                <TourAnalyticsTab
+                  bookings={filteredBookings}
+                  tours={tours}
+                />
+              </Suspense>
             </div>
           </TabsContent>
 
           {/* User Analytics Tab */}
           <TabsContent value="user" className="space-y-4 mt-2" role="tabpanel" aria-labelledby="user-tab">
             <div aria-label="User analytics content">
-              <UserAnalyticsTab
-                bookings={filteredBookings}
-                users={users}
-              />
+              <Suspense fallback={<AnalyticsTabSkeleton />}>
+                <UserAnalyticsTab
+                  bookings={filteredBookings}
+                  users={users}
+                />
+              </Suspense>
             </div>
           </TabsContent>
         </Tabs>
@@ -873,6 +889,74 @@ function AnalyticsDashboardSkeleton() {
             </Card>
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// Tab-specific loading skeleton for dynamic imports
+function AnalyticsTabSkeleton() {
+  return (
+    <div className="space-y-4">
+      {/* Overview Cards Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="bg-card backdrop-blur-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  <div className="h-6 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                </div>
+                <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Charts Grid Skeleton */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        {[...Array(2)].map((_, i) => (
+          <Card key={i} className="bg-card backdrop-blur-sm">
+            <CardContent className="p-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  </div>
+                </div>
+                <div className="flex gap-2 mb-4">
+                  <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                </div>
+                <div className="bg-gray-200 dark:bg-gray-700 rounded animate-pulse" style={{ height: '256px' }} />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Additional Chart Skeleton */}
+      <div className="grid grid-cols-1 gap-4">
+        <Card className="bg-card backdrop-blur-sm">
+          <CardContent className="p-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <div className="h-5 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  <div className="h-4 w-56 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                </div>
+              </div>
+              <div className="bg-gray-200 dark:bg-gray-700 rounded animate-pulse" style={{ height: '256px' }} />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

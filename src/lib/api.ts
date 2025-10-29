@@ -1,16 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from './supabase'
-import useAuthStore from './authStore'
 
 export interface Room {
   id: string
   name: string
   capacity: number
   facilities: string[]
-  description?: string
-  photos?: string[]
-  layout?: string
+  description: string | null
+  photos: string[] | null
+  layout: string | null
   is_active: boolean
+  created_at: string
+  updated_at: string
 }
 
 export interface Booking {
@@ -45,6 +46,15 @@ export interface BookingWithRelations extends Booking {
     facilities?: string[]
   }
   guest_count?: number
+}
+
+export interface CursorPaginationResponse<T> {
+  data: T[]
+  totalCount: number
+  nextCursor?: string
+  prevCursor?: string
+  hasNext: boolean
+  hasPrev: boolean
 }
 
 export interface Profile {
@@ -108,6 +118,8 @@ export const useBookings = (filters?: {
   limit?: number
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
+  cursor?: string
+  cursorDirection?: 'next' | 'prev'
   isTour?: boolean
 }) => {
   const {
@@ -119,6 +131,8 @@ export const useBookings = (filters?: {
     limit = 50,
     sortBy = 'created_at',
     sortOrder = 'desc',
+    cursor,
+    cursorDirection,
     isTour
   } = filters || {}
 
@@ -127,6 +141,10 @@ export const useBookings = (filters?: {
     totalCount: number
     currentPage: number
     totalPages: number
+    nextCursor?: string
+    prevCursor?: string
+    hasNext: boolean
+    hasPrev: boolean
   }>({
     queryKey: ['bookings', filters],
     queryFn: async () => {
@@ -140,7 +158,12 @@ export const useBookings = (filters?: {
       if (roomIds && roomIds.length > 0) params.set('roomIds', roomIds.join(','))
       if (search && search.trim()) params.set('search', search.trim())
       if (isTour !== undefined) params.set('isTour', isTour.toString())
-      params.set('page', page.toString())
+      if (cursor) {
+        params.set('cursor', cursor)
+        params.set('cursorDirection', cursorDirection || 'next')
+      } else {
+        params.set('page', page.toString())
+      }
       params.set('limit', limit.toString())
       params.set('sortBy', sortBy)
       params.set('sortOrder', sortOrder)
@@ -156,6 +179,8 @@ export const useBookings = (filters?: {
       if (!response.ok) {
         const errorText = await response.text()
         console.error('API Error Response:', { status: response.status, text: errorText })
+        console.log('Request URL:', `/api/bookings?${params.toString()}`)
+        console.log('Request credentials:', 'include')
         try {
           const error = JSON.parse(errorText)
           throw new Error(error.error || 'Failed to fetch bookings')
@@ -170,7 +195,11 @@ export const useBookings = (filters?: {
         bookings: result.bookings || [],
         totalCount: result.totalCount || 0,
         currentPage: result.currentPage || 1,
-        totalPages: result.totalPages || 1
+        totalPages: result.totalPages || 1,
+        nextCursor: result.nextCursor,
+        prevCursor: result.prevCursor,
+        hasNext: result.hasNext || false,
+        hasPrev: result.hasPrev || false
       }
     },
   })
@@ -241,8 +270,29 @@ export const useUpdateBookingStatus = () => {
       const result = await response.json()
       return result.booking
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] })
+    onSuccess: (updatedBooking) => {
+      // Selective invalidation: only invalidate queries that depend on booking status
+      queryClient.invalidateQueries({
+        queryKey: ['bookings'],
+        refetchType: 'active', // Only refetch active queries
+      })
+
+      // Update specific booking in cache if we have the data
+      if (updatedBooking) {
+        queryClient.setQueryData(['bookings'], (oldData: any) => {
+          if (!oldData?.bookings) return oldData
+          return {
+            ...oldData,
+            bookings: oldData.bookings.map((booking: any) =>
+              booking.id === updatedBooking.id ? { ...booking, ...updatedBooking } : booking
+            )
+          }
+        })
+      }
+
+      // Invalidate related analytics queries that depend on booking status
+      queryClient.invalidateQueries({ queryKey: ['bookingStats'] })
+      queryClient.invalidateQueries({ queryKey: ['calendarBookings'] })
     },
   })
 }
@@ -273,19 +323,72 @@ export const useCreateBooking = () => {
       const result = JSON.parse(responseText)
       return result.booking
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookings'] })
+    onSuccess: (newBooking) => {
+      // Selective invalidation: only invalidate active booking queries
+      queryClient.invalidateQueries({
+        queryKey: ['bookings'],
+        refetchType: 'active',
+      })
+
+      // Optimistically add the new booking to the cache
+      if (newBooking) {
+        queryClient.setQueryData(['bookings'], (oldData: any) => {
+          if (!oldData?.bookings) return oldData
+          return {
+            ...oldData,
+            bookings: [newBooking, ...oldData.bookings],
+            totalCount: (oldData.totalCount || 0) + 1
+          }
+        })
+
+        // Also update calendar bookings if it's a future booking
+        const bookingDate = new Date(newBooking.start_time)
+        const now = new Date()
+        if (bookingDate >= now) {
+          queryClient.invalidateQueries({ queryKey: ['calendarBookings'] })
+        }
+      }
+
+      // Invalidate stats that depend on booking counts
+      queryClient.invalidateQueries({ queryKey: ['bookingStats'] })
     },
   })
 }
 
 // Fetch all rooms
-export const useRooms = () => {
-  return useQuery({
-    queryKey: ['rooms'],
+export const useRooms = (filters?: {
+  page?: number
+  limit?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  cursor?: string
+  cursorDirection?: 'next' | 'prev'
+}) => {
+  const {
+    page = 1,
+    limit = 50,
+    sortBy = 'name',
+    sortOrder = 'asc',
+    cursor,
+    cursorDirection
+  } = filters || {}
+
+  return useQuery<Room[]>({
+    queryKey: ['rooms', filters],
     queryFn: async () => {
       console.log('useRooms: Starting room fetch...')
-      const response = await fetch('/api/rooms', {
+      const params = new URLSearchParams()
+      if (cursor) {
+        params.set('cursor', cursor)
+        params.set('cursorDirection', cursorDirection || 'next')
+      } else {
+        params.set('page', page.toString())
+      }
+      params.set('limit', limit.toString())
+      params.set('sortBy', sortBy)
+      params.set('sortOrder', sortOrder)
+
+      const response = await fetch(`/api/rooms?${params.toString()}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -331,8 +434,33 @@ export const useUpsertRoom = () => {
         return data
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rooms'] })
+    onSuccess: (updatedRoom) => {
+      // Selective invalidation for rooms
+      queryClient.invalidateQueries({
+        queryKey: ['rooms'],
+        refetchType: 'active',
+      })
+
+      // Optimistically update the rooms cache
+      if (updatedRoom) {
+        queryClient.setQueryData(['rooms'], (oldData: any) => {
+          if (!Array.isArray(oldData)) return oldData
+          const existingIndex = oldData.findIndex((room: Room) => room.id === updatedRoom.id)
+          if (existingIndex >= 0) {
+            // Update existing room
+            const newData = [...oldData]
+            newData[existingIndex] = { ...newData[existingIndex], ...updatedRoom }
+            return newData
+          } else {
+            // Add new room
+            return [...oldData, updatedRoom]
+          }
+        })
+      }
+
+      // Invalidate related queries that depend on room data
+      queryClient.invalidateQueries({ queryKey: ['roomUtilization'] })
+      queryClient.invalidateQueries({ queryKey: ['bookingStats'] })
     },
   })
 }
@@ -348,9 +476,26 @@ export const useDeleteRoom = () => {
         .eq('id', id)
 
       if (error) throw error
+      return id // Return the deleted room ID
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rooms'] })
+    onSuccess: (deletedRoomId) => {
+      // Selective invalidation for rooms
+      queryClient.invalidateQueries({
+        queryKey: ['rooms'],
+        refetchType: 'active',
+      })
+
+      // Optimistically remove the room from cache
+      if (deletedRoomId) {
+        queryClient.setQueryData(['rooms'], (oldData: any) => {
+          if (!Array.isArray(oldData)) return oldData
+          return oldData.filter((room: Room) => room.id !== deletedRoomId)
+        })
+      }
+
+      // Invalidate related queries that depend on room data
+      queryClient.invalidateQueries({ queryKey: ['roomUtilization'] })
+      queryClient.invalidateQueries({ queryKey: ['bookingStats'] })
     },
   })
 }
@@ -366,9 +511,28 @@ export const useToggleRoomActive = () => {
         .eq('id', id)
 
       if (error) throw error
+      return { id, is_active: !is_active } // Return updated data
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rooms'] })
+    onSuccess: (updatedData) => {
+      // Selective invalidation for rooms
+      queryClient.invalidateQueries({
+        queryKey: ['rooms'],
+        refetchType: 'active',
+      })
+
+      // Optimistically update the room's active status in cache
+      if (updatedData) {
+        queryClient.setQueryData(['rooms'], (oldData: any) => {
+          if (!Array.isArray(oldData)) return oldData
+          return oldData.map((room: Room) =>
+            room.id === updatedData.id ? { ...room, is_active: updatedData.is_active } : room
+          )
+        })
+      }
+
+      // Invalidate related queries that depend on room availability
+      queryClient.invalidateQueries({ queryKey: ['roomUtilization'] })
+      queryClient.invalidateQueries({ queryKey: ['bookingStats'] })
     },
   })
 }

@@ -12,7 +12,7 @@ import { PageHeader } from '@/components/ui/page-header'
 import { Loading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/components/AuthProvider'
 import { Sparkles, ArrowLeft, CalendarIcon } from 'lucide-react'
 
 import { Room, Booking } from '@/lib/api'
@@ -20,7 +20,7 @@ import { Room, Booking } from '@/lib/api'
 export default function BookRoomPage() {
   const params = useParams()
   const roomId = params.roomId as string
-  const { user, isLoading, isAuthenticated } = useAuth()
+  const { user, isLoading } = useAuth()
   const [room, setRoom] = useState<Room | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
@@ -32,7 +32,7 @@ export default function BookRoomPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!isAuthenticated || !user) {
+      if (!user) {
         setLoading(false)
         return
       }
@@ -85,12 +85,12 @@ export default function BookRoomPage() {
       setLoading(false)
     }
 
-    if (roomId && isAuthenticated && user) {
+    if (roomId && user) {
       fetchData()
-    } else if (!isLoading && !isAuthenticated) {
+    } else if (!isLoading && !user) {
       setLoading(false)
     }
-  }, [roomId, router, isAuthenticated, user, isLoading])
+  }, [roomId, router, user, isLoading])
 
 
 
@@ -98,7 +98,7 @@ export default function BookRoomPage() {
     return <Loading variant="fullscreen" />
   }
 
-  if (!isAuthenticated || !user) {
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

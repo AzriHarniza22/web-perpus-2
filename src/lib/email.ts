@@ -1,21 +1,59 @@
-import nodemailer from 'nodemailer';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 interface BookingNotificationDetails {
   userName: string;
   roomName: string;
   time: string;
+  tourGuide?: string;
+  meetingPoint?: string;
+  participantCount?: number;
 }
 
-function validateEmailConfig() {
+// Edge Runtime compatible email service using Resend
+async function sendWithResend(to: string, subject: string, html: string) {
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@library-reservation.com';
+
+  if (!RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY not configured, skipping email send');
+    return;
+  }
+
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: EMAIL_FROM,
+        to: [to],
+        subject,
+        html,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Resend API error: ${response.status}`);
+    }
+
+    console.log('Email sent successfully via Resend');
+  } catch (error) {
+    console.error('Error sending email via Resend:', error);
+    throw error;
+  }
+}
+
+// Fallback to nodemailer for Node.js runtime (server-side only)
+function createTransporter() {
+  // Dynamic import to avoid Edge Runtime issues
+  const nodemailer = require('nodemailer');
+
   if (!process.env.EMAIL_HOST || !process.env.EMAIL_PORT || !process.env.EMAIL_SECURE || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.error('Missing environment variables: EMAIL_HOST, EMAIL_PORT, EMAIL_SECURE, EMAIL_USER, and/or EMAIL_PASS');
     throw new Error('Required EMAIL environment variables must be set');
   }
-}
-
-function createTransporter() {
-  validateEmailConfig();
 
   return nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
@@ -29,23 +67,32 @@ function createTransporter() {
 }
 
 export async function sendEmail(to: string, subject: string, html?: string, text?: string) {
-  const transporter = createTransporter();
-
   console.log('Sending email to: ' + to + ', subject: ' + subject);
-  const mailOptions = {
-    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-    to,
-    subject,
-    html,
-    text,
-  };
 
+  // Try Resend first (Edge Runtime compatible)
   try {
-    await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully');
-  } catch (error) {
-    console.error('Error sending email:', error);
-    throw error;
+    await sendWithResend(to, subject, html || text || '');
+    return;
+  } catch (resendError) {
+    console.warn('Resend failed, falling back to nodemailer:', resendError);
+
+    // Fallback to nodemailer (Node.js runtime only)
+    try {
+      const transporter = createTransporter();
+      const mailOptions = {
+        from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+        to,
+        subject,
+        html,
+        text,
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log('Email sent successfully via nodemailer');
+    } catch (nodemailerError) {
+      console.error('Both Resend and nodemailer failed:', nodemailerError);
+      throw nodemailerError;
+    }
   }
 }
 export async function sendApprovalNotification(toEmail: string, bookingDetails: BookingNotificationDetails) {
@@ -83,35 +130,50 @@ export async function sendRejectionNotification(toEmail: string, bookingDetails:
 }
 
 export async function sendNewBookingNotificationToAdmin(supabase: SupabaseClient, bookingDetails: BookingNotificationDetails) {
-  const { data: admins, error } = await supabase
-    .from('profiles')
-    .select('email')
-    .eq('role', 'admin');
+  try {
+    const { data: admins, error } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('role', 'admin');
 
-  if (error) {
-    console.error('Error fetching admin emails:', error);
-    throw error;
-  }
+    if (error) {
+      console.error('Error fetching admin emails:', error);
+      throw error;
+    }
 
-  if (!admins || admins.length === 0) {
-    console.warn('No admin users found');
-    return;
-  }
+    if (!admins || admins.length === 0) {
+      console.warn('No admin users found');
+      return;
+    }
 
-  const subject = 'New Booking Request';
-  const html = `
-    <h1>New Booking Request</h1>
-    <p>A new booking has been requested.</p>
-    <p>Details:</p>
-    <ul>
-      <li>Room: ${bookingDetails.roomName}</li>
-      <li>Time: ${bookingDetails.time}</li>
-      <li>User: ${bookingDetails.userName}</li>
-    </ul>
-  `;
+    const subject = bookingDetails.tourGuide ? 'New Tour Booking Request' : 'New Booking Request';
+    const html = `
+      <h1>${subject}</h1>
+      <p>A new ${bookingDetails.tourGuide ? 'tour ' : ''}booking has been requested.</p>
+      <p>Details:</p>
+      <ul>
+        <li>Room: ${bookingDetails.roomName}</li>
+        <li>Time: ${bookingDetails.time}</li>
+        <li>User: ${bookingDetails.userName}</li>
+        ${bookingDetails.tourGuide ? `<li>Tour Guide: ${bookingDetails.tourGuide}</li>` : ''}
+        ${bookingDetails.meetingPoint ? `<li>Meeting Point: ${bookingDetails.meetingPoint}</li>` : ''}
+        ${bookingDetails.participantCount ? `<li>Participants: ${bookingDetails.participantCount}</li>` : ''}
+      </ul>
+    `;
 
-  for (const admin of admins) {
-    console.log('Sending new booking notification to admin: ' + admin.email + ', subject: ' + subject);
-    await sendEmail(admin.email, subject, html);
+    // Send emails asynchronously to avoid blocking
+    const emailPromises = admins.map(admin => {
+      console.log('Sending new booking notification to admin: ' + admin.email + ', subject: ' + subject);
+      return sendEmail(admin.email, subject, html).catch(emailError => {
+        console.error(`Failed to send email to ${admin.email}:`, emailError);
+        // Don't throw - continue with other emails
+      });
+    });
+
+    await Promise.allSettled(emailPromises);
+    console.log('Admin notification emails sent (async)');
+  } catch (error) {
+    console.error('Error in sendNewBookingNotificationToAdmin:', error);
+    // Don't throw - email failures shouldn't break booking creation
   }
 }

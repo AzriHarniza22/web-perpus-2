@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, Users, Clock, CheckCircle, ArrowRight, Play, MapPin, Phone, Mail, Menu, X, Building, Award, Shield, Zap, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import { useCalendarBookings, useRooms, type Room } from '@/lib/api'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/components/AuthProvider'
 import Image from 'next/image'
 import { ImageCarousel } from '@/components/ui/image-carousel'
 

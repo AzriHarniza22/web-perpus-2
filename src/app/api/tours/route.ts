@@ -1,6 +1,95 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNewBookingNotificationToAdmin } from '@/lib/email'
+import {
+  withAuth,
+  parseQueryParams,
+  applyFilters,
+  applyPaginationAndSorting,
+  encodeCursor,
+  type AuthenticatedRequest
+} from '@/lib/api-middleware'
+
+export const runtime = 'edge'
+
+export async function GET(request: NextRequest) {
+  return withAuth(request, async (req: AuthenticatedRequest) => {
+    try {
+      // Parse query parameters using common utility
+      const queryParams = parseQueryParams(request)
+
+      let query = req.supabase
+        .from('bookings')
+        .select(`
+          *,
+          profiles:user_id (
+            full_name,
+            email,
+            institution,
+            role,
+            profile_photo
+          ),
+          rooms:room_id (
+            name,
+            capacity,
+            facilities
+          )
+        `, { count: 'exact' })
+        .eq('is_tour', true)
+
+      // Apply filters using common utility
+      query = applyFilters(query, queryParams)
+
+      // Apply pagination and sorting using common utility
+      query = applyPaginationAndSorting(query, queryParams)
+
+      const { data: tours, error, count } = await query
+
+      console.log('Supabase tours query result:', { toursCount: tours?.length, error, count })
+
+      if (error) {
+        console.error('Tours fetch error:', error)
+        return NextResponse.json({ error: `Failed to fetch tours: ${error.message}` }, { status: 500 })
+      }
+
+      // Generate cursors for cursor-based pagination
+      let nextCursor: string | null = null
+      let prevCursor: string | null = null
+
+      if (tours && tours.length > 0) {
+        const lastTour = tours[tours.length - 1]
+        const firstTour = tours[0]
+
+        // Generate next cursor based on sort field
+        const sortField = queryParams.sortBy || 'created_at'
+        nextCursor = encodeCursor(lastTour[sortField])
+
+        // Generate previous cursor if not on first page
+        if (queryParams.cursor && queryParams.cursorDirection === 'next') {
+          prevCursor = encodeCursor(firstTour[sortField])
+        }
+      }
+
+      const result = {
+        tours: tours || [],
+        totalCount: count || 0,
+        currentPage: queryParams.page || 1,
+        totalPages: Math.ceil((count || 0) / (queryParams.limit || 50)),
+        // Cursor pagination metadata
+        nextCursor,
+        prevCursor,
+        hasNext: tours && tours.length === (queryParams.limit || 50),
+        hasPrev: !!queryParams.cursor && queryParams.cursorDirection === 'next'
+      }
+
+      console.log('Tours API response:', result)
+      return NextResponse.json(result)
+    } catch (error) {
+      console.error('Tours API error:', error)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+  })
+}
 
 export async function POST(request: NextRequest) {
   try {

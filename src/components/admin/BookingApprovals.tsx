@@ -332,8 +332,12 @@ export default function BookingApprovals() {
                   const Icon = config.icon
                   const tourInfo = bookingTypeKey === 'tour' ? getTourInfo(booking) : null
 
-                  const timeDiff = Math.floor((new Date(booking.start_time).getTime() - new Date().getTime()) / (1000 * 60 * 60))
-                  const isUrgent = timeDiff <= 24 && timeDiff > 0 // Starting within 24 hours
+                  const today = new Date()
+                  const tomorrow = new Date(today)
+                  tomorrow.setDate(today.getDate() + 1)
+                  const startDate = new Date(booking.start_time)
+                  const isTomorrow = startDate.toDateString() === tomorrow.toDateString()
+                  const isUrgent = isTomorrow
 
                   return (
                     <motion.tr
@@ -448,7 +452,7 @@ export default function BookingApprovals() {
                             {isUrgent && (
                               <Badge variant="outline" className="w-fit bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800 text-xs px-1.5 py-0">
                                 <AlertTriangle className="w-3 h-3 mr-1" />
-                                Urgent
+                                Besok
                               </Badge>
                             )}
                             <Badge variant="outline" className="w-fit bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800 text-xs px-1.5 py-0">

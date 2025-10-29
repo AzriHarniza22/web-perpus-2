@@ -48,6 +48,8 @@ export default function BookingManagement() {
   const [pageSize, setPageSize] = React.useState(10)
   const [sortKey, setSortKey] = React.useState<string>('created_at')
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('desc')
+  const [cursor, setCursor] = React.useState<string | undefined>()
+  const [cursorDirection, setCursorDirection] = React.useState<'next' | 'prev'>('next')
 
   // Convert date range to API format
   const apiDateRange = dateRange?.from && dateRange?.to ? {
@@ -60,7 +62,8 @@ export default function BookingManagement() {
     status: status.length > 0 ? status : undefined,
     dateRange: apiDateRange,
     roomIds: roomIds.length > 0 ? roomIds : undefined,
-    page: currentPage,
+    cursor: cursor,
+    cursorDirection: cursorDirection,
     limit: pageSize,
     sortBy: sortKey,
     sortOrder: sortDirection,
@@ -127,10 +130,14 @@ export default function BookingManagement() {
     setRoomIds([])
     setBookingType('all')
     setCurrentPage(1)
+    setCursor(undefined)
+    setCursorDirection('next')
   }
 
   const handleApplyFilters = () => {
     setCurrentPage(1) // Reset to first page when applying filters
+    setCursor(undefined)
+    setCursorDirection('next')
   }
 
   const handleSortingChange = (key: string, direction: 'asc' | 'desc' | null) => {
@@ -140,11 +147,29 @@ export default function BookingManagement() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
+    setCursor(undefined)
+    setCursorDirection('next')
   }
 
   const handlePageSizeChange = (size: number) => {
     setPageSize(size)
     setCurrentPage(1)
+    setCursor(undefined)
+    setCursorDirection('next')
+  }
+
+  const handleNextPage = () => {
+    if (bookingsData?.nextCursor) {
+      setCursor(bookingsData.nextCursor)
+      setCursorDirection('next')
+    }
+  }
+
+  const handlePrevPage = () => {
+    if (bookingsData?.prevCursor) {
+      setCursor(bookingsData.prevCursor)
+      setCursorDirection('prev')
+    }
   }
 
   const columns = [
@@ -383,6 +408,10 @@ export default function BookingManagement() {
         sortKey={sortKey}
         sortDirection={sortDirection}
         totalItems={bookingsData?.totalCount || 0}
+        hasNext={bookingsData?.hasNext || false}
+        hasPrev={bookingsData?.hasPrev || false}
+        onNextPage={handleNextPage}
+        onPrevPage={handlePrevPage}
       />
 
       {bookings.length === 0 && (

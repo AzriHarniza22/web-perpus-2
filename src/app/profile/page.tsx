@@ -14,8 +14,7 @@ import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { User as UserIcon, Mail, Building, Phone, Edit, Save, X, CheckCircle, AlertCircle, Camera } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
-import useAuthStore from '@/lib/authStore'
+import { useAuth } from '@/components/AuthProvider'
 
 interface Profile {
   id: string
@@ -29,7 +28,7 @@ interface Profile {
 }
 
 export default function ProfilePage() {
-  const { user, profile, isLoading, isAuthenticated } = useAuth()
+  const { user, isLoading } = useAuth()
   const [saving, setSaving] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -38,26 +37,40 @@ export default function ProfilePage() {
     institution: '',
     phone: ''
   })
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null)
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !user) {
       router.push('/login')
       return
     }
 
-    if (profile) {
-      setFormData({
-        full_name: profile.full_name || '',
-        institution: profile.institution || '',
-        phone: profile.phone || ''
-      })
-      setProfilePhotoPreview(profile.profile_photo)
+    if (user) {
+      // Fetch profile data
+      const fetchProfile = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+
+        if (data) {
+          setProfile(data)
+          setFormData({
+            full_name: data.full_name || '',
+            institution: data.institution || '',
+            phone: data.phone || ''
+          })
+          setProfilePhotoPreview(data.profile_photo)
+        }
+      }
+      fetchProfile()
     }
-  }, [isAuthenticated, profile, isLoading, router])
+  }, [user, isLoading, router])
 
   const handleSave = async () => {
     if (!user) return
@@ -108,8 +121,7 @@ export default function ProfilePage() {
         .single()
 
       if (updatedProfile) {
-        // Update the profile in the auth store
-        useAuthStore.getState().updateProfile(updatedProfile)
+        setProfile(updatedProfile)
       }
 
       setProfilePhotoPreview(profilePhotoUrl)
@@ -183,7 +195,7 @@ export default function ProfilePage() {
     )
   }
 
-  if (!isAuthenticated || !user) {
+  if (!user) {
     return null // Will redirect
   }
 

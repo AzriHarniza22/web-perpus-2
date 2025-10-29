@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/components/AuthProvider'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -34,12 +34,12 @@ export default function AnalyticsPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (!isAuthenticated || !user) {
+      if (!user) {
         router.push('/login')
         return
       }
@@ -60,13 +60,13 @@ export default function AnalyticsPage() {
       setLoading(false)
     }
 
-    if (isAuthenticated && user) {
+    if (user) {
       checkAuth()
-    } else if (!authLoading && !isAuthenticated) {
+    } else if (!authLoading && !user) {
       router.push('/login')
       setLoading(false)
     }
-  }, [isAuthenticated, user, router, authLoading])
+  }, [user, router, authLoading])
 
   if (loading || authLoading) {
     return (
@@ -300,7 +300,7 @@ function AnalyticsContent() {
   const dashboardData = {
     bookings,
     rooms: rooms || [],
-    tours: rooms || [], // Use rooms data as tours for now since tours are stored as rooms
+    tours: [], // TODO: Implement proper tours data fetching
     users,
     isLoading: usersLoading || bookingsLoading || !rooms
   }

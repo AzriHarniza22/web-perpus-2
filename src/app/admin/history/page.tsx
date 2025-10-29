@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/components/AuthProvider'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { Button } from '@/components/ui/button'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { LogOut } from 'lucide-react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import UnifiedBookingManagement from '@/components/admin/UnifiedBookingManagement'
 import { HistoryOverviewCards } from '@/components/admin/analytics/HistoryOverviewCards'
@@ -31,14 +33,14 @@ export default function AdminHistoryPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const { data: bookingsData, isLoading: bookingsLoading } = useBookings()
-  const { data: rooms } = useRooms()
+  const { data: rooms = [] } = useRooms()
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (!isAuthenticated || !user) {
+      if (!user) {
         router.push('/login')
         return
       }
@@ -59,13 +61,13 @@ export default function AdminHistoryPage() {
       setLoading(false)
     }
 
-    if (isAuthenticated && user) {
+    if (user) {
       checkAuth()
-    } else if (!authLoading && !isAuthenticated) {
+    } else if (!authLoading && !user) {
       router.push('/login')
       setLoading(false)
     }
-  }, [isAuthenticated, user, router, authLoading])
+  }, [user, router, authLoading])
 
   if (loading) {
     return (
@@ -177,19 +179,10 @@ export default function AdminHistoryPage() {
             </motion.span>
             <ThemeToggle />
             <form action="/auth/signout" method="post">
-              <button
-                type="submit"
-                className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-              >
-                Keluar
-              </button>
-              <button
-                type="submit"
-                className="sm:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-                aria-label="Keluar dari sistem"
-              >
-                Keluar
-              </button>
+              <Button variant="outline" size="sm" type="submit">
+                <LogOut className="w-4 h-4 lg:mr-2 text-primary" />
+                <span className="hidden lg:inline">Keluar</span>
+              </Button>
             </form>
           </div>
         </div>

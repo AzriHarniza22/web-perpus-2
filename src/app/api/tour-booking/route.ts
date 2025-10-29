@@ -11,6 +11,8 @@ const TOUR_CONFIG = {
   tour_meeting_point: 'Main Entrance'
 }
 
+export const runtime = 'nodejs'
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = createServerClient(
@@ -78,6 +80,7 @@ export async function POST(request: NextRequest) {
     if (start >= end) {
       return NextResponse.json({ error: 'Invalid time range: start time must be before end time' }, { status: 400 })
     }
+
 
     // Check for conflicting approved bookings for the Library Tour room
     const { data: conflicts, error: conflictError } = await supabase
@@ -170,21 +173,19 @@ export async function POST(request: NextRequest) {
 
     console.log('Tour booking inserted successfully');
 
-    // Send notification to admin
-    try {
-      const bookingDetails = {
-        roomName: `${TOUR_CONFIG.tour_name} (${booking.rooms?.name || 'Library Tour'})`,
-        time: `${new Date(booking.start_time).toLocaleString()} - ${new Date(booking.end_time).toLocaleString()}`,
-        userName: booking.profiles?.full_name || 'Unknown User',
-        tourGuide: TOUR_CONFIG.tour_guide,
-        meetingPoint: TOUR_CONFIG.tour_meeting_point,
-        participantCount: participantCount
-      }
-      await sendNewBookingNotificationToAdmin(supabase, bookingDetails)
-    } catch (emailError) {
-      console.error('Tour booking email notification error:', emailError)
-      // Don't fail the booking if email fails
+    // Send notification to admin asynchronously (fire and forget)
+    console.log('Sending tour booking notification to admin asynchronously');
+    const bookingDetails = {
+      roomName: `${TOUR_CONFIG.tour_name} (${booking.rooms?.name || 'Library Tour'})`,
+      time: `${new Date(booking.start_time).toLocaleString()} - ${new Date(booking.end_time).toLocaleString()}`,
+      userName: booking.profiles?.full_name || 'Unknown User',
+      tourGuide: TOUR_CONFIG.tour_guide,
+      meetingPoint: TOUR_CONFIG.tour_meeting_point,
+      participantCount: participantCount
     }
+    sendNewBookingNotificationToAdmin(supabase, bookingDetails).catch(emailError => {
+      console.error('Tour booking email notification error:', emailError)
+    })
 
     return NextResponse.json({
       success: true,
