@@ -46,6 +46,12 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
       label: 'History',
       icon: History,
       active: pathname === '/admin/history'
+    },
+    {
+      href: '/admin/profile',
+      label: 'Profil Admin',
+      icon: Shield,
+      active: pathname === '/admin/profile'
     }
   ]
 

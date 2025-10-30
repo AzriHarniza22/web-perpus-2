@@ -10,26 +10,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Loading } from '@/components/ui/loading'
-import UserSidebar from '@/components/UserSidebar'
+import AdminSidebar from '@/components/admin/AdminSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useToastContext } from '@/components/ToastProvider'
-import { User as UserIcon, Mail, Building, Phone, Edit, Save, X, CheckCircle, AlertCircle, Camera, Lock, Key, Eye, EyeOff } from 'lucide-react'
+import { User as UserIcon, Mail, Building, Phone, Edit, Save, X, CheckCircle, AlertCircle, Camera, Lock, Key, Shield, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 
-interface Profile {
+interface AdminProfile {
   id: string
   email: string
   full_name: string | null
   institution: string | null
   phone: string | null
   profile_photo: string | null
+  role: string
   created_at: string
   updated_at: string
 }
 
-export default function ProfilePage() {
+export default function AdminProfilePage() {
   const { user, isLoading } = useAuth()
   const { success } = useToastContext()
   const [saving, setSaving] = useState(false)
@@ -45,7 +46,7 @@ export default function ProfilePage() {
     newPassword: '',
     confirmPassword: ''
   })
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile, setProfile] = useState<AdminProfile | null>(null)
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null)
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null)
   const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
@@ -61,6 +62,22 @@ export default function ProfilePage() {
     }
 
     if (user) {
+      // Check if user is admin
+      const checkAdminRole = async () => {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+
+        if (profileData?.role !== 'admin') {
+          router.push('/dashboard')
+          return
+        }
+      }
+
+      checkAdminRole()
+
       // Fetch profile data
       const fetchProfile = async () => {
         const { data } = await supabase
@@ -137,7 +154,7 @@ export default function ProfilePage() {
       setProfilePhotoPreview(profilePhotoUrl)
       setProfilePhoto(null)
 
-      success('Profil Berhasil Diperbarui', 'Informasi profil Anda telah disimpan dengan aman.')
+      success('Profil Admin Berhasil Diperbarui', 'Informasi profil admin telah disimpan dengan aman.')
       setIsEditing(false)
     } catch (error) {
       console.error('Error updating profile:', error)
@@ -199,12 +216,12 @@ export default function ProfilePage() {
 
       if (response.ok && result.success) {
         // Close modal and show success toast
-        const modalTrigger = document.getElementById('change-password-trigger') as HTMLButtonElement
+        const modalTrigger = document.getElementById('admin-change-password-trigger') as HTMLButtonElement
         if (modalTrigger) {
           modalTrigger.click() // This will close the dialog
         }
 
-        success('Password Berhasil Diubah', 'Password akun Anda telah diperbarui dengan aman.')
+        success('Password Berhasil Diubah', 'Password akun admin telah diperbarui dengan aman.')
 
         setPasswordData({
           currentPassword: '',
@@ -276,13 +293,13 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sidebar */}
-      <UserSidebar onToggle={setSidebarCollapsed} />
+      {/* Admin Sidebar */}
+      <AdminSidebar onToggle={setSidebarCollapsed} />
 
       {/* Header */}
       <PageHeader
-        title="Kelola Profil"
-        description="Update informasi profil dan preferensi Anda"
+        title="Kelola Profil Admin"
+        description="Update informasi profil dan preferensi admin"
         user={user}
         sidebarCollapsed={sidebarCollapsed}
       />
@@ -302,11 +319,11 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="flex items-center">
-                      <UserIcon className="w-5 h-5 mr-2 text-primary" />
-                      Informasi Profil
+                      <Shield className="w-5 h-5 mr-2 text-primary" />
+                      Informasi Profil Admin
                     </CardTitle>
                     <CardDescription>
-                      Kelola informasi pribadi Anda
+                      Kelola informasi pribadi admin
                     </CardDescription>
                   </div>
                   {!isEditing && (
@@ -324,7 +341,7 @@ export default function ProfilePage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            id="change-password-trigger"
+                            id="admin-change-password-trigger"
                           >
                             <Key className="w-4 h-4 mr-2" />
                             Ubah Password
@@ -334,10 +351,10 @@ export default function ProfilePage() {
                           <DialogHeader>
                             <DialogTitle className="flex items-center">
                               <Lock className="w-5 h-5 mr-2 text-primary" />
-                              Ubah Password
+                              Ubah Password Admin
                             </DialogTitle>
                             <DialogDescription>
-                              Ubah password akun Anda untuk keamanan yang lebih baik
+                              Ubah password akun admin untuk keamanan yang lebih baik
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-6">
@@ -376,13 +393,13 @@ export default function ProfilePage() {
                             >
                               {/* Current Password */}
                               <div className="space-y-2">
-                                <Label htmlFor="current_password" className="text-sm font-medium flex items-center">
+                                <Label htmlFor="admin_current_password" className="text-sm font-medium flex items-center">
                                   <Lock className="w-4 h-4 mr-2 text-gray-400" />
                                   Password Saat Ini
                                 </Label>
                                 <div className="relative">
                                   <Input
-                                    id="current_password"
+                                    id="admin_current_password"
                                     type={showCurrentPassword ? "text" : "password"}
                                     value={passwordData.currentPassword}
                                     onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
@@ -402,13 +419,13 @@ export default function ProfilePage() {
 
                               {/* New Password */}
                               <div className="space-y-2">
-                                <Label htmlFor="new_password" className="text-sm font-medium flex items-center">
+                                <Label htmlFor="admin_new_password" className="text-sm font-medium flex items-center">
                                   <Key className="w-4 h-4 mr-2 text-gray-400" />
                                   Password Baru
                                 </Label>
                                 <div className="relative">
                                   <Input
-                                    id="new_password"
+                                    id="admin_new_password"
                                     type={showNewPassword ? "text" : "password"}
                                     value={passwordData.newPassword}
                                     onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
@@ -428,13 +445,13 @@ export default function ProfilePage() {
 
                               {/* Confirm New Password */}
                               <div className="space-y-2">
-                                <Label htmlFor="confirm_password" className="text-sm font-medium flex items-center">
+                                <Label htmlFor="admin_confirm_password" className="text-sm font-medium flex items-center">
                                   <Key className="w-4 h-4 mr-2 text-gray-400" />
                                   Konfirmasi Password Baru
                                 </Label>
                                 <div className="relative">
                                   <Input
-                                    id="confirm_password"
+                                    id="admin_confirm_password"
                                     type={showConfirmPassword ? "text" : "password"}
                                     value={passwordData.confirmPassword}
                                     onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
@@ -485,7 +502,7 @@ export default function ProfilePage() {
                 {/* Profile Photo */}
                 <div className="flex flex-col items-center space-y-4">
                   <Avatar className="w-24 h-24">
-                    <AvatarImage src={profilePhotoPreview || undefined} alt="Profile" />
+                    <AvatarImage src={profilePhotoPreview || undefined} alt="Admin Profile" />
                     <AvatarFallback className="text-2xl">
                       {profile?.full_name ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : user?.email?.[0].toUpperCase()}
                     </AvatarFallback>
@@ -497,10 +514,10 @@ export default function ProfilePage() {
                         accept="image/*"
                         onChange={handlePhotoChange}
                         className="hidden"
-                        id="profile-photo"
+                        id="admin-profile-photo"
                       />
                       <Label
-                        htmlFor="profile-photo"
+                        htmlFor="admin-profile-photo"
                         className="flex items-center gap-2 px-4 py-2 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
                       >
                         <Camera className="w-4 h-4 text-primary" />
@@ -513,12 +530,12 @@ export default function ProfilePage() {
 
                 {/* Email (Read-only) */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium flex items-center">
+                  <Label htmlFor="admin_email" className="text-sm font-medium flex items-center">
                     <Mail className="w-4 h-4 mr-2 text-gray-400" />
                     Email
                   </Label>
                   <Input
-                    id="email"
+                    id="admin_email"
                     value={user.email || ''}
                     disabled
                     className="bg-gray-50 dark:bg-gray-800"
@@ -526,14 +543,29 @@ export default function ProfilePage() {
                   <p className="text-xs text-gray-500">Email tidak dapat diubah</p>
                 </div>
 
+                {/* Role (Read-only) */}
+                <div className="space-y-2">
+                  <Label htmlFor="admin_role" className="text-sm font-medium flex items-center">
+                    <Shield className="w-4 h-4 mr-2 text-gray-400" />
+                    Role
+                  </Label>
+                  <Input
+                    id="admin_role"
+                    value="Administrator"
+                    disabled
+                    className="bg-gray-50 dark:bg-gray-800"
+                  />
+                  <p className="text-xs text-gray-500">Role admin tidak dapat diubah</p>
+                </div>
+
                 {/* Full Name */}
                 <div className="space-y-2">
-                  <Label htmlFor="full_name" className="text-sm font-medium flex items-center">
+                  <Label htmlFor="admin_full_name" className="text-sm font-medium flex items-center">
                     <UserIcon className="w-4 h-4 mr-2 text-gray-400" />
                     Nama Lengkap
                   </Label>
                   <Input
-                    id="full_name"
+                    id="admin_full_name"
                     value={formData.full_name}
                     onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
                     disabled={!isEditing}
@@ -543,12 +575,12 @@ export default function ProfilePage() {
 
                 {/* Institution */}
                 <div className="space-y-2">
-                  <Label htmlFor="institution" className="text-sm font-medium flex items-center">
+                  <Label htmlFor="admin_institution" className="text-sm font-medium flex items-center">
                     <Building className="w-4 h-4 mr-2 text-gray-400" />
                     Institusi
                   </Label>
                   <Input
-                    id="institution"
+                    id="admin_institution"
                     value={formData.institution}
                     onChange={(e) => setFormData(prev => ({ ...prev, institution: e.target.value }))}
                     disabled={!isEditing}
@@ -558,12 +590,12 @@ export default function ProfilePage() {
 
                 {/* Phone */}
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm font-medium flex items-center">
+                  <Label htmlFor="admin_phone" className="text-sm font-medium flex items-center">
                     <Phone className="w-4 h-4 mr-2 text-gray-400" />
                     Nomor Telepon
                   </Label>
                   <Input
-                    id="phone"
+                    id="admin_phone"
                     value={formData.phone}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                     disabled={!isEditing}
@@ -573,7 +605,7 @@ export default function ProfilePage() {
 
                 {/* Account Info */}
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Informasi Akun</h3>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Informasi Akun Admin</h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-gray-500 dark:text-gray-400">Bergabung sejak</p>

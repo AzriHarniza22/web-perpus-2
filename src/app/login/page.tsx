@@ -15,6 +15,7 @@ import { validateLoginData } from '@/lib/validation'
 import { handleError } from '@/lib/errors'
 import { LoginData } from '@/lib/types'
 import { useDebouncedValidation } from '@/hooks/useDebouncedValidation'
+import { ForgotPasswordModal } from '@/components/ForgotPasswordModal'
 import Image from 'next/image'
 
 export default function LoginPage({
@@ -34,6 +35,8 @@ export default function LoginPage({
     email: false,
     password: false,
   })
+  const [hasInteracted, setHasInteracted] = useState(false)
+  const [showValidationErrors, setShowValidationErrors] = useState(false)
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const router = useRouter()
   const supabase = createClient()
@@ -47,20 +50,25 @@ export default function LoginPage({
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+    setHasInteracted(true)
+    setShowValidationErrors(true)
     debouncedValidate({ ...formData, [name]: value })
   }, [formData, debouncedValidate])
 
   const handleFieldBlur = useCallback((field: keyof LoginData) => {
     setTouched(prev => ({ ...prev, [field]: true }))
-    // Validate only this field on blur
-    const errors = validateLoginData(formData)
-    const fieldErrors = errors.filter(error => error.field === field)
-    setValidationErrors(prev => {
-      // Remove existing errors for this field and add new ones
-      const filtered = prev.filter(error => error.field !== field)
-      return [...filtered, ...fieldErrors]
-    })
-  }, [formData])
+    // Only show validation errors if user has interacted with the form and validation is enabled
+    if (hasInteracted && showValidationErrors) {
+      // Validate only this field on blur
+      const errors = validateLoginData(formData)
+      const fieldErrors = errors.filter(error => error.field === field)
+      setValidationErrors(prev => {
+        // Remove existing errors for this field and add new ones
+        const filtered = prev.filter(error => error.field !== field)
+        return [...filtered, ...fieldErrors]
+      })
+    }
+  }, [formData, hasInteracted, showValidationErrors])
 
   const handleFieldFocus = useCallback((field: keyof LoginData) => {
     // Clear errors for this field when user starts typing
@@ -72,6 +80,8 @@ export default function LoginPage({
     setError('')
     setValidationErrors([])
     setIsLoggingIn(true)
+    setHasInteracted(true)
+    setShowValidationErrors(true)
 
     try {
       console.log('🔄 Starting login for:', formData.email)
@@ -351,6 +361,17 @@ export default function LoginPage({
                         </motion.p>
                       )}
                     </AnimatePresence>
+                  </motion.div>
+
+                  <motion.div variants={itemVariants} className="flex justify-end">
+                    <ForgotPasswordModal>
+                      <button
+                        type="button"
+                        className="text-sm text-primary hover:text-primary dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                      >
+                        Lupa password?
+                      </button>
+                    </ForgotPasswordModal>
                   </motion.div>
 
                   <AnimatePresence>
