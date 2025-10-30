@@ -7,6 +7,8 @@ export type Profile = {
   id: string
   email: string
   full_name: string | null
+  institution: string | null
+  phone: string | null
   role: 'user' | 'admin' | 'staff'
   created_at: string
   updated_at: string
@@ -22,6 +24,8 @@ export const getUser = cache(async (): Promise<User | null> => {
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
 
+    console.log(`[AUTH] getUser called, user: ${user ? user.id : 'null'}, error: ${error ? error.message : 'none'}`)
+
     if (error) {
       // Only log non-session-missing errors
       if (!error.message.includes('Auth session missing')) {
@@ -32,6 +36,7 @@ export const getUser = cache(async (): Promise<User | null> => {
 
     return user
   } catch (err) {
+    console.error('[AUTH] Unexpected error in getUser:', err)
     // Handle any unexpected errors silently
     return null
   }
@@ -44,7 +49,10 @@ export const getUser = cache(async (): Promise<User | null> => {
  */
 export const getProfile = cache(async (): Promise<Profile | null> => {
   const user = await getUser()
-  if (!user) return null
+  if (!user) {
+    console.log('[AUTH] getProfile: no user, returning null')
+    return null
+  }
 
   const supabase = await createClient()
   const { data: profile, error } = await supabase
@@ -52,6 +60,8 @@ export const getProfile = cache(async (): Promise<Profile | null> => {
     .select('*')
     .eq('id', user.id)
     .single()
+
+  console.log(`[AUTH] getProfile: user ${user.id}, profile found: ${!!profile}, role: ${profile?.role}, error: ${error ? error.message : 'none'}`)
 
   if (error) {
     console.error('Error getting profile:', error.message)
@@ -84,11 +94,17 @@ export const requireAuth = async (redirectTo?: string): Promise<User> => {
 export const requireAdmin = async (): Promise<Profile> => {
   const user = await requireAuth()
   const profile = await getProfile()
-  
+
+  console.log(`[AUTH] requireAdmin: user ${user.id}, profile role: ${profile?.role}`)
+  console.log(`[AUTH] requireAdmin: full profile details:`, profile)
+
   if (!profile || profile.role !== 'admin') {
+    console.log(`[AUTH] requireAdmin: access denied, redirecting to home`)
+    console.log(`[AUTH] requireAdmin: profile exists: ${!!profile}, role check: ${profile?.role !== 'admin'}`)
     redirect('/')
   }
-  
+
+  console.log(`[AUTH] requireAdmin: access granted for admin user`)
   return profile
 }
 

@@ -32,6 +32,8 @@ export async function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname
 
+  console.log(`[MIDDLEWARE] Path: ${path}, User: ${user ? user.id : 'null'}`)
+
   // Define route patterns
   const isAuthPage = path === '/login' || path === '/signup' || path === '/confirm'
   const isPublicPage = path === '/' || path.startsWith('/rooms')
@@ -43,6 +45,7 @@ export async function middleware(request: NextRequest) {
   if (user && isAuthPage) {
     const profile = await getProfileRole(supabase, user.id)
     const redirectTo = profile?.role === 'admin' ? '/admin' : '/dashboard'
+    console.log(`[MIDDLEWARE] Redirecting authenticated user from auth page to: ${redirectTo}, role: ${profile?.role}`)
     return NextResponse.redirect(new URL(redirectTo, request.url))
   }
 
@@ -51,13 +54,17 @@ export async function middleware(request: NextRequest) {
     const redirectUrl = new URL('/login', request.url)
     // Save original destination for redirect after login
     redirectUrl.searchParams.set('redirect', path)
+    console.log(`[MIDDLEWARE] Redirecting unauthenticated user to login, original path: ${path}`)
     return NextResponse.redirect(redirectUrl)
   }
 
   // Check admin authorization for admin pages
   if (user && isAdminPage) {
     const profile = await getProfileRole(supabase, user.id)
+    console.log(`[MIDDLEWARE] Admin page access check - User: ${user.id}, Role: ${profile?.role}`)
     if (profile?.role !== 'admin') {
+      console.log(`[MIDDLEWARE] Non-admin user accessing admin page, redirecting to dashboard`)
+      console.log(`[MIDDLEWARE] Profile details:`, profile)
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }

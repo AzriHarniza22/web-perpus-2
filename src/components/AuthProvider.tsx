@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
@@ -25,19 +25,23 @@ export function AuthProvider({
   const [user, setUser] = useState<User | null>(initialUser)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     // Listen to auth state changes for real-time updates
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session?.user?.id)
+      console.log('[AUTH PROVIDER] Auth state changed:', event, session?.user?.id)
+      console.log('[AUTH PROVIDER] Current URL:', window.location.href)
+      console.log('[AUTH PROVIDER] Event details:', { event, hasSession: !!session, userId: session?.user?.id })
+      console.log('[AUTH PROVIDER] Session details:', session)
 
       setUser(session?.user ?? null)
 
-      // Refresh router to update Server Components with new auth state
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+      // Only refresh router for SIGNED_OUT to avoid conflicts with login redirects
+      if (event === 'SIGNED_OUT') {
+        console.log('[AUTH PROVIDER] Refreshing router due to auth state change (SIGNED_OUT only)')
         router.refresh()
       }
 
@@ -45,9 +49,10 @@ export function AuthProvider({
     })
 
     return () => {
+      console.log('[AUTH PROVIDER] Cleaning up auth subscription')
       subscription.unsubscribe()
     }
-  }, [supabase, router])
+  }, [supabase])
 
   return (
     <AuthContext.Provider value={{ user, isLoading }}>

@@ -9,41 +9,7 @@ interface BookingNotificationDetails {
   participantCount?: number;
 }
 
-// Edge Runtime compatible email service using Resend
-async function sendWithResend(to: string, subject: string, html: string) {
-  const RESEND_API_KEY = process.env.RESEND_API_KEY;
-  const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@library-reservation.com';
-
-  if (!RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY not configured, skipping email send');
-    return;
-  }
-
-  try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: EMAIL_FROM,
-        to: [to],
-        subject,
-        html,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Resend API error: ${response.status}`);
-    }
-
-    console.log('Email sent successfully via Resend');
-  } catch (error) {
-    console.error('Error sending email via Resend:', error);
-    throw error;
-  }
-}
+// SMTP email service using nodemailer
 
 // Fallback to nodemailer for Node.js runtime (server-side only)
 function createTransporter() {
@@ -69,30 +35,22 @@ function createTransporter() {
 export async function sendEmail(to: string, subject: string, html?: string, text?: string) {
   console.log('Sending email to: ' + to + ', subject: ' + subject);
 
-  // Try Resend first (Edge Runtime compatible)
+  // Use SMTP directly with nodemailer (Node.js runtime only)
   try {
-    await sendWithResend(to, subject, html || text || '');
-    return;
-  } catch (resendError) {
-    console.warn('Resend failed, falling back to nodemailer:', resendError);
+    const transporter = createTransporter();
+    const mailOptions = {
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+      to,
+      subject,
+      html,
+      text,
+    };
 
-    // Fallback to nodemailer (Node.js runtime only)
-    try {
-      const transporter = createTransporter();
-      const mailOptions = {
-        from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-        to,
-        subject,
-        html,
-        text,
-      };
-
-      await transporter.sendMail(mailOptions);
-      console.log('Email sent successfully via nodemailer');
-    } catch (nodemailerError) {
-      console.error('Both Resend and nodemailer failed:', nodemailerError);
-      throw nodemailerError;
-    }
+    await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully via SMTP');
+  } catch (error) {
+    console.error('SMTP email send failed:', error);
+    throw error;
   }
 }
 export async function sendApprovalNotification(toEmail: string, bookingDetails: BookingNotificationDetails) {

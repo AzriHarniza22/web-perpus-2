@@ -19,7 +19,7 @@ interface Profile {
   full_name: string | null;
   institution: string | null;
   phone: string | null;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'staff';
   created_at: string;
   updated_at: string;
 }

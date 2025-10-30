@@ -107,22 +107,29 @@ export default function LoginPage({
       }
 
       // Get user profile to determine redirect
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', data.user.id)
         .single()
 
-      // Redirect based on role or saved redirect path
-       if (params?.redirect) {
-         router.push(params.redirect)
-       } else {
-         const destination = profile?.role === 'admin' ? '/admin' : '/dashboard'
-         router.push(destination)
-       }
+      console.log(`[LOGIN] Profile lookup result: role=${profile?.role}, error=${profileError ? profileError.message : 'none'}`)
+      console.log(`[LOGIN] Profile data:`, profile)
+      console.log(`[LOGIN] Profile error details:`, profileError)
 
-      // Refresh to update server components
-      router.refresh()
+      // Redirect based on role or saved redirect path
+      const destination = params?.redirect || (profile?.role === 'admin' ? '/admin' : '/dashboard')
+      console.log(`[LOGIN] Redirecting to: ${destination}`)
+      console.log(`[LOGIN] Current URL before redirect:`, window.location.href)
+
+      // Use window.location for immediate navigation instead of router.push
+      // This ensures the navigation happens before any potential router.refresh interference
+      console.log(`[LOGIN] Using window.location.href for navigation to: ${destination}`)
+      window.location.href = destination
+
+      // Add client-side logging for debugging
+      console.log(`[LOGIN] Client-side: Login successful, redirecting to ${destination}`)
+      console.log(`[LOGIN] Client-side: User ID: ${data.user.id}, Role: ${profile?.role}`)
     } catch (error: unknown) {
       const appError = handleError(error)
       setError(appError.message)
