@@ -224,13 +224,13 @@ export default function BookingManagement() {
       header: 'User',
       render: (booking: BookingWithRelations) => (
         <div>
-          <div className="font-medium">{booking.profiles?.full_name}</div>
+          <div className="font-medium">{booking.contact_name || 'N/A'}</div>
           <div className="text-sm text-muted-foreground">
             {booking.profiles?.email}
           </div>
-          {booking.profiles?.institution && (
+          {booking.contact_institution && (
             <div className="text-xs text-muted-foreground">
-              {booking.profiles.institution}
+              {booking.contact_institution}
             </div>
           )}
         </div>

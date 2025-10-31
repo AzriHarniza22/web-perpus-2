@@ -13,15 +13,13 @@ jest.mock('@/lib/supabase/server', () => ({
 }))
 
 // Mock NextRequest and NextResponse
-const mockNextResponse = {
-  json: jest.fn(),
-  status: 200
-}
-
 jest.mock('next/server', () => ({
   NextRequest: jest.fn(),
   NextResponse: {
-    json: jest.fn(() => mockNextResponse)
+    json: jest.fn((data: any, options?: { status?: number }) => ({
+      json: () => Promise.resolve(data),
+      status: options?.status || 200
+    }))
   }
 }))
 

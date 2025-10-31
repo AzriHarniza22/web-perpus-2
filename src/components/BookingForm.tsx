@@ -32,6 +32,8 @@ const bookingSchema = z.object({
   endMinute: z.string().min(1, 'Please select end minute'),
   eventDescription: z.string().min(1, 'Event description is required'),
   guestCount: z.number().min(1, 'Please enter at least 1 guest').max(100, 'Maximum 100 guests'),
+  contactName: z.string().min(1, 'Contact name is required'),
+  contactInstitution: z.string().min(1, 'Institution is required'),
   notes: z.string().optional(),
   proposalFile: z.string().optional(),
 }).refine((data) => data.selectedDate !== undefined, {
@@ -104,6 +106,8 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
       endMinute: '00',
       eventDescription: '',
       guestCount: 1,
+      contactName: '',
+      contactInstitution: '',
       notes: '',
       proposalFile: undefined,
     },
@@ -175,6 +179,8 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
       status: 'pending',
       event_description: data.eventDescription,
       guest_count: data.guestCount,
+      contact_name: data.contactName,
+      contact_institution: data.contactInstitution,
       notes: data.notes || '',
       proposal_file: uploadedFilePath,
       created_at: new Date().toISOString(),
@@ -194,6 +200,8 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
       status: 'pending',
       event_description: data.eventDescription,
       guest_count: data.guestCount,
+      contact_name: data.contactName,
+      contact_institution: data.contactInstitution,
       notes: data.notes || '',
       proposal_file: uploadedFilePath,
     }
@@ -432,6 +440,32 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
           </CardHeader>
           <CardContent>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div>
+                <Label htmlFor="contactName">Nama Kontak</Label>
+                <Input
+                  id="contactName"
+                  {...form.register('contactName')}
+                  placeholder="Masukkan nama kontak"
+                  className={cn(form.formState.errors.contactName && "border-red-500")}
+                />
+                {form.formState.errors.contactName && (
+                  <p className="text-sm text-red-500 mt-1">{form.formState.errors.contactName.message}</p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="contactInstitution">Institusi</Label>
+                <Input
+                  id="contactInstitution"
+                  {...form.register('contactInstitution')}
+                  placeholder="Masukkan nama institusi"
+                  className={cn(form.formState.errors.contactInstitution && "border-red-500")}
+                />
+                {form.formState.errors.contactInstitution && (
+                  <p className="text-sm text-red-500 mt-1">{form.formState.errors.contactInstitution.message}</p>
+                )}
+              </div>
+
               {/* Time Selection */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -492,6 +526,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                 </div>
               </div>
 
+
               <div>
                 <Label htmlFor="eventDescription">Deskripsi Acara</Label>
                 <Textarea
@@ -518,6 +553,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                   <p className="text-sm text-red-500 mt-1">{form.formState.errors.guestCount.message}</p>
                 )}
               </div>
+
 
               <div>
                 <Label htmlFor="notes">Catatan Tambahan</Label>

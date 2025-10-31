@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import BookingDetailModal from '@/components/admin/BookingDetailModal'
 import type { BookingWithRelations } from '@/lib/api'
 
@@ -109,7 +110,9 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
       booking.notes?.toLowerCase().includes(searchLower) ||
       booking.profiles?.full_name?.toLowerCase().includes(searchLower) ||
       booking.profiles?.email?.toLowerCase().includes(searchLower) ||
-      booking.rooms?.name?.toLowerCase().includes(searchLower)
+      booking.rooms?.name?.toLowerCase().includes(searchLower) ||
+      booking.contact_name?.toLowerCase().includes(searchLower) ||
+      booking.contact_institution?.toLowerCase().includes(searchLower)
     )
   }, [bookingsData?.bookings, search])
 
@@ -231,6 +234,12 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
   }
 
   const handleViewDetails = (booking: BookingWithRelations) => {
+    console.log('DEBUG - Admin viewing booking details in history:', {
+      id: booking.id,
+      contact_name: booking.contact_name,
+      contact_institution: booking.contact_institution,
+      user_profile: booking.profiles
+    })
     setSelectedBooking(booking)
     setDetailModalOpen(true)
   }
@@ -274,15 +283,26 @@ export default function UnifiedBookingManagement({ readonly = false }: UnifiedBo
       key: 'user',
       header: 'User',
       render: (booking: BookingWithRelations) => (
-        <div className="text-sm" title={`${booking.profiles?.full_name} - ${booking.profiles?.email}${booking.profiles?.institution ? ` (${booking.profiles.institution})` : ''}`}>
-          <div className="font-medium truncate">{booking.profiles?.full_name}</div>
-          <div className="text-xs text-muted-foreground truncate">
-            {booking.profiles?.email}
+        <div className="flex items-center space-x-2 text-sm" title={`${booking.contact_name || 'N/A'} - ${booking.contact_institution || 'N/A'}`}>
+          <Avatar className="w-6 h-6">
+            <AvatarImage
+              src={booking.profiles?.profile_photo || undefined}
+              alt={booking.contact_name || 'User'}
+            />
+            <AvatarFallback className="text-xs">
+              {(booking.contact_name || 'N/A').charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <div className="font-medium truncate">{booking.contact_name || 'N/A'}</div>
+            <div className="text-xs text-muted-foreground truncate">
+              {booking.contact_institution || 'N/A'}
+            </div>
           </div>
         </div>
       ),
       sortable: false,
-      className: 'w-32 pl-1',
+      className: 'w-40 pl-1',
     },
     {
       key: 'event',

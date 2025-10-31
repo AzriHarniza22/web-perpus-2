@@ -101,7 +101,9 @@ export default function TourManagement() {
        booking.event_description?.toLowerCase().includes(searchLower) ||
        booking.notes?.toLowerCase().includes(searchLower) ||
        booking.profiles?.full_name?.toLowerCase().includes(searchLower) ||
-       booking.profiles?.email?.toLowerCase().includes(searchLower)
+       booking.profiles?.email?.toLowerCase().includes(searchLower) ||
+       booking.contact_name?.toLowerCase().includes(searchLower) ||
+       booking.contact_institution?.toLowerCase().includes(searchLower)
      )
    }, [bookingsData?.bookings, search])
 
@@ -217,13 +219,10 @@ export default function TourManagement() {
       header: 'User',
       render: (booking: BookingWithRelations) => (
         <div>
-          <div className="font-medium">{booking.profiles?.full_name}</div>
-          <div className="text-sm text-muted-foreground">
-            {booking.profiles?.email}
-          </div>
-          {booking.profiles?.institution && (
-            <div className="text-xs text-muted-foreground">
-              {booking.profiles.institution}
+          <div className="font-medium">{booking.contact_name || 'Not specified'}</div>
+          {booking.contact_institution && (
+            <div className="text-sm text-muted-foreground">
+              {booking.contact_institution}
             </div>
           )}
         </div>

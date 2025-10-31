@@ -191,3 +191,7 @@ CREATE TRIGGER handle_updated_at_rooms BEFORE UPDATE ON public.rooms
 DROP TRIGGER IF EXISTS handle_updated_at_bookings ON public.bookings;
 CREATE TRIGGER handle_updated_at_bookings BEFORE UPDATE ON public.bookings
   FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+
+-- Add contact columns to bookings table
+ALTER TABLE public.bookings ADD COLUMN contact_name TEXT;
+ALTER TABLE public.bookings ADD COLUMN contact_institution TEXT;

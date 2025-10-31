@@ -203,6 +203,12 @@ export default function BookingDetailModal({
                       {booking.profiles?.institution && (
                         <p className="text-xs text-muted-foreground">{booking.profiles.institution}</p>
                       )}
+                      {booking.contact_name && (
+                        <p className="text-xs text-muted-foreground">Kontak: {booking.contact_name}</p>
+                      )}
+                      {booking.contact_institution && (
+                        <p className="text-xs text-muted-foreground">Institusi Kontak: {booking.contact_institution}</p>
+                      )}
                     </div>
                   </div>
                 </div>

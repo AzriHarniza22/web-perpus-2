@@ -29,6 +29,8 @@ export interface Booking {
   is_tour?: boolean
   created_at: string
   updated_at?: string
+  contact_name?: string | null
+  contact_institution?: string | null
 }
 
 export interface BookingWithRelations extends Booking {
@@ -46,6 +48,8 @@ export interface BookingWithRelations extends Booking {
     facilities?: string[]
   }
   guest_count?: number
+  contact_name?: string | null
+  contact_institution?: string | null
 }
 
 export interface CursorPaginationResponse<T> {

@@ -30,6 +30,8 @@ const bookingSchema = z.object({
   endMinute: z.string().min(1, 'Please select end minute'),
   eventDescription: z.string().min(1, 'Event description is required'),
   guestCount: z.number().min(1, 'Please enter at least 1 guest').max(100, 'Maximum 100 guests'),
+  contactName: z.string().min(1, 'Contact name is required'),
+  institution: z.string().min(1, 'Institution is required'),
   notes: z.string().optional(),
   proposalFile: z.instanceof(File).optional().refine((file) => {
     if (!file) return true;
@@ -58,9 +60,10 @@ interface ReservationFormCardProps {
   room: Room
   existingBookings: Booking[]
   selectedDate?: Date
+  isTour?: boolean
 }
 
-export default function ReservationFormCard({ room, existingBookings, selectedDate }: ReservationFormCardProps) {
+export default function ReservationFormCard({ room, existingBookings, selectedDate, isTour = false }: ReservationFormCardProps) {
   const router = useRouter()
   const { user } = useAuth()
   const createBookingMutation = useCreateBooking()
@@ -78,6 +81,8 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
       endMinute: '00',
       eventDescription: '',
       guestCount: 1,
+      contactName: '',
+      institution: '',
       notes: '',
       proposalFile: undefined,
     },
@@ -86,6 +91,14 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
 
   const onSubmit = async (data: BookingFormData) => {
     console.log(`ReservationFormCard: onSubmit, user=${user ? user.id : 'null'}`)
+    console.log('DEBUG - Form data being submitted:', {
+      contactName: data.contactName,
+      institution: data.institution,
+      eventDescription: data.eventDescription,
+      guestCount: data.guestCount,
+      startHour: data.startHour,
+      endHour: data.endHour
+    })
     if (!user || !selectedDate) {
       form.setError('root', { message: 'Not authenticated or no date selected' })
       return
@@ -161,8 +174,11 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
       status: 'pending',
       event_description: data.eventDescription,
       guest_count: data.guestCount,
+      contact_name: data.contactName,
+      contact_institution: data.institution,
       notes: data.notes || '',
       proposal_file: filePath,
+      is_tour: isTour,
     }
 
     createBookingMutation.mutate(bookingData, {
@@ -211,6 +227,31 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
           )}
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
+            <div className="space-y-2">
+              <Label htmlFor="contactName" className="text-sm font-medium">Nama</Label>
+              <Input
+                id="contactName"
+                {...form.register('contactName')}
+                placeholder="Nama lengkap kontak"
+                className={cn("h-9", form.formState.errors.contactName && "border-red-500")}
+              />
+              {form.formState.errors.contactName && (
+                <p className="text-xs text-red-500">{form.formState.errors.contactName.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="institution" className="text-sm font-medium">Institusi</Label>
+              <Input
+                id="institution"
+                {...form.register('institution')}
+                placeholder="Nama institusi atau organisasi"
+                className={cn("h-9", form.formState.errors.institution && "border-red-500")}
+              />
+              {form.formState.errors.institution && (
+                <p className="text-xs text-red-500">{form.formState.errors.institution.message}</p>
+              )}
+            </div>
             {/* Time Selection - Optimized for equal width layout */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
@@ -297,6 +338,7 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
                 <p className="text-xs text-red-500">{form.formState.errors.guestCount.message}</p>
               )}
             </div>
+
 
             <div className="space-y-2">
               <Label htmlFor="notes" className="text-sm font-medium">Catatan Tambahan</Label>

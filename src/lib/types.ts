@@ -71,6 +71,8 @@ export interface Booking {
   is_tour: boolean
   created_at: string
   updated_at: string
+  contact_name: string | null
+  contact_institution: string | null
   // Tour-specific fields (added by tour schema update)
   tour_meeting_point?: string | null
   tour_guide?: string | null

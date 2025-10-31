@@ -111,7 +111,15 @@ export async function POST(request: NextRequest) {
         return errorResponse('Invalid JSON', 400)
       }
 
-      const { room_id, start_time, end_time, event_description, proposal_file, notes } = body
+      const { room_id, start_time, end_time, event_description, proposal_file, notes, contact_name, contact_institution, is_tour } = body
+
+      console.log('DEBUG - API received booking data:', {
+        room_id,
+        contact_name,
+        contact_institution,
+        event_description,
+        notes
+      })
 
       if (!room_id || !start_time || !end_time) {
         return errorResponse('Missing required fields', 400)
@@ -152,8 +160,10 @@ export async function POST(request: NextRequest) {
         event_description,
         proposal_file,
         notes,
+        contact_name,
+        contact_institution,
         status: 'pending',
-        is_tour: false
+        is_tour: is_tour ?? false
       }
 
       const { data: booking, error: insertError } = await req.supabase

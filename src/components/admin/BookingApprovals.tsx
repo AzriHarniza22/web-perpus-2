@@ -88,21 +88,6 @@ export default function BookingApprovals() {
   const bookings = bookingsData?.bookings || []
   const updateBookingStatusMutation = useUpdateBookingStatus()
 
-  // Helper function to get tour information from booking
-  const getTourInfo = (booking: BookingWithRelations) => {
-    // For tour bookings, we can extract tour info from the booking data
-    // This removes the dependency on mock data
-    const tourName = booking.event_description?.replace('Tour: ', '').split(' - ')[0] || 'Tour Khusus'
-    return {
-      name: tourName,
-      duration: 60, // Default duration
-      maxParticipants: booking.guest_count || 10,
-      meetingPoint: 'Lokasi Tour',
-      guideName: 'Guide Tour',
-      guideContact: 'guide@library.edu',
-      description: booking.event_description || 'Deskripsi tour tidak tersedia'
-    }
-  }
 
   // Enhanced filtering and sorting
   const filteredAndSortedBookings = useMemo(() => {
@@ -113,14 +98,13 @@ export default function BookingApprovals() {
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(booking => {
         const isTourBooking = booking.is_tour || false
-        const tourInfo = isTourBooking ? getTourInfo(booking) : null
-        const name = isTourBooking ? tourInfo?.name : booking.rooms?.name
-        const userName = booking.profiles?.full_name || ''
-        const userEmail = booking.profiles?.email || ''
+        const name = booking.rooms?.name
+        const contactName = booking.contact_name || ''
+        const contactInstitution = booking.contact_institution || ''
 
         return name?.toLowerCase().includes(query) ||
-               userName.toLowerCase().includes(query) ||
-               userEmail.toLowerCase().includes(query)
+                contactName.toLowerCase().includes(query) ||
+                contactInstitution.toLowerCase().includes(query)
       })
     }
 
@@ -159,6 +143,12 @@ export default function BookingApprovals() {
   }
 
   const handleViewDetails = (booking: BookingWithRelations) => {
+    console.log('DEBUG - Admin viewing booking details:', {
+      id: booking.id,
+      contact_name: booking.contact_name,
+      contact_institution: booking.contact_institution,
+      user_profile: booking.profiles
+    })
     setSelectedBooking(booking)
     setDetailModalOpen(true)
   }
@@ -220,7 +210,7 @@ export default function BookingApprovals() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Cari berdasarkan nama ruangan/tour, nama pengguna, atau email..."
+                placeholder="Cari berdasarkan nama ruangan/tour, nama kontak, atau institusi..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 h-8"
@@ -330,7 +320,6 @@ export default function BookingApprovals() {
                   const bookingTypeKey = isTourBooking ? 'tour' : 'room'
                   const config = bookingTypeConfigs[bookingTypeKey]
                   const Icon = config.icon
-                  const tourInfo = bookingTypeKey === 'tour' ? getTourInfo(booking) : null
 
                   const today = new Date()
                   const tomorrow = new Date(today)
@@ -358,7 +347,7 @@ export default function BookingApprovals() {
                           </div>
                           <div className="min-w-0">
                             <p className="font-medium text-sm truncate text-gray-900 dark:text-white">
-                              {bookingTypeKey === 'tour' ? tourInfo?.name : booking.rooms?.name}
+                              {booking.rooms?.name}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               #{booking.id.slice(-8).toUpperCase()}
@@ -371,17 +360,17 @@ export default function BookingApprovals() {
                       <TableCell className="py-3">
                         <div className="flex items-center gap-3">
                           <Avatar className="w-8 h-8 flex-shrink-0">
-                            <AvatarImage src={booking.profiles?.profile_photo || undefined} alt={booking.profiles?.full_name} />
+                            <AvatarImage src={booking.profiles?.profile_photo} alt={booking.contact_name || 'User'} />
                             <AvatarFallback className={`text-xs ${config.bgColor} text-white text-[10px] flex items-center justify-center`}>
-                              {booking.profiles?.full_name ? booking.profiles.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+                              {booking.contact_name ? booking.contact_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
                             </AvatarFallback>
                           </Avatar>
                           <div className="min-w-0">
                             <p className="font-medium text-sm truncate text-gray-900 dark:text-white">
-                              {booking.profiles?.full_name}
+                              {booking.contact_name || 'Nama tidak tersedia'}
                             </p>
                             <p className="text-xs text-muted-foreground truncate">
-                              {booking.profiles?.email}
+                              {booking.contact_institution || 'Institusi tidak tersedia'}
                             </p>
                           </div>
                         </div>

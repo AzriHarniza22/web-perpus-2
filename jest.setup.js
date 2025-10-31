@@ -40,3 +40,31 @@ jest.mock('@/lib/supabase', () => ({
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key'
+
+// Mock Web APIs for Node.js environment
+global.Request = class Request {
+  constructor() {}
+}
+
+global.Response = class Response {
+  constructor() {}
+}
+
+// Mock TransformStream for Playwright tests
+global.TransformStream = class TransformStream {
+  constructor() {
+    this.readable = {
+      getReader: () => ({
+        read: () => Promise.resolve({ done: true, value: undefined }),
+        releaseLock: () => {}
+      })
+    };
+    this.writable = {
+      getWriter: () => ({
+        write: () => Promise.resolve(),
+        close: () => Promise.resolve(),
+        abort: () => Promise.resolve()
+      })
+    };
+  }
+}

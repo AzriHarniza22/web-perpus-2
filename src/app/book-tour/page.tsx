@@ -216,6 +216,7 @@ export default function BookTourPage() {
                     } as any}
                     existingBookings={bookings}
                     selectedDate={selectedDate}
+                    isTour={true}
                   />
                 </div>
               </div>

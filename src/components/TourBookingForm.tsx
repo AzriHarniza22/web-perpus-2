@@ -39,6 +39,8 @@ const tourBookingSchema = z.object({
   participantCount: z.number().min(1, 'Please enter at least 1 participant').max(50, 'Maximum 50 participants'),
   specialRequests: z.string().optional(),
   tourDocumentFile: z.string().optional(),
+  contactName: z.string().min(1, 'Contact name is required'),
+  contactInstitution: z.string().min(1, 'Institution is required'),
 }).refine((data) => data.selectedDate !== undefined, {
   message: 'Please select a date',
   path: ['selectedDate'],
@@ -93,6 +95,8 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
       participantCount: 1,
       specialRequests: '',
       tourDocumentFile: undefined,
+      contactName: '',
+      contactInstitution: '',
     },
     mode: 'onChange',
   })
@@ -304,6 +308,8 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
       updated_at: new Date().toISOString(),
       user_id: user.id,
       is_tour: true,
+      contact_name: data.contactName || '',
+      contact_institution: data.contactInstitution || '',
     }
 
     // Add optimistic booking to local state
@@ -321,7 +327,9 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
       proposal_file: filePath,
       room_id: roomResult.roomId, // Use the room ID from our utility function
       // Tour-specific fields based on actual database schema
-      is_tour: true
+      is_tour: true,
+      contact_name: data.contactName,
+      contact_institution: data.contactInstitution,
     }
 
     try {
@@ -578,6 +586,32 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                       </Select>
                     </div>
                   </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="contactName">Nama Kontak</Label>
+                  <Input
+                    id="contactName"
+                    {...form.register('contactName')}
+                    placeholder="Masukkan nama kontak"
+                    className={cn(form.formState.errors.contactName && "border-red-500")}
+                  />
+                  {form.formState.errors.contactName && (
+                    <p className="text-sm text-red-500 mt-1">{form.formState.errors.contactName.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="contactInstitution">Institusi</Label>
+                  <Input
+                    id="contactInstitution"
+                    {...form.register('contactInstitution')}
+                    placeholder="Masukkan nama institusi"
+                    className={cn(form.formState.errors.contactInstitution && "border-red-500")}
+                  />
+                  {form.formState.errors.contactInstitution && (
+                    <p className="text-sm text-red-500 mt-1">{form.formState.errors.contactInstitution.message}</p>
+                  )}
                 </div>
 
                 <div>

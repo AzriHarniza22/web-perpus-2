@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
 
-    const { start_time, end_time, event_description, proposal_file, notes, guest_count, special_requests } = body
+    const { start_time, end_time, event_description, proposal_file, notes, guest_count, special_requests, contact_name, contact_institution } = body
 
     if (!start_time || !end_time) {
       return NextResponse.json({ error: 'Missing required fields: start_time and end_time are required' }, { status: 400 })
@@ -148,7 +148,9 @@ export async function POST(request: NextRequest) {
       notes: notes || 'Tour booking with Library Staff guide',
       status: 'pending',
       // Tour-specific fields based on actual database schema
-      is_tour: true
+      is_tour: true,
+      contact_name: contact_name,
+      contact_institution: contact_institution,
     }
 
     const { data: booking, error: insertError } = await supabase

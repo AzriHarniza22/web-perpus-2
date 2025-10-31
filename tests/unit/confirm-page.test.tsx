@@ -69,24 +69,20 @@ describe('ConfirmPage', () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText('Catatan Penting')).toBeInTheDocument();
+      expect(screen.getByText('Tidak menerima email? Cek folder spam/junk Anda atau tunggu beberapa menit.')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Email konfirmasi biasanya tiba dalam 1-5 menit')).toBeInTheDocument();
-    expect(screen.getByText('Link konfirmasi akan kadaluarsa dalam 24 jam')).toBeInTheDocument();
-    expect(screen.getByText('Anda tidak bisa login sebelum mengkonfirmasi email')).toBeInTheDocument();
+    expect(screen.getByText('Silakan klik link konfirmasi di email tersebut untuk mengaktifkan akun Anda.')).toBeInTheDocument();
   });
 
   it('should display success tips', async () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText('Tips untuk Sukses')).toBeInTheDocument();
+      expect(screen.getByText('Tidak menerima email? Cek folder spam/junk Anda atau tunggu beberapa menit.')).toBeInTheDocument();
     });
 
-    expect(screen.getByText(/Pastikan email yang dimasukkan benar/)).toBeInTheDocument();
-    expect(screen.getByText(/Cek folder spam atau junk jika tidak menemukan email/)).toBeInTheDocument();
-    expect(screen.getByText(/Link konfirmasi hanya bisa digunakan sekali/)).toBeInTheDocument();
+    expect(screen.getByText('Silakan klik link konfirmasi di email tersebut untuk mengaktifkan akun Anda.')).toBeInTheDocument();
   });
 
   it('should have back to login button', async () => {
@@ -105,7 +101,7 @@ describe('ConfirmPage', () => {
     });
 
     await waitFor(() => {
-      const resendButton = screen.getByRole('button', { name: /Kirim Ulang Email Konfirmasi/ });
+      const resendButton = screen.getByRole('button', { name: 'Kirim Ulang Email Konfirmasi' });
       expect(resendButton).toBeInTheDocument();
       expect(resendButton).toBeEnabled();
     });
@@ -150,7 +146,7 @@ describe('ConfirmPage', () => {
     });
 
     await waitFor(() => {
-      const resendButton = screen.getByRole('button', { name: /Kirim Ulang Email Konfirmasi/ });
+      const resendButton = screen.getByRole('button', { name: 'Kirim Ulang Email Konfirmasi' });
       fireEvent.click(resendButton);
     });
 
@@ -170,7 +166,7 @@ describe('ConfirmPage', () => {
     });
 
     await waitFor(() => {
-      const resendButton = screen.getByRole('button', { name: /Kirim Ulang Email Konfirmasi/ });
+      const resendButton = screen.getByRole('button', { name: 'Kirim Ulang Email Konfirmasi' });
       fireEvent.click(resendButton);
     });
 
@@ -192,7 +188,7 @@ describe('ConfirmPage', () => {
     });
 
     await waitFor(() => {
-      const resendButton = screen.getByRole('button', { name: /Kirim Ulang Email Konfirmasi/ });
+      const resendButton = screen.getByRole('button', { name: 'Kirim Ulang Email Konfirmasi' });
       fireEvent.click(resendButton);
     });
 
