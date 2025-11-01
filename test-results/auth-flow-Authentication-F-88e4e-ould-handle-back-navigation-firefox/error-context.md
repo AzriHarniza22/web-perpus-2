@@ -1,0 +1,46 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - link "Kembali" [ref=e6] [cursor=pointer]:
+    - /url: /
+    - button "Kembali" [ref=e7]:
+      - img
+      - text: Kembali
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - img "Library Building" [ref=e11]
+      - generic:
+        - img "Library Reservation Logo"
+      - generic [ref=e13]:
+        - heading "Selamat Datang Kembali" [level=2] [ref=e14]
+        - paragraph [ref=e15]: Masuk untuk melanjutkan reservasi ruangan Anda
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - heading "Masuk ke Akun Anda" [level=1] [ref=e20]
+        - paragraph [ref=e21]: Sistem Reservasi Ruangan Perpustakaan
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - generic [ref=e25]: Email
+            - generic [ref=e26]:
+              - img [ref=e27]
+              - textbox "Email" [ref=e30]:
+                - /placeholder: nama@email.com
+          - generic [ref=e31]:
+            - generic [ref=e32]: Password
+            - generic [ref=e33]:
+              - img [ref=e34]
+              - textbox "Password" [ref=e37]:
+                - /placeholder: Masukkan password
+              - button "Tampilkan password" [ref=e38]:
+                - img [ref=e39]
+          - button "Lupa password?" [ref=e43]
+          - button "Masuk" [ref=e45]:
+            - text: Masuk
+            - img
+        - paragraph [ref=e47]:
+          - text: Belum punya akun?
+          - link "Daftar di sini" [ref=e48] [cursor=pointer]:
+            - /url: /signup
+```

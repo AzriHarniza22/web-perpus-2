@@ -1,0 +1,44 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Kembali" [ref=e6] [cursor=pointer]:
+      - /url: /
+      - button "Kembali" [ref=e7]:
+        - img
+        - text: Kembali
+    - button "Toggle theme" [ref=e9]:
+      - generic [ref=e10]: Toggle theme
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - heading "Masuk ke Akun Anda" [level=1] [ref=e17]
+        - paragraph [ref=e18]: Sistem Reservasi Ruangan Perpustakaan
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - generic [ref=e22]: Email
+            - generic [ref=e23]:
+              - img [ref=e24]
+              - textbox "Email" [ref=e27]:
+                - /placeholder: nama@email.com
+          - generic [ref=e28]:
+            - generic [ref=e29]: Password
+            - generic [ref=e30]:
+              - img [ref=e31]
+              - textbox "Password" [ref=e34]:
+                - /placeholder: Masukkan password
+              - button "Tampilkan password" [ref=e35]:
+                - img [ref=e36]
+          - button "Lupa password?" [ref=e40]
+          - button "Masuk" [ref=e42]:
+            - text: Masuk
+            - img
+        - paragraph [ref=e44]:
+          - text: Belum punya akun?
+          - link "Daftar di sini" [ref=e45] [cursor=pointer]:
+            - /url: /signup
+  - button "Open Next.js Dev Tools" [ref=e51] [cursor=pointer]:
+    - img [ref=e52]
+  - alert [ref=e56]
+```

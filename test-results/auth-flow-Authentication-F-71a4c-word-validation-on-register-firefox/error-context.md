@@ -1,0 +1,81 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - link "Kembali" [ref=e6] [cursor=pointer]:
+      - /url: /
+      - button "Kembali" [ref=e7]:
+        - img
+        - text: Kembali
+    - button "Toggle theme" [ref=e9]:
+      - generic [ref=e10]: Toggle theme
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - img "Library Building" [ref=e14]
+        - img "Library Reservation Logo" [ref=e17]
+        - generic [ref=e18]:
+          - heading "Selamat Datang" [level=2] [ref=e19]
+          - paragraph [ref=e20]: Bergabunglah dengan komunitas kami untuk reservasi ruangan yang mudah dan cepat
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - heading "Bergabung Sekarang" [level=1] [ref=e25]
+          - paragraph [ref=e26]: Buat akun baru untuk melakukan reservasi ruangan
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]:
+              - generic [ref=e30]: Nama Lengkap
+              - generic [ref=e31]:
+                - img [ref=e32]
+                - textbox "Nama Lengkap" [ref=e35]:
+                  - /placeholder: Masukkan nama lengkap
+                  - text: John Doe
+            - generic [ref=e36]:
+              - generic [ref=e37]: Email
+              - generic [ref=e38]:
+                - img [ref=e39]
+                - textbox "Email" [ref=e42]:
+                  - /placeholder: nama@email.com
+                  - text: john@example.com
+            - generic [ref=e43]:
+              - generic [ref=e44]:
+                - generic [ref=e45]: Institusi
+                - generic [ref=e46]:
+                  - img [ref=e47]
+                  - textbox "Institusi" [ref=e59]:
+                    - /placeholder: Universitas...
+              - generic [ref=e60]:
+                - generic [ref=e61]: Nomor HP
+                - generic [ref=e62]:
+                  - img [ref=e63]
+                  - textbox "Nomor HP" [ref=e65]:
+                    - /placeholder: +62...
+            - generic [ref=e66]:
+              - generic [ref=e67]: Password
+              - generic [ref=e68]:
+                - img [ref=e69]
+                - textbox "Password" [ref=e72]:
+                  - /placeholder: Minimal 6 karakter
+                  - text: password123
+                - button "Tampilkan password" [ref=e73]:
+                  - img [ref=e74]
+            - generic [ref=e77]:
+              - generic [ref=e78]: Konfirmasi Password
+              - generic [ref=e79]:
+                - img [ref=e80]
+                - textbox "Konfirmasi Password" [active] [ref=e83]:
+                  - /placeholder: Konfirmasi password
+                  - text: different123
+                - button "Tampilkan konfirmasi password" [ref=e84]:
+                  - img [ref=e85]
+            - button "Daftar Sekarang" [ref=e89]:
+              - text: Daftar Sekarang
+              - img
+          - paragraph [ref=e91]:
+            - text: Sudah punya akun?
+            - link "Masuk di sini" [ref=e92] [cursor=pointer]:
+              - /url: /login
+  - button "Open Next.js Dev Tools" [ref=e98] [cursor=pointer]:
+    - img [ref=e99]
+  - alert [ref=e103]
+```

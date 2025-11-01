@@ -1,0 +1,176 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - img "Perpustakaan Aceh Logo" [ref=e7]
+          - generic [ref=e8]: Perpustakaan Aceh
+        - generic [ref=e9]:
+          - link "Beranda" [ref=e10] [cursor=pointer]:
+            - /url: "#home"
+            - text: Beranda
+          - link "Ruangan" [ref=e12] [cursor=pointer]:
+            - /url: "#rooms"
+          - link "Fitur" [ref=e13] [cursor=pointer]:
+            - /url: "#features"
+          - link "Kontak" [ref=e14] [cursor=pointer]:
+            - /url: "#contact"
+        - generic [ref=e15]:
+          - button "Toggle theme" [ref=e16]:
+            - generic [ref=e17]: Toggle theme
+          - button "Masuk" [ref=e18]
+          - button "Daftar" [ref=e19]
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - heading "Reservasi Ruangan Perpustakaan" [level=1] [ref=e33]:
+          - text: Reservasi
+          - generic [ref=e34]: Ruangan
+          - text: Perpustakaan
+        - paragraph [ref=e35]: Sistem reservasi ruangan modern untuk Perpustakaan Wilayah Aceh. Pesan ruangan dengan mudah, cepat, dan efisien untuk kebutuhan belajar dan berkumpul Anda.
+        - button "Mulai Reservasi" [ref=e37]:
+          - text: Mulai Reservasi
+          - img [ref=e38]
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - img [ref=e43]
+            - generic [ref=e46]: Gratis
+          - generic [ref=e47]:
+            - img [ref=e48]
+            - generic [ref=e51]: 24/7 Tersedia
+          - generic [ref=e52]:
+            - img [ref=e53]
+            - generic [ref=e56]: Mudah Digunakan
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - generic [ref=e62]:
+              - button [ref=e63]:
+                - img [ref=e64]
+              - heading "November 2025" [level=3] [ref=e66]
+              - button [ref=e67]:
+                - img [ref=e68]
+            - generic [ref=e70]:
+              - generic [ref=e71]: Min
+              - generic [ref=e72]: Sen
+              - generic [ref=e73]: Sel
+              - generic [ref=e74]: Rab
+              - generic [ref=e75]: Kam
+              - generic [ref=e76]: Jum
+              - generic [ref=e77]: Sab
+            - generic [ref=e78]:
+              - button "26" [ref=e79]
+              - button "27" [ref=e80]
+              - button "28" [ref=e81]
+              - button "29" [ref=e82]
+              - button "30" [ref=e83]
+              - button "31" [ref=e84]
+              - button "1" [ref=e85]
+              - button "2" [ref=e86]
+              - button "3" [ref=e87]
+              - button "4" [ref=e88]
+              - button "5" [ref=e89]
+              - button "6" [ref=e90]
+              - button "7" [ref=e91]
+              - button "8" [ref=e92]
+              - button "9" [ref=e93]
+              - button "10" [ref=e94]
+              - button "11" [ref=e95]
+              - button "12" [ref=e96]
+              - button "13" [ref=e97]
+              - button "14" [ref=e98]
+              - button "15" [ref=e99]
+              - button "16" [ref=e100]
+              - button "17" [ref=e101]
+              - button "18" [ref=e102]
+              - button "19" [ref=e103]
+              - button "20" [ref=e104]
+              - button "21" [ref=e105]
+              - button "22" [ref=e106]
+              - button "23" [ref=e107]
+              - button "24" [ref=e108]
+              - button "25" [ref=e109]
+              - button "26" [ref=e110]
+              - button "27" [ref=e111]
+              - button "28" [ref=e112]
+              - button "29" [ref=e113]
+              - button "30" [ref=e114]
+              - button "1" [ref=e115]
+              - button "2" [ref=e116]
+              - button "3" [ref=e117]
+              - button "4" [ref=e118]
+              - button "5" [ref=e119]
+              - button "6" [ref=e120]
+          - generic [ref=e122]:
+            - heading "📅 Sabtu, 1 November 2025" [level=4] [ref=e123]
+            - generic [ref=e125]:
+              - generic [ref=e126]: ✨
+              - generic [ref=e127]: Tidak ada booking untuk tanggal ini
+              - generic [ref=e128]: Hari yang sempurna untuk reservasi!
+        - generic [ref=e129]:
+          - generic [ref=e132]: Hari ini
+          - generic [ref=e135]: Disetujui
+          - generic [ref=e138]: Menunggu
+          - generic [ref=e141]: Dipilih
+    - generic [ref=e146]:
+      - heading "Pilihan Ruangan" [level=2] [ref=e147]
+      - paragraph [ref=e148]: Berbagai pilihan ruangan dengan fasilitas lengkap untuk kebutuhan Anda
+    - generic [ref=e150]:
+      - generic [ref=e151]:
+        - heading "Fitur Unggulan" [level=2] [ref=e152]
+        - paragraph [ref=e153]: Nikmati pengalaman reservasi ruangan yang tak terlupakan dengan fitur-fitur canggih kami
+      - generic [ref=e155]:
+        - generic [ref=e156] [cursor=pointer]:
+          - img [ref=e159]
+          - heading "Kalender Interaktif" [level=3] [ref=e164]
+          - paragraph [ref=e165]: Lihat ketersediaan ruangan secara real-time dengan kalender yang mudah digunakan
+        - generic [ref=e166] [cursor=pointer]:
+          - img [ref=e169]
+          - heading "Booking Instan" [level=3] [ref=e172]
+          - paragraph [ref=e173]: Reservasi ruangan hanya dalam hitungan detik dengan sistem otomatis yang cepat
+        - generic [ref=e174] [cursor=pointer]:
+          - img [ref=e177]
+          - heading "Keamanan Terjamin" [level=3] [ref=e179]
+          - paragraph [ref=e180]: Data Anda aman dengan enkripsi tingkat militer dan sistem authentication modern
+        - generic [ref=e181] [cursor=pointer]:
+          - img [ref=e184]
+          - heading "Notifikasi Real-time" [level=3] [ref=e186]
+          - paragraph [ref=e187]: Dapatkan pemberitahuan instan untuk setiap perubahan status reservasi Anda
+        - generic [ref=e188] [cursor=pointer]:
+          - img [ref=e191]
+          - heading "Multi-User Support" [level=3] [ref=e196]
+          - paragraph [ref=e197]: Kelola reservasi tim dengan fitur kolaborasi yang powerful dan intuitif
+        - generic [ref=e198] [cursor=pointer]:
+          - img [ref=e201]
+          - heading "Dashboard Analytics" [level=3] [ref=e204]
+          - paragraph [ref=e205]: Analisis penggunaan ruangan dengan dashboard yang comprehensive dan mudah dipahami
+    - generic [ref=e207]:
+      - generic [ref=e208]:
+        - heading "Hubungi Kami" [level=2] [ref=e209]
+        - paragraph [ref=e210]: Ada pertanyaan? Tim kami siap membantu Anda 24/7
+      - generic [ref=e212]:
+        - generic [ref=e213]:
+          - img [ref=e215]
+          - heading "Alamat" [level=3] [ref=e218]
+          - paragraph [ref=e219]: Jl. Teuku Umar No. 4, Banda Aceh, Aceh 23116
+        - generic [ref=e220]:
+          - img [ref=e222]
+          - heading "Telepon" [level=3] [ref=e224]
+          - paragraph [ref=e225]: +62 651 123456
+        - generic [ref=e226]:
+          - img [ref=e228]
+          - heading "Email" [level=3] [ref=e231]
+          - paragraph [ref=e232]: info@perpustakaanaceh.go.id
+    - generic [ref=e233]:
+      - button [ref=e234]:
+        - img [ref=e236]
+      - generic [ref=e242]: Mulai Reservasi
+    - contentinfo [ref=e244]:
+      - generic [ref=e246]:
+        - generic [ref=e247]: Perpustakaan Wilayah Aceh
+        - paragraph [ref=e248]: Sistem Reservasi Ruangan Modern & Terpercaya
+        - paragraph [ref=e250]: © 2024 Perpustakaan Wilayah Aceh. All rights reserved.
+  - alert [ref=e251]
+```

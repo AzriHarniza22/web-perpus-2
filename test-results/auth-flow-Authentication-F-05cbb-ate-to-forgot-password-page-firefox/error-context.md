@@ -1,0 +1,41 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Kembali" [ref=e6] [cursor=pointer]:
+      - /url: /
+      - button "Kembali" [ref=e7]:
+        - img
+        - text: Kembali
+    - button "Toggle theme" [ref=e9]:
+      - img
+      - img
+      - generic [ref=e10]: Toggle theme
+    - generic [ref=e12]:
+      - generic [ref=e14]:
+        - img "Gedung Perpustakaan Aceh" [ref=e15]
+        - generic [ref=e18]:
+          - heading "Lupa Password?" [level=2] [ref=e19]
+          - paragraph [ref=e20]: Jangan khawatir, kami akan membantu Anda mengatur ulang password dengan aman.
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - generic:
+            - img "Logo"
+          - generic [ref=e24]: Reset Password
+          - generic [ref=e25]: Masukkan email Anda untuk menerima link reset password
+        - generic [ref=e26]:
+          - generic [ref=e27]:
+            - generic [ref=e28]:
+              - generic [ref=e29]: Email
+              - generic [ref=e30]:
+                - img [ref=e31]
+                - textbox "Email" [ref=e34]:
+                  - /placeholder: nama@email.com
+            - button "Kirim Link Reset" [ref=e36]:
+              - text: Kirim Link Reset
+              - img
+          - link "Kembali ke Login" [ref=e38] [cursor=pointer]:
+            - /url: /login
+  - alert [ref=e39]
+```

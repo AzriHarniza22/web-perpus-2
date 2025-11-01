@@ -40,6 +40,7 @@ export async function middleware(request: NextRequest) {
   const isAdminPage = path.startsWith('/admin')
   const isDashboardPage = path.startsWith('/dashboard')
   const isProtectedPage = isAdminPage || isDashboardPage
+  const isRootPage = path === '/'
 
   // Redirect authenticated users away from auth pages
   if (user && isAuthPage) {
@@ -67,6 +68,14 @@ export async function middleware(request: NextRequest) {
       console.log(`[MIDDLEWARE] Profile details:`, profile)
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
+  }
+
+  // Redirect authenticated users from root path to appropriate dashboard
+  if (user && isRootPage) {
+    const profile = await getProfileRole(supabase, user.id)
+    const redirectTo = profile?.role === 'admin' ? '/admin' : '/dashboard'
+    console.log(`[MIDDLEWARE] Redirecting authenticated user from root to: ${redirectTo}, role: ${profile?.role}`)
+    return NextResponse.redirect(new URL(redirectTo, request.url))
   }
 
   return supabaseResponse

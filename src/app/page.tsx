@@ -93,40 +93,6 @@ const HomePage = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Redirect authenticated users to appropriate dashboard
-   useEffect(() => {
-     const redirectUser = async () => {
-       console.log(`Landing page: redirectUser called, user=${user ? user.id : 'null'}`)
-       if (user) {
-         try {
-           // Check if user is admin
-           const { data: profile } = await supabase
-             .from('profiles')
-             .select('role')
-             .eq('id', user.id)
-             .single()
-
-           // Redirect based on role
-           if (profile?.role === 'admin') {
-             console.log('Landing page: redirecting to /admin')
-             router.push('/admin')
-           } else {
-             console.log('Landing page: redirecting to /dashboard')
-             router.push('/dashboard')
-           }
-         } catch (error) {
-           console.error('Error checking user role:', error)
-           // Default to user dashboard if role check fails
-           console.log('Landing page: role check failed, redirecting to /dashboard')
-           router.push('/dashboard')
-         }
-       } else {
-         console.log('Landing page: no user, staying on landing page')
-       }
-     }
-
-     redirectUser()
-   }, [user, router])
 
   if (loading) {
     return <Loading variant="fullscreen" message="Memuat Perpustakaan Aceh" />

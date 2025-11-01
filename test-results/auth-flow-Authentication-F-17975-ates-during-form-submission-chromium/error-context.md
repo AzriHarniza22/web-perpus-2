@@ -1,0 +1,65 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Kembali" [ref=e6] [cursor=pointer]:
+      - /url: /
+      - button "Kembali" [ref=e7]:
+        - img
+        - text: Kembali
+    - button "Toggle theme" [ref=e9]:
+      - generic [ref=e10]: Toggle theme
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - img "Library Building" [ref=e14]
+        - img "Library Reservation Logo" [ref=e17]
+        - generic [ref=e18]:
+          - heading "Selamat Datang Kembali" [level=2] [ref=e19]
+          - paragraph [ref=e20]: Masuk untuk melanjutkan reservasi ruangan Anda
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - heading "Masuk ke Akun Anda" [level=1] [ref=e25]
+          - paragraph [ref=e26]: Sistem Reservasi Ruangan Perpustakaan
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]:
+              - generic [ref=e30]: Email
+              - generic [ref=e31]:
+                - img [ref=e32]
+                - textbox "Email" [ref=e35]:
+                  - /placeholder: nama@email.com
+                  - text: test@example.com
+            - generic [ref=e36]:
+              - generic [ref=e37]: Password
+              - generic [ref=e38]:
+                - img [ref=e39]
+                - textbox "Password" [ref=e42]:
+                  - /placeholder: Masukkan password
+                  - text: password123
+                - button "Tampilkan password" [ref=e43]:
+                  - img [ref=e44]
+            - button "Lupa password?" [ref=e48]
+            - alert [ref=e49]:
+              - img [ref=e50]
+              - paragraph [ref=e52]: Invalid login credentials
+            - button "Masuk" [ref=e54]:
+              - text: Masuk
+              - img
+          - paragraph [ref=e56]:
+            - text: Belum punya akun?
+            - link "Daftar di sini" [ref=e57] [cursor=pointer]:
+              - /url: /signup
+  - generic [ref=e62] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e63]:
+      - img [ref=e64]
+    - generic [ref=e67]:
+      - button "Open issues overlay" [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]: "0"
+          - generic [ref=e71]: "1"
+        - generic [ref=e72]: Issue
+      - button "Collapse issues badge" [ref=e73]:
+        - img [ref=e74]
+  - alert [ref=e76]
+```
