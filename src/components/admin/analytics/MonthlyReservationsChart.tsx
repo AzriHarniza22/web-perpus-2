@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { BarChart3, TrendingUp, Calendar } from 'lucide-react'
@@ -9,6 +10,7 @@ import { aggregateMonthlyBookings, aggregateDailyBookings, calculateStats } from
 import { getChartOptionsByType, createStatusDatasets, STATUS_COLORS } from '@/lib/chart-config-utils'
 import { Booking } from '@/lib/types'
 import { TooltipItem, ChartOptions } from 'chart.js'
+import { useInViewAnimation } from '@/hooks/useAnimations'
 
 interface MonthlyReservationsChartProps {
   bookings: Booking[]
@@ -18,6 +20,7 @@ interface MonthlyReservationsChartProps {
 export function MonthlyReservationsChart({ bookings, isLoading = false }: MonthlyReservationsChartProps) {
   const [chartType, setChartType] = useState<'line' | 'bar'>('line')
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
+  const inViewAnimation = useInViewAnimation({ variant: 'slide', direction: 'up', delay: 0.1 })
 
   // Process data based on view mode using new utilities
   const chartData = useMemo(() => {
@@ -65,21 +68,26 @@ export function MonthlyReservationsChart({ bookings, isLoading = false }: Monthl
   }
 
   return (
-    <BaseChart
-      title={viewMode === 'monthly' ? 'Monthly Trends' : 'Daily Distribution'}
-      description={viewMode === 'monthly' ? 'Trend reservasi bulanan' : 'Distribusi reservasi harian'}
-      icon={BarChart3}
-      isLoading={isLoading}
-      chartType={chartType}
-      viewMode={viewMode}
-      availableChartTypes={['line', 'bar']}
-      availableViewModes={['monthly', 'daily']}
-      onChartTypeChange={(type) => setChartType(type as 'bar' | 'line')}
-      onViewModeChange={setViewMode}
-      chartData={chartData}
-      getChartOptions={getChartOptions}
-      customStats={customStats}
-      height={256}
-    />
+    <motion.div
+      {...inViewAnimation}
+      className="w-full"
+    >
+      <BaseChart
+        title={viewMode === 'monthly' ? 'Monthly Trends' : 'Daily Distribution'}
+        description={viewMode === 'monthly' ? 'Trend reservasi bulanan' : 'Distribusi reservasi harian'}
+        icon={BarChart3}
+        isLoading={isLoading}
+        chartType={chartType}
+        viewMode={viewMode}
+        availableChartTypes={['line', 'bar']}
+        availableViewModes={['monthly', 'daily']}
+        onChartTypeChange={(type) => setChartType(type as 'bar' | 'line')}
+        onViewModeChange={setViewMode}
+        chartData={chartData}
+        getChartOptions={getChartOptions}
+        customStats={customStats}
+        height={256}
+      />
+    </motion.div>
   )
 }

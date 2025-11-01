@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
 import Image from 'next/image'
 import { Calendar, History, LogOut, User as UserIcon, BookOpen, ChevronLeft, ChevronRight, Sparkles, MapPin } from 'lucide-react'
+import { useHoverAnimation } from '@/hooks/useAnimations'
 
 interface UserSidebarProps {
   className?: string
@@ -15,6 +16,7 @@ export default function UserSidebar({ className, onToggle }: UserSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const hoverAnimation = useHoverAnimation()
 
   const menuItems = [
     {
@@ -66,8 +68,7 @@ export default function UserSidebar({ className, onToggle }: UserSidebarProps) {
       {/* Toggle Button */}
       <div className="absolute -right-3 top-6 z-50">
         <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          {...hoverAnimation}
           onClick={toggleSidebar}
           className="w-6 h-6 bg-background border border-gray-200 dark:border-gray-700 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
@@ -126,8 +127,7 @@ export default function UserSidebar({ className, onToggle }: UserSidebarProps) {
               transition={{ delay: index * 0.1 }}
             >
               <motion.button
-                whileHover={{ scale: isCollapsed ? 1.1 : 1.02 }}
-                whileTap={{ scale: 0.95 }}
+                {...hoverAnimation}
                 onClick={() => router.push(item.href)}
                 className={`w-full flex items-center px-3 py-3 rounded-lg transition-all duration-200 ${
                   isCollapsed ? 'justify-center' : 'space-x-3'

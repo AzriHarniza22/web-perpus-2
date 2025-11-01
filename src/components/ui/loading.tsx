@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useLoadingAnimation } from '@/hooks/useAnimations';
 
 interface LoadingProps {
   variant?: 'fullscreen' | 'inline' | 'skeleton';
@@ -17,11 +18,14 @@ const FullscreenLoading: React.FC<{ message?: string; showDots?: boolean }> = ({
   message,
   showDots = true,
 }) => {
-  const reducedMotion = useReducedMotion();
+  const { spinner, pulse, dots } = useLoadingAnimation();
 
-  const bgAnimate = reducedMotion
-    ? {}
-    : { backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] };
+  const bgAnimate = {
+    backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+    transition: {
+      backgroundPosition: { duration: 20, repeat: Infinity, ease: 'linear' }
+    }
+  };
 
   const particleVariants = {
     animate: (i: number) => ({
@@ -38,14 +42,14 @@ const FullscreenLoading: React.FC<{ message?: string; showDots?: boolean }> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, backgroundPosition: '0% 50%' }}
-      animate={{ opacity: 1, ...bgAnimate }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{
-        opacity: { duration: 0.3 },
-        backgroundPosition: { duration: 20, repeat: Infinity, ease: 'linear' },
+      transition={{ opacity: { duration: 0.3 } }}
+      style={{
+        backgroundSize: '400% 400%',
+        backgroundPosition: '0% 50%'
       }}
-      style={{ backgroundSize: '400% 400%' }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 overflow-hidden"
     >
       {/* Floating Particles */}
@@ -86,13 +90,13 @@ const FullscreenLoading: React.FC<{ message?: string; showDots?: boolean }> = ({
         <div className="relative">
           {/* Enhanced Spinner with Gradient */}
           <motion.div
-            animate={reducedMotion ? {} : { rotate: 360 }}
+            {...spinner}
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
             className="w-20 h-20 rounded-full bg-gradient-to-r from-primary via-secondary to-accent p-1"
           >
             <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
               <motion.div
-                animate={reducedMotion ? {} : { rotate: -360 }}
+                animate={{ rotate: -360 }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
                 className="w-16 h-16 border-4 border-transparent border-t-primary border-r-secondary rounded-full"
               />
@@ -101,7 +105,7 @@ const FullscreenLoading: React.FC<{ message?: string; showDots?: boolean }> = ({
 
           {/* Pulsing Ring */}
           <motion.div
-            animate={reducedMotion ? {} : { scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
+            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             className="absolute inset-0 rounded-full border-2 border-primary/50"
           />
@@ -123,16 +127,7 @@ const FullscreenLoading: React.FC<{ message?: string; showDots?: boolean }> = ({
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
-                animate={
-                  reducedMotion
-                    ? {}
-                    : { scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }
-                }
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  delay: i * 0.2,
-                }}
+                {...dots(i)}
                 className="w-3 h-3 bg-gradient-to-r from-primary to-secondary rounded-full shadow-lg"
               />
             ))}
@@ -147,7 +142,7 @@ const InlineLoading: React.FC<{
   size: 'sm' | 'md' | 'lg' | 'xl';
   message?: string;
 }> = ({ size, message }) => {
-  const reducedMotion = useReducedMotion();
+  const { spinner } = useLoadingAnimation();
   const sizes = {
     sm: 'w-4 h-4',
     md: 'w-6 h-6',
@@ -158,7 +153,7 @@ const InlineLoading: React.FC<{
   return (
     <div className={cn('flex items-center space-x-2', message ? 'space-x-2' : '')}>
       <motion.div
-        animate={reducedMotion ? {} : { rotate: 360 }}
+        {...spinner}
         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
         className={cn(
           'border-2 border-primary border-t-transparent rounded-full',
@@ -173,8 +168,6 @@ const InlineLoading: React.FC<{
 };
 
 const SkeletonLoading: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const reducedMotion = useReducedMotion();
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -182,14 +175,12 @@ const SkeletonLoading: React.FC<{ children: React.ReactNode }> = ({ children }) 
       className="relative overflow-hidden"
     >
       {children}
-      {!reducedMotion && (
-        <motion.div
-          initial={{ x: '-100%' }}
-          animate={{ x: '100%' }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-gray-700/20 to-transparent"
-        />
-      )}
+      <motion.div
+        initial={{ x: '-100%' }}
+        animate={{ x: '100%' }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-gray-700/20 to-transparent"
+      />
     </motion.div>
   );
 };

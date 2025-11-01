@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { ImageCarousel } from '@/components/ui/image-carousel'
 import { Users, MapPin, Info, Clock, Ban, Shield } from 'lucide-react'
 import { Room } from '@/lib/api'
+import { useHoverAnimation } from '@/hooks/useAnimations'
 
 interface RoomInfoCardProps {
   room: Room
@@ -16,6 +17,7 @@ export default function RoomInfoCard({ room }: RoomInfoCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string>('')
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
+  const hoverAnimation = useHoverAnimation()
 
   const handleImageError = (photo: string) => {
     setImageErrors(prev => new Set(prev).add(photo))
@@ -137,6 +139,7 @@ export default function RoomInfoCard({ room }: RoomInfoCardProps) {
                 height={600}
                 className="max-w-full max-h-full object-contain"
                 onError={() => handleImageError(selectedImage)}
+                style={{ willChange: "auto" }}
               />
             ) : (
               <div className="max-w-full max-h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg">
@@ -152,6 +155,7 @@ export default function RoomInfoCard({ room }: RoomInfoCardProps) {
             <button
               className="absolute top-2 right-2 bg-background/75 rounded-full p-2 hover:bg-background transition"
               onClick={() => setIsModalOpen(false)}
+              {...hoverAnimation}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

@@ -8,8 +8,8 @@ import { z } from 'zod'
 import { useAuth } from '@/components/AuthProvider'
 import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
-import { motion } from 'framer-motion'
-import { CalendarIcon, Clock, Users, FileText, MapPin, User, ArrowRight } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { CalendarIcon, Clock, Users, FileText, MapPin, User, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react'
 import { format as formatDate } from 'date-fns'
 import { Calendar as UICalendar } from '@/components/ui/calendar'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { useDebouncedValidation } from '@/hooks/useDebouncedValidation'
+import { useHoverAnimation, useStaggerAnimation, useLoadingAnimation, useInViewAnimation } from '@/hooks/useAnimations'
 import dayjs from 'dayjs'
 import { Booking } from '@/lib/types'
 import { ensureLibraryTourRoom } from '@/lib/roomUtils'
@@ -74,6 +75,11 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
 
   const { user } = useAuth()
 
+  // Animation hooks
+  const hoverAnimation = useHoverAnimation()
+  const loadingAnimation = useLoadingAnimation()
+  const staggerAnimation = useStaggerAnimation()
+
   // Local state for immediate UI updates
    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
    const [pendingOverlapWarning, setPendingOverlapWarning] = useState(false)
@@ -83,6 +89,8 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
    const [uploadError, setUploadError] = useState<string | null>(null)
    const [optimisticBookings, setOptimisticBookings] = useState<Booking[]>([])
    const [isSubmittingOptimistically, setIsSubmittingOptimistically] = useState(false)
+   const [showSuccess, setShowSuccess] = useState(false)
+   const [showError, setShowError] = useState(false)
 
   const form = useForm<TourBookingFormData>({
     resolver: zodResolver(tourBookingSchema),
@@ -353,19 +361,25 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
       setOptimisticBookings(prev => prev.filter(b => b.id !== optimisticBooking.id))
       setIsSubmittingOptimistically(false)
 
+      setShowSuccess(true)
+
       // Refresh bookings in parent component
       if (onBookingSuccess) {
         onBookingSuccess()
       }
 
-      router.push('/dashboard?success=Tour booking submitted successfully')
+      setTimeout(() => {
+        router.push('/dashboard?success=Tour booking submitted successfully')
+      }, 1500)
     } catch (error) {
       console.error('Tour booking error:', error)
       // Remove optimistic booking on error
       setOptimisticBookings(prev => prev.filter(b => b.id !== optimisticBooking.id))
       setIsSubmittingOptimistically(false)
+      setShowError(true)
       form.setError('root', { message: error instanceof Error ? error.message : 'An error occurred' })
       setIsSubmitting(false)
+      setTimeout(() => setShowError(false), 3000)
     } finally {
       setIsSubmitting(false)
     }
@@ -377,20 +391,56 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
+      {/* Success Animation */}
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: -50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -50 }}
+            className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
+          >
+            <CheckCircle className="w-5 h-5" />
+            <span>Tour booking submitted successfully!</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Error Animation */}
+      <AnimatePresence>
+        {showError && (
+          <motion.div
+            initial={{ opacity: 0, x: 300 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 300 }}
+            className="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
+          >
+            <AlertCircle className="w-5 h-5" />
+            <span>Failed to submit tour booking</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Date Selection */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
+          whileHover={{ y: -2 }}
+          whileTap={{ y: 1 }}
         >
           <Card className="bg-card hover:shadow-xl transition-all duration-300">
 
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <motion.div
+                  className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
                   <CalendarIcon className="w-5 h-5 text-white" />
-                </div>
+                </motion.div>
                 <span className="text-blue-600">
                   Pilih Tanggal
                 </span>
@@ -456,48 +506,61 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                       <Clock className="w-4 h-4 mr-2 text-primary" />
                       Waktu yang sudah dipesan untuk {formatDate(selectedDate, 'dd MMMM yyyy')}:
                     </h4>
-                    <div className="space-y-1">
-                      {getBookedTimes(selectedDate).map((time, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md ${
-                            time.status === 'approved'
-                              ? 'text-red-600 bg-red-50 dark:bg-red-900/20'
-                              : time.isOptimistic
-                              ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 animate-pulse'
-                              : 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
-                          }`}
-                        >
-                          <div className={`w-2 h-2 rounded-full ${
-                            time.status === 'approved'
-                              ? 'bg-red-500'
-                              : time.isOptimistic
-                              ? 'bg-blue-500 animate-pulse'
-                              : 'bg-yellow-500'
-                          }`}></div>
-                          {format(time.start, 'HH:mm')} - {format(time.end, 'HH:mm')} ({
-                            time.status === 'approved'
-                              ? 'Sudah disetujui'
-                              : time.isOptimistic
-                              ? 'Sedang diproses...'
-                              : 'Menunggu persetujuan'
-                          })
-                        </motion.div>
-                      ))}
+                    <motion.div
+                      className="space-y-1"
+                      {...staggerAnimation.container}
+                    >
+                      <AnimatePresence>
+                        {getBookedTimes(selectedDate).map((time, index) => (
+                          <motion.div
+                            key={`${time.start.getTime()}-${time.end.getTime()}-${index}`}
+                            {...staggerAnimation.item}
+                            layout
+                            className={`flex items-center gap-2 text-sm px-3 py-2 rounded-md ${
+                              time.status === 'approved'
+                                ? 'text-red-600 bg-red-50 dark:bg-red-900/20'
+                                : time.isOptimistic
+                                ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                                : 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20'
+                            }`}
+                          >
+                            <motion.div
+                              className={`w-2 h-2 rounded-full ${
+                                time.status === 'approved'
+                                  ? 'bg-red-500'
+                                  : time.isOptimistic
+                                  ? 'bg-blue-500'
+                                  : 'bg-yellow-500'
+                              }`}
+                              animate={time.isOptimistic ? { scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] } : {}}
+                              transition={time.isOptimistic ? { duration: 1.5, repeat: Infinity } : {}}
+                            />
+                            {format(time.start, 'HH:mm')} - {format(time.end, 'HH:mm')} ({
+                              time.status === 'approved'
+                                ? 'Sudah disetujui'
+                                : time.isOptimistic
+                                ? 'Sedang diproses...'
+                                : 'Menunggu persetujuan'
+                            })
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
                       {getBookedTimes(selectedDate).length === 0 && (
                         <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
                           className="flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-md"
                         >
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <motion.div
+                            className="w-2 h-2 bg-green-500 rounded-full"
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          />
                           Tidak ada pemesanan untuk tanggal ini
                         </motion.div>
                       )}
-                    </div>
+                    </motion.div>
                   </motion.div>
                 )}
               </div>
@@ -510,14 +573,20 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
+          whileHover={{ y: -2 }}
+          whileTap={{ y: 1 }}
         >
           <Card className="bg-card hover:shadow-xl transition-all duration-300">
 
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <motion.div
+                  className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center"
+                  whileHover={{ scale: 1.1, rotate: -5 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
                   <Users className="w-5 h-5 text-white" />
-                </div>
+                </motion.div>
                 <span className="text-blue-600">
                   Detail Booking Tour
                 </span>
@@ -529,8 +598,16 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
             <CardContent>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 {/* Time Selection */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
+                <motion.div
+                  className="grid grid-cols-2 gap-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
                     <Label>Waktu Mulai</Label>
                     <div className="flex gap-2">
                       <Select value={form.watch('startHour')} onValueChange={(value: string) => form.setValue('startHour', value)}>
@@ -557,8 +634,11 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-                  <div>
+                  </motion.div>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
                     <Label>Waktu Selesai</Label>
                     <div className="flex gap-2">
                       <Select value={form.watch('endHour')} onValueChange={(value: string) => form.setValue('endHour', value)}>
@@ -585,61 +665,132 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
 
-                <div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
                   <Label htmlFor="contactName">Nama Kontak</Label>
-                  <Input
-                    id="contactName"
-                    {...form.register('contactName')}
-                    placeholder="Masukkan nama kontak"
-                    className={cn(form.formState.errors.contactName && "border-red-500")}
-                  />
-                  {form.formState.errors.contactName && (
-                    <p className="text-sm text-red-500 mt-1">{form.formState.errors.contactName.message}</p>
-                  )}
-                </div>
+                  <motion.div
+                    whileFocus={{ scale: 1.01 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <Input
+                      id="contactName"
+                      {...form.register('contactName')}
+                      placeholder="Masukkan nama kontak"
+                      className={cn(form.formState.errors.contactName && "border-red-500")}
+                    />
+                  </motion.div>
+                  <AnimatePresence>
+                    {form.formState.errors.contactName && (
+                      <motion.p
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-sm text-red-500 mt-1"
+                      >
+                        {form.formState.errors.contactName.message}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
 
-                <div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
                   <Label htmlFor="contactInstitution">Institusi</Label>
-                  <Input
-                    id="contactInstitution"
-                    {...form.register('contactInstitution')}
-                    placeholder="Masukkan nama institusi"
-                    className={cn(form.formState.errors.contactInstitution && "border-red-500")}
-                  />
-                  {form.formState.errors.contactInstitution && (
-                    <p className="text-sm text-red-500 mt-1">{form.formState.errors.contactInstitution.message}</p>
-                  )}
-                </div>
+                  <motion.div
+                    whileFocus={{ scale: 1.01 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <Input
+                      id="contactInstitution"
+                      {...form.register('contactInstitution')}
+                      placeholder="Masukkan nama institusi"
+                      className={cn(form.formState.errors.contactInstitution && "border-red-500")}
+                    />
+                  </motion.div>
+                  <AnimatePresence>
+                    {form.formState.errors.contactInstitution && (
+                      <motion.p
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-sm text-red-500 mt-1"
+                      >
+                        {form.formState.errors.contactInstitution.message}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
 
-                <div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                >
                   <Label htmlFor="participantCount">Jumlah Peserta</Label>
-                  <Input
-                    id="participantCount"
-                    type="number"
-                    {...form.register('participantCount', { valueAsNumber: true })}
-                    placeholder="Masukkan jumlah peserta"
-                    className={cn(form.formState.errors.participantCount && "border-red-500")}
-                  />
-                  {form.formState.errors.participantCount && (
-                    <p className="text-sm text-red-500 mt-1">{form.formState.errors.participantCount.message}</p>
-                  )}
-                </div>
+                  <motion.div
+                    whileFocus={{ scale: 1.01 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <Input
+                      id="participantCount"
+                      type="number"
+                      {...form.register('participantCount', { valueAsNumber: true })}
+                      placeholder="Masukkan jumlah peserta"
+                      className={cn(form.formState.errors.participantCount && "border-red-500")}
+                    />
+                  </motion.div>
+                  <AnimatePresence>
+                    {form.formState.errors.participantCount && (
+                      <motion.p
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-sm text-red-500 mt-1"
+                      >
+                        {form.formState.errors.participantCount.message}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
 
-                <div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
+                >
                   <Label htmlFor="specialRequests">Permintaan Khusus</Label>
-                  <Textarea
-                    id="specialRequests"
-                    {...form.register('specialRequests')}
-                    placeholder="Permintaan khusus atau kebutuhan aksesibilitas..."
-                  />
-                </div>
+                  <motion.div
+                    whileFocus={{ scale: 1.01 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <Textarea
+                      id="specialRequests"
+                      {...form.register('specialRequests')}
+                      placeholder="Permintaan khusus atau kebutuhan aksesibilitas..."
+                    />
+                  </motion.div>
+                </motion.div>
 
-                <div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                >
                   <Label htmlFor="tourDocumentFile">Upload Dokumen (Opsional)</Label>
-                  <div className="relative">
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    className="relative"
+                  >
                     <Input
                       id="tourDocumentFile"
                       type="file"
@@ -661,40 +812,82 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                         isUploadingFile && "border-blue-500 bg-blue-50"
                       )}
                     />
-                    {isUploadingFile && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                      </div>
-                    )}
-                  </div>
+                    <AnimatePresence>
+                      {isUploadingFile && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0 }}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                        >
+                          <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
                   <p className="text-xs text-gray-500 mt-1">Format yang diterima: PDF, DOC, DOCX (Maks 10MB)</p>
-                  {isUploadingFile && (
-                    <div className="flex items-center gap-2 mt-2">
-                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                      <p className="text-sm text-blue-600 font-medium">Mengunggah file...</p>
-                    </div>
-                  )}
-                  {uploadedFilePath && !isUploadingFile && !uploadError && (
-                    <div className="flex items-center gap-2 mt-2">
-                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <p className="text-sm text-green-600 font-medium">File berhasil diunggah</p>
-                    </div>
-                  )}
-                  {(uploadError || form.formState.errors.tourDocumentFile) && (
-                    <div className="flex items-center gap-2 mt-2">
-                      <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <p className="text-sm text-red-600 font-medium">{uploadError || form.formState.errors.tourDocumentFile?.message}</p>
-                    </div>
-                  )}
-                </div>
+                  <AnimatePresence>
+                    {isUploadingFile && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex items-center gap-2 mt-2"
+                      >
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full"
+                        />
+                        <p className="text-sm text-blue-600 font-medium">Mengunggah file...</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <AnimatePresence>
+                    {uploadedFilePath && !isUploadingFile && !uploadError && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="flex items-center gap-2 mt-2"
+                      >
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                          className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center"
+                        >
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </motion.div>
+                        <p className="text-sm text-green-600 font-medium">File berhasil diunggah</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <AnimatePresence>
+                    {(uploadError || form.formState.errors.tourDocumentFile) && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        className="flex items-center gap-2 mt-2"
+                      >
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                          className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"
+                        >
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </motion.div>
+                        <p className="text-sm text-red-600 font-medium">{uploadError || form.formState.errors.tourDocumentFile?.message}</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
 
                 {form.formState.errors.endHour && (
                   <p className="text-sm text-red-500">{form.formState.errors.endHour.message}</p>
@@ -715,6 +908,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                 )}
 
                 <motion.div
+                  className="relative z-10"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -724,20 +918,32 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUploadingFile ? (
-                      <div className="flex items-center justify-center">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2 animate-spin" />
+                      <motion.div
+                        className="flex items-center justify-center"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      >
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
                         Menunggu upload file selesai...
-                      </div>
+                      </motion.div>
                     ) : isSubmitting || isSubmittingOptimistically ? (
-                      <>
-                        <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <motion.div
+                        className="flex items-center justify-center"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      >
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
                         Mengirim Booking...
-                      </>
+                      </motion.div>
                     ) : (
-                      <>
+                      <motion.div
+                        className="flex items-center justify-center"
+                        whileHover={{ x: 2 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                      >
                         <ArrowRight className="w-4 h-4 mr-2 text-white" />
                         Kirim Booking Tour
-                      </>
+                      </motion.div>
                     )}
                   </Button>
                 </motion.div>

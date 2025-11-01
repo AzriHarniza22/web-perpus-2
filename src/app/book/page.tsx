@@ -127,22 +127,19 @@ export default function BookRoomPage() {
                   ) : (
                     <div className="h-48 bg-muted relative overflow-hidden">
                       <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300 rounded-md" />
-                      <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.3 }}
-                        className="absolute inset-0 flex items-center justify-center rounded-md overflow-hidden"
-                      >
+                      <div className="absolute inset-0 flex items-center justify-center rounded-md overflow-hidden">
                         {room.photos && room.photos.length === 1 ? (
                           <Image
                             src={room.photos[0]}
                             alt={room.name}
                             fill
-                            className="object-cover transition-transform duration-500 group-hover:scale-110"
+                            className="object-cover"
+                            style={{ willChange: "auto" }}
                           />
                         ) : (
                           <Building className="w-16 h-16 text-white/80" />
                         )}
-                      </motion.div>
+                      </div>
                       {/* Floating elements */}
                     </div>
                   )}

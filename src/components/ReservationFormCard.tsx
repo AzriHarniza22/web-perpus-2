@@ -10,8 +10,8 @@ import { useAuth } from '@/components/AuthProvider'
 import { supabase } from '@/lib/supabase'
 import { format as formatDate } from 'date-fns'
 import { id } from 'date-fns/locale'
-import { motion } from 'framer-motion'
-import { Sparkles, ArrowRight, Upload, X, FileText } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Sparkles, ArrowRight, Upload, X, FileText, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -22,6 +22,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import dayjs from 'dayjs'
 import { useToast } from '@/components/ui/toast'
+import { useHoverAnimation, useStaggerAnimation, useLoadingAnimation } from '@/hooks/useAnimations'
 
 const bookingSchema = z.object({
   startHour: z.string().min(1, 'Please select start hour'),
@@ -68,9 +69,17 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
   const { user } = useAuth()
   const createBookingMutation = useCreateBooking()
   const { success } = useToast()
+
+  // Animation hooks
+  const hoverAnimation = useHoverAnimation()
+  const loadingAnimation = useLoadingAnimation()
+  const staggerAnimation = useStaggerAnimation()
+
   const [pendingOverlapWarning, setPendingOverlapWarning] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [uploadProgress, setUploadProgress] = useState<number>(0)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [showError, setShowError] = useState(false)
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
@@ -184,11 +193,16 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
     createBookingMutation.mutate(bookingData, {
       onSuccess: () => {
         console.log(`ReservationFormCard: Booking success, redirecting to /dashboard, user=${user ? user.id : 'null'}`)
+        setShowSuccess(true)
         success('Reservasi Berhasil', 'Reservasi Anda telah berhasil dikirim dan menunggu persetujuan.')
-        router.push('/dashboard?success=Booking submitted successfully')
+        setTimeout(() => {
+          router.push('/dashboard?success=Booking submitted successfully')
+        }, 1500)
       },
       onError: (err) => {
+        setShowError(true)
         form.setError('root', { message: err instanceof Error ? err.message : 'An error occurred' })
+        setTimeout(() => setShowError(false), 3000)
       },
     })
   }
@@ -198,16 +212,57 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
+      whileHover={{ y: -2 }}
+      whileTap={{ y: 1 }}
     >
+      {/* Success Animation */}
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: -50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: -50 }}
+            className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
+          >
+            <CheckCircle className="w-5 h-5" />
+            <span>Booking submitted successfully!</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Error Animation */}
+      <AnimatePresence>
+        {showError && (
+          <motion.div
+            initial={{ opacity: 0, x: 300 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 300 }}
+            className="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
+          >
+            <AlertCircle className="w-5 h-5" />
+            <span>Failed to submit booking</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group flex flex-col">
         {/* Background Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-secondary-50/50 via-accent-50/30 to-orange-50/50 dark:from-secondary-900/20 dark:via-accent-900/20 dark:to-orange-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-br from-secondary-50/50 via-accent-50/30 to-orange-50/50 dark:from-secondary-900/20 dark:via-accent-900/20 dark:to-orange-900/20 pointer-events-none"
+          initial={{ opacity: 0 }}
+          whileHover={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        />
 
         <CardHeader className="relative z-10 flex-shrink-0">
           <CardTitle className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+            <motion.div
+              className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center"
+              whileHover={{ scale: 1.1, rotate: -5 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+            >
               <Sparkles className="w-5 h-5 text-white" />
-            </div>
+            </motion.div>
             <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
               Detail Reservasi
             </span>
@@ -227,34 +282,81 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
           )}
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
-            <div className="space-y-2">
+            <motion.div
+              className="space-y-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
               <Label htmlFor="contactName" className="text-sm font-medium">Nama</Label>
-              <Input
-                id="contactName"
-                {...form.register('contactName')}
-                placeholder="Nama lengkap kontak"
-                className={cn("h-9", form.formState.errors.contactName && "border-red-500")}
-              />
-              {form.formState.errors.contactName && (
-                <p className="text-xs text-red-500">{form.formState.errors.contactName.message}</p>
-              )}
-            </div>
+              <motion.div
+                whileFocus={{ scale: 1.01 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <Input
+                  id="contactName"
+                  {...form.register('contactName')}
+                  placeholder="Nama lengkap kontak"
+                  className={cn("h-9", form.formState.errors.contactName && "border-red-500")}
+                />
+              </motion.div>
+              <AnimatePresence>
+                {form.formState.errors.contactName && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="text-xs text-red-500"
+                  >
+                    {form.formState.errors.contactName.message}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </motion.div>
 
-            <div className="space-y-2">
+            <motion.div
+              className="space-y-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
               <Label htmlFor="institution" className="text-sm font-medium">Institusi</Label>
-              <Input
-                id="institution"
-                {...form.register('institution')}
-                placeholder="Nama institusi atau organisasi"
-                className={cn("h-9", form.formState.errors.institution && "border-red-500")}
-              />
-              {form.formState.errors.institution && (
-                <p className="text-xs text-red-500">{form.formState.errors.institution.message}</p>
-              )}
-            </div>
+              <motion.div
+                whileFocus={{ scale: 1.01 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <Input
+                  id="institution"
+                  {...form.register('institution')}
+                  placeholder="Nama institusi atau organisasi"
+                  className={cn("h-9", form.formState.errors.institution && "border-red-500")}
+                />
+              </motion.div>
+              <AnimatePresence>
+                {form.formState.errors.institution && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="text-xs text-red-500"
+                  >
+                    {form.formState.errors.institution.message}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </motion.div>
             {/* Time Selection - Optimized for equal width layout */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
+            <motion.div
+              className="grid grid-cols-2 gap-3"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <motion.div
+                className="space-y-2"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
                 <Label className="text-sm font-medium">Waktu Mulai</Label>
                 <div className="flex gap-2">
                   <Select value={form.watch('startHour')} onValueChange={(value: string) => form.setValue('startHour', value)}>
@@ -281,8 +383,12 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-              <div className="space-y-2">
+              </motion.div>
+              <motion.div
+                className="space-y-2"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
                 <Label className="text-sm font-medium">Waktu Selesai</Label>
                 <div className="flex gap-2">
                   <Select value={form.watch('endHour')} onValueChange={(value: string) => form.setValue('endHour', value)}>
@@ -309,52 +415,108 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
-            <div className="space-y-2">
+            <motion.div
+              className="space-y-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
               <Label htmlFor="eventDescription" className="text-sm font-medium">Deskripsi Acara</Label>
-              <Textarea
-                id="eventDescription"
-                {...form.register('eventDescription')}
-                placeholder="Jelaskan acara atau tujuan Anda"
-                className={cn("min-h-[80px] resize-none", form.formState.errors.eventDescription && "border-red-500")}
-              />
-              {form.formState.errors.eventDescription && (
-                <p className="text-xs text-red-500">{form.formState.errors.eventDescription.message}</p>
-              )}
-            </div>
+              <motion.div
+                whileFocus={{ scale: 1.01 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <Textarea
+                  id="eventDescription"
+                  {...form.register('eventDescription')}
+                  placeholder="Jelaskan acara atau tujuan Anda"
+                  className={cn("min-h-[80px] resize-none", form.formState.errors.eventDescription && "border-red-500")}
+                />
+              </motion.div>
+              <AnimatePresence>
+                {form.formState.errors.eventDescription && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="text-xs text-red-500"
+                  >
+                    {form.formState.errors.eventDescription.message}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </motion.div>
 
-            <div className="space-y-2">
+            <motion.div
+              className="space-y-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+            >
               <Label htmlFor="guestCount" className="text-sm font-medium">Jumlah Tamu</Label>
-              <Input
-                id="guestCount"
-                type="number"
-                {...form.register('guestCount', { valueAsNumber: true })}
-                placeholder="1-100"
-                className={cn("h-9", form.formState.errors.guestCount && "border-red-500")}
-              />
-              {form.formState.errors.guestCount && (
-                <p className="text-xs text-red-500">{form.formState.errors.guestCount.message}</p>
-              )}
-            </div>
+              <motion.div
+                whileFocus={{ scale: 1.01 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <Input
+                  id="guestCount"
+                  type="number"
+                  {...form.register('guestCount', { valueAsNumber: true })}
+                  placeholder="1-100"
+                  className={cn("h-9", form.formState.errors.guestCount && "border-red-500")}
+                />
+              </motion.div>
+              <AnimatePresence>
+                {form.formState.errors.guestCount && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="text-xs text-red-500"
+                  >
+                    {form.formState.errors.guestCount.message}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </motion.div>
 
-
-            <div className="space-y-2">
+            <motion.div
+              className="space-y-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+            >
               <Label htmlFor="notes" className="text-sm font-medium">Catatan Tambahan</Label>
-              <Textarea
-                id="notes"
-                {...form.register('notes')}
-                placeholder="Persyaratan khusus atau catatan lainnya"
-                className="min-h-[60px] resize-none"
-              />
-            </div>
+              <motion.div
+                whileFocus={{ scale: 1.01 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <Textarea
+                  id="notes"
+                  {...form.register('notes')}
+                  placeholder="Persyaratan khusus atau catatan lainnya"
+                  className="min-h-[60px] resize-none"
+                />
+              </motion.div>
+            </motion.div>
 
             {/* Upload Proposal Section */}
-            <div className="space-y-2">
+            <motion.div
+              className="space-y-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9 }}
+            >
               <Label className="text-sm font-medium">Upload Proposal</Label>
               <div className="space-y-3">
-                <div className="relative">
+                <motion.div
+                  whileHover={{ scale: 1.01 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className="relative"
+                >
                   <Input
                     type="file"
                     accept=".pdf,.doc,.docx"
@@ -366,55 +528,88 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
                     className="h-10 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
                   <p className="text-xs text-gray-500 mt-1">Format yang diterima: PDF, DOC, DOCX (Maks 10MB)</p>
-                </div>
+                </motion.div>
 
-                {form.formState.errors.proposalFile && (
-                  <p className="text-xs text-red-500">{form.formState.errors.proposalFile.message}</p>
-                )}
+                <AnimatePresence>
+                  {form.formState.errors.proposalFile && (
+                    <motion.p
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="text-xs text-red-500"
+                    >
+                      {form.formState.errors.proposalFile.message}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
 
                 {/* File Display */}
-                {uploadedFile && (
-                  <div className="space-y-2">
-                    <Label className="text-xs text-gray-600">File yang dipilih:</Label>
-                    <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-blue-500" />
-                        <span className="text-sm truncate max-w-[200px]">{uploadedFile.name}</span>
-                        <span className="text-xs text-gray-500">({(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)</span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setUploadedFile(null);
-                          form.setValue('proposalFile', undefined);
-                        }}
-                        className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                <AnimatePresence>
+                  {uploadedFile && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="space-y-2"
+                    >
+                      <Label className="text-xs text-gray-600">File yang dipilih:</Label>
+                      <motion.div
+                        className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                        layout
                       >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-blue-500" />
+                          <span className="text-sm truncate max-w-[200px]">{uploadedFile.name}</span>
+                          <span className="text-xs text-gray-500">({(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)</span>
+                        </div>
+                        <motion.div
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setUploadedFile(null);
+                              form.setValue('proposalFile', undefined);
+                            }}
+                            className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </motion.div>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* Progress Bar for Upload */}
-                {uploadProgress > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs">
-                      <span>Uploading {uploadedFile?.name}</span>
-                      <span>{uploadProgress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
+                <AnimatePresence>
+                  {uploadProgress > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="space-y-2"
+                    >
+                      <div className="flex justify-between text-xs">
+                        <span>Uploading {uploadedFile?.name}</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <motion.div
+                          className="bg-blue-600 h-2 rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${uploadProgress}%` }}
+                          transition={{ duration: 0.3 }}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
+            </motion.div>
 
             <div className="space-y-2">
               {form.formState.errors.root && (
@@ -432,9 +627,9 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
               )}
 
               <motion.div
+                className="relative z-10"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="relative z-10"
               >
                 <Button
                   type="submit"
@@ -443,15 +638,22 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
                 >
                   {createBookingMutation.isPending ? (
                     <motion.div
+                      className="flex items-center justify-center"
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
-                    />
+                    >
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                      Mengirim Reservasi...
+                    </motion.div>
                   ) : (
-                    <>
+                    <motion.div
+                      className="flex items-center justify-center"
+                      whileHover={{ x: 2 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    >
                       <ArrowRight className="w-4 h-4 mr-2" />
                       Kirim Reservasi
-                    </>
+                    </motion.div>
                   )}
                 </Button>
               </motion.div>

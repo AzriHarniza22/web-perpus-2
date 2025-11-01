@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { LucideIcon } from 'lucide-react'
 import { useChartData } from './ChartDataContext'
+import { useInViewAnimation, useHoverAnimation, useLoadingAnimation } from '@/hooks/useAnimations'
 
 // Using Chart.js types directly
 
@@ -85,6 +86,11 @@ export function BaseChart<T extends ChartType = ChartType>({
   const currentChartType = onChartTypeChange ? chartType : internalChartType
   const currentViewMode = onViewModeChange ? viewMode : internalViewMode
 
+  // Animation hooks
+  const inViewAnimation = useInViewAnimation({ variant: 'slide', direction: 'up' })
+  const hoverAnimation = useHoverAnimation()
+  const loadingAnimation = useLoadingAnimation()
+
   // Register chart data for export functionality
   const { registerChartData } = useChartData()
 
@@ -119,24 +125,42 @@ export function BaseChart<T extends ChartType = ChartType>({
   }
 
   const renderLoadingState = () => (
-    <Card className="bg-card backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {Icon && <Icon className="w-5 h-5" />}
-          {title}
-        </CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            <div className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+    <motion.div
+      {...inViewAnimation}
+      className="w-full"
+    >
+      <Card className="bg-card backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {Icon && <Icon className="w-5 h-5" />}
+            {title}
+          </CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <motion.div
+                className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded"
+                animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                className="h-8 w-20 bg-gray-200 dark:bg-gray-700 rounded"
+                animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+              />
+            </div>
+            <motion.div
+              className="bg-gray-200 dark:bg-gray-700 rounded"
+              style={{ height: `${height}px` }}
+              animate={{ scale: [1, 1.02, 1], opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            />
           </div>
-          <div className="bg-gray-200 dark:bg-gray-700 rounded animate-pulse" style={{ height: `${height}px` }} />
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </motion.div>
   )
 
   const renderChart = () => {
@@ -165,86 +189,123 @@ export function BaseChart<T extends ChartType = ChartType>({
   }
 
   return (
-    <Card className="bg-card backdrop-blur-sm">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              {Icon && <Icon className="w-5 h-5" />}
-              {title}
-            </CardTitle>
-            <CardDescription>{description}</CardDescription>
-          </div>
-          {customStats.length > 0 && (
-            <div className="flex items-center gap-2">
-              {customStats.map((stat, index) => (
-                <Badge key={index} variant="outline" className="flex items-center gap-1">
-                  {stat.icon && <stat.icon className="w-3 h-3" />}
-                  {stat.label}: {stat.value}
-                </Badge>
-              ))}
+    <motion.div
+      {...inViewAnimation}
+      className="w-full"
+    >
+      <Card className="bg-card backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                {Icon && <Icon className="w-5 h-5" />}
+                {title}
+              </CardTitle>
+              <CardDescription>{description}</CardDescription>
             </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {/* Controls */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* View Mode Controls */}
-            {availableViewModes.length > 1 && (
-              <div className="flex rounded-lg border bg-card">
-                {availableViewModes.map((mode) => (
-                  <Button
-                    key={mode}
-                    variant={currentViewMode === mode ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => handleViewModeChange(mode)}
-                    className={availableViewModes.indexOf(mode) === 0 ? 'rounded-r-none' : 'rounded-l-none'}
+            {customStats.length > 0 && (
+              <motion.div
+                className="flex items-center gap-2"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+              >
+                {customStats.map((stat, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 + index * 0.1, duration: 0.3 }}
                   >
-                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                  </Button>
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      {stat.icon && <stat.icon className="w-3 h-3" />}
+                      {stat.label}: {stat.value}
+                    </Badge>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
-
-            {/* Chart Type Controls */}
-            {availableChartTypes.length > 1 && (
-              <div className="flex rounded-lg border bg-card">
-                {availableChartTypes.map((type) => (
-                  <Button
-                    key={type}
-                    variant={currentChartType === type ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => handleChartTypeChange(type)}
-                    className={availableChartTypes.indexOf(type) === 0 ? 'rounded-r-none' : 'rounded-l-none'}
-                  >
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </Button>
-                ))}
-              </div>
-            )}
-
-            {/* Custom Controls */}
-            {customControls}
           </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Controls */}
+            <motion.div
+              className="flex items-center gap-2 flex-wrap"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+            >
+              {/* View Mode Controls */}
+              {availableViewModes.length > 1 && (
+                <div className="flex rounded-lg border bg-card">
+                  {availableViewModes.map((mode, index) => (
+                    <motion.div
+                      key={mode}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.3 + index * 0.05, duration: 0.2 }}
+                    >
+                      <Button
+                        variant={currentViewMode === mode ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => handleViewModeChange(mode)}
+                        className={availableViewModes.indexOf(mode) === 0 ? 'rounded-r-none' : 'rounded-l-none'}
+                        {...hoverAnimation}
+                      >
+                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                      </Button>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
 
-          {/* Chart */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div style={{ height: `${height}px` }}>
-              {renderChart()}
-            </div>
-          </motion.div>
+              {/* Chart Type Controls */}
+              {availableChartTypes.length > 1 && (
+                <div className="flex rounded-lg border bg-card">
+                  {availableChartTypes.map((type, index) => (
+                    <motion.div
+                      key={type}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.4 + index * 0.05, duration: 0.2 }}
+                    >
+                      <Button
+                        variant={currentChartType === type ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => handleChartTypeChange(type)}
+                        className={availableChartTypes.indexOf(type) === 0 ? 'rounded-r-none' : 'rounded-l-none'}
+                        {...hoverAnimation}
+                      >
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </Button>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
 
-          {/* Additional Content */}
-          {children}
-        </div>
-      </CardContent>
-    </Card>
+              {/* Custom Controls */}
+              {customControls}
+            </motion.div>
+
+            {/* Chart */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5, duration: 0.6, type: "spring", stiffness: 100 }}
+              className="overflow-hidden rounded-lg"
+            >
+              <div style={{ height: `${height}px` }}>
+                {renderChart()}
+              </div>
+            </motion.div>
+
+            {/* Additional Content */}
+            {children}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   )
 }
 

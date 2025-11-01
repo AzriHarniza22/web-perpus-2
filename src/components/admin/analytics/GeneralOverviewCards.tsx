@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { TrendingUp, Users, Building, MapPin, Clock, BookOpen, CheckCircle, XCircle, Percent, LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Booking, Room, Tour, User } from '@/lib/types'
+import { useInViewAnimation, useHoverAnimation, useStaggerAnimation } from '@/hooks/useAnimations'
 
 interface GeneralOverviewCardsProps {
   bookings: Booking[]
@@ -29,6 +30,8 @@ export function GeneralOverviewCards({
   users,
   isLoading = false
 }: GeneralOverviewCardsProps) {
+  const staggerAnimation = useStaggerAnimation({ staggerDelay: 0.1, itemDelay: 0.2 })
+  const hoverAnimation = useHoverAnimation()
   const [animatedValues, setAnimatedValues] = useState<{
     totalBookings: number
     approvedBookings: number
@@ -257,54 +260,96 @@ export function GeneralOverviewCards({
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
         {[...Array(8)].map((_, index) => (
-          <Card key={index} className="bg-card backdrop-blur-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                  <div className="h-6 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05, duration: 0.4 }}
+          >
+            <Card className="bg-card backdrop-blur-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <motion.div
+                      className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded"
+                      animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <motion.div
+                      className="h-6 w-12 bg-gray-200 dark:bg-gray-700 rounded"
+                      animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+                    />
+                  </div>
+                  <motion.div
+                    className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  />
                 </div>
-                <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <motion.div
+      {...staggerAnimation.container}
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+    >
       {statCards.map((stat, index) => (
         <motion.div
           key={stat.label}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1, duration: 0.5 }}
-        >library-reservation-3@0.1.0
-          <Card className="group bg-card backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105">
+          {...staggerAnimation.item}
+          {...hoverAnimation}
+          className="group"
+        >
+          <Card className="bg-card backdrop-blur-sm hover:shadow-lg transition-all duration-300">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  <motion.p
+                    className="text-sm font-medium text-gray-600 dark:text-gray-400"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 + index * 0.1, duration: 0.3 }}
+                  >
                     {stat.label}
-                  </p>
-                  <div className="flex items-center gap-2">
+                  </motion.p>
+                  <motion.div
+                    className="flex items-center gap-2"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.4 + index * 0.1, duration: 0.4, type: "spring", stiffness: 200 }}
+                  >
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
                       {stat.label.includes('Tingkat') ? `${stat.value}%` : stat.value}
                     </p>
-                  </div>
+                  </motion.div>
                 </div>
-                <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-75 ease-out`}>
+                <motion.div
+                  className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center`}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
                   <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                </div>
+                </motion.div>
               </div>
             </CardContent>
           </Card>
         </motion.div>
       ))}
-    </div>
+    </motion.div>
   )
 }

@@ -12,6 +12,7 @@ import { AlertCircle, CheckCircle } from 'lucide-react'
 import { isValidEmail } from '@/lib/validation'
 import { handleError } from '@/lib/errors'
 import { useToastContext } from '@/components/ToastProvider'
+import { useHoverAnimation } from '@/hooks/useAnimations'
 
 interface ForgotPasswordFormData {
   email: string
@@ -32,6 +33,7 @@ export function ForgotPasswordModal({ children }: ForgotPasswordModalProps) {
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
   const { success: showToast } = useToastContext()
+  const hoverAnimation = useHoverAnimation()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target
@@ -165,8 +167,7 @@ export function ForgotPasswordModal({ children }: ForgotPasswordModalProps) {
             </AnimatePresence>
 
             <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              {...hoverAnimation}
             >
               <Button
                 type="submit"

@@ -1,16 +1,29 @@
 import * as React from "react"
+import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
+import { useHoverAnimation } from "@/hooks/useAnimations"
 
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
+    <motion.div
       data-slot="card"
       className={cn(
         "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-lg",
         className
       )}
+      whileHover={{ y: -2 }}
+      whileTap={{ y: 1 }}
+      transition={{ type: "spring" as const, stiffness: 300, damping: 30 }}
+      style={{
+        willChange: "transform",
+        backfaceVisibility: "hidden"
+      }}
       {...props}
+      onAnimationStart={undefined}
+      onDrag={undefined}
+      onDragEnd={undefined}
+      onDragStart={undefined}
     />
   )
 }

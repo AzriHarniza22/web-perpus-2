@@ -23,6 +23,27 @@ import {
   Loader2
 } from 'lucide-react'
 
+// Consistent animation configurations
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, ease: "easeOut" }
+}
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1
+    }
+  }
+}
+
+const cardHover = {
+  scale: 1.02,
+  y: -2
+}
+
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -365,8 +386,9 @@ function AnalyticsDashboardContent({
     <div className="space-y-4">
       {/* Global Filters and Export Header */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
         className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
         role="region"
         aria-label="Analytics filters and export controls"
@@ -467,8 +489,9 @@ function AnalyticsDashboardContent({
 
       {/* Enhanced Tabbed Analytics Content */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        variants={fadeInUp}
+        initial="initial"
+        animate="animate"
         transition={{ delay: 0.1 }}
         role="region"
         aria-label="Analytics dashboard content"
@@ -607,38 +630,59 @@ const GeneralAnalyticsTab = memo<GeneralAnalyticsTabProps>(({ bookings, rooms, t
   }, [])
 
   return (
-    <div className="space-y-4">
+    <motion.div
+      className="space-y-4"
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+    >
       {/* Overview Stats */}
-      <GeneralOverviewCards
-        bookings={bookings}
-        rooms={rooms}
-        tours={tours}
-        users={users}
-      />
+      <motion.div variants={fadeInUp}>
+        <GeneralOverviewCards
+          bookings={bookings}
+          rooms={rooms}
+          tours={tours}
+          users={users}
+        />
+      </motion.div>
 
       {/* Charts Grid - Enhanced responsive layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <MonthlyReservationsChart
-          bookings={bookings}
-          isLoading={chartLoadingStates.monthly}
-        />
-        <DailyDistributionChart
-          bookings={bookings}
-          isLoading={chartLoadingStates.daily}
-        />
-      </div>
+      <motion.div
+        variants={staggerContainer}
+        className="grid grid-cols-1 xl:grid-cols-2 gap-4"
+      >
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <MonthlyReservationsChart
+            bookings={bookings}
+            isLoading={chartLoadingStates.monthly}
+          />
+        </motion.div>
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <DailyDistributionChart
+            bookings={bookings}
+            isLoading={chartLoadingStates.daily}
+          />
+        </motion.div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <PeakHoursChart
-          bookings={bookings}
-          isLoading={chartLoadingStates.peak}
-        />
-        <ReservationHeatmap
-          bookings={bookings}
-          isLoading={chartLoadingStates.heatmap}
-        />
-      </div>
-    </div>
+      <motion.div
+        variants={staggerContainer}
+        className="grid grid-cols-1 xl:grid-cols-2 gap-4"
+      >
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <PeakHoursChart
+            bookings={bookings}
+            isLoading={chartLoadingStates.peak}
+          />
+        </motion.div>
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <ReservationHeatmap
+            bookings={bookings}
+            isLoading={chartLoadingStates.heatmap}
+          />
+        </motion.div>
+      </motion.div>
+    </motion.div>
   )
 })
 
@@ -656,125 +700,198 @@ const RoomAnalyticsTab = memo<RoomAnalyticsTabProps>(({ bookings, rooms, selecte
   }, [selectedRooms])
 
   return (
-    <div className="space-y-4">
+    <motion.div
+      className="space-y-4"
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+    >
       {/* Room Overview Cards */}
-      <RoomOverviewCards
-        bookings={bookings}
-        rooms={rooms}
-      />
+      <motion.div variants={fadeInUp}>
+        <RoomOverviewCards
+          bookings={bookings}
+          rooms={rooms}
+        />
+      </motion.div>
 
       {/* Charts Grid - Enhanced responsive layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <RoomMonthlyChart
-          bookings={bookings}
-          rooms={rooms}
-        />
-        <GuestDistributionChart
-          bookings={bookings}
-          rooms={rooms}
-          selectedRoom={roomFilter}
-        />
-      </div>
+      <motion.div
+        variants={staggerContainer}
+        className="grid grid-cols-1 xl:grid-cols-2 gap-4"
+      >
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <RoomMonthlyChart
+            bookings={bookings}
+            rooms={rooms}
+          />
+        </motion.div>
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <GuestDistributionChart
+            bookings={bookings}
+            rooms={rooms}
+            selectedRoom={roomFilter}
+          />
+        </motion.div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <RoomTimeHeatmap
-          bookings={bookings}
-          rooms={rooms}
-        />
-        <AverageReservationTimeChart
-          bookings={bookings}
-          rooms={rooms}
-          selectedRoom={roomFilter}
-        />
-      </div>
+      <motion.div
+        variants={staggerContainer}
+        className="grid grid-cols-1 xl:grid-cols-2 gap-4"
+      >
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <RoomTimeHeatmap
+            bookings={bookings}
+            rooms={rooms}
+          />
+        </motion.div>
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <AverageReservationTimeChart
+            bookings={bookings}
+            rooms={rooms}
+            selectedRoom={roomFilter}
+          />
+        </motion.div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 gap-4">
-        <AverageGuestsChart
-          bookings={bookings}
-          rooms={rooms}
-          selectedRoom={roomFilter}
-        />
-      </div>
-    </div>
+      <motion.div
+        variants={staggerContainer}
+        className="grid grid-cols-1 gap-4"
+      >
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <AverageGuestsChart
+            bookings={bookings}
+            rooms={rooms}
+            selectedRoom={roomFilter}
+          />
+        </motion.div>
+      </motion.div>
+    </motion.div>
   )
 })
 
 // Tour Analytics Tab Component
 const TourAnalyticsTab = memo<TourAnalyticsTabProps>(({ bookings, tours }) => {
   return (
-    <div className="space-y-4">
+    <motion.div
+      className="space-y-4"
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+    >
       {/* Tour Overview Cards */}
-      <TourOverviewCards
-        bookings={bookings}
-        tours={tours}
-      />
+      <motion.div variants={fadeInUp}>
+        <TourOverviewCards
+          bookings={bookings}
+          tours={tours}
+        />
+      </motion.div>
 
       {/* Charts Grid - Enhanced responsive layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <TourMonthlyChart
-          bookings={bookings}
-          tours={tours}
-        />
-        <TourGuestsCard
-          bookings={bookings}
-          tours={tours}
-        />
-      </div>
+      <motion.div
+        variants={staggerContainer}
+        className="grid grid-cols-1 xl:grid-cols-2 gap-4"
+      >
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <TourMonthlyChart
+            bookings={bookings}
+            tours={tours}
+          />
+        </motion.div>
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <TourGuestsCard
+            bookings={bookings}
+            tours={tours}
+          />
+        </motion.div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <TourTimeHeatmap
-          bookings={bookings}
-          tours={tours}
-        />
-        <TourAverageTimeChart
-          bookings={bookings}
-          tours={tours}
-        />
-      </div>
-    </div>
+      <motion.div
+        variants={staggerContainer}
+        className="grid grid-cols-1 xl:grid-cols-2 gap-4"
+      >
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <TourTimeHeatmap
+            bookings={bookings}
+            tours={tours}
+          />
+        </motion.div>
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <TourAverageTimeChart
+            bookings={bookings}
+            tours={tours}
+          />
+        </motion.div>
+      </motion.div>
+    </motion.div>
   )
 })
 
 // User Analytics Tab Component
 const UserAnalyticsTab = memo<UserAnalyticsTabProps>(({ bookings, users }) => {
   return (
-    <div className="space-y-4">
+    <motion.div
+      className="space-y-4"
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+    >
       {/* User Overview Cards */}
-      <UserOverviewCards
-        bookings={bookings}
-        users={users}
-      />
+      <motion.div variants={fadeInUp}>
+        <UserOverviewCards
+          bookings={bookings}
+          users={users}
+        />
+      </motion.div>
 
       {/* Charts Grid - Enhanced responsive layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <UserRegistrationChart
-          bookings={bookings}
-          users={users}
-        />
-        <TopUsersChart
-          bookings={bookings}
-          users={users}
-        />
-      </div>
+      <motion.div
+        variants={staggerContainer}
+        className="grid grid-cols-1 xl:grid-cols-2 gap-4"
+      >
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <UserRegistrationChart
+            bookings={bookings}
+            users={users}
+          />
+        </motion.div>
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <TopUsersChart
+            bookings={bookings}
+            users={users}
+          />
+        </motion.div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <TopInstitutionsChart
-          bookings={bookings}
-          users={users}
-        />
-        <InstitutionBookingsChart
-          bookings={bookings}
-          users={users}
-        />
-      </div>
+      <motion.div
+        variants={staggerContainer}
+        className="grid grid-cols-1 xl:grid-cols-2 gap-4"
+      >
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <TopInstitutionsChart
+            bookings={bookings}
+            users={users}
+          />
+        </motion.div>
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <InstitutionBookingsChart
+            bookings={bookings}
+            users={users}
+          />
+        </motion.div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 gap-4">
-        <UserBookingDistributionChart
-          bookings={bookings}
-          users={users}
-        />
-      </div>
-    </div>
+      <motion.div
+        variants={staggerContainer}
+        className="grid grid-cols-1 gap-4"
+      >
+        <motion.div variants={fadeInUp} whileHover={cardHover}>
+          <UserBookingDistributionChart
+            bookings={bookings}
+            users={users}
+          />
+        </motion.div>
+      </motion.div>
+    </motion.div>
   )
 })
 

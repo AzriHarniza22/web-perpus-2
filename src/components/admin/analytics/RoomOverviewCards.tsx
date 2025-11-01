@@ -6,6 +6,7 @@ import { TrendingUp, Users, Building, Clock, BookOpen, CheckCircle, XCircle, Luc
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Booking, Room } from '@/lib/types'
+import { useInViewAnimation, useHoverAnimation, useStaggerAnimation, useLoadingAnimation } from '@/hooks/useAnimations'
 
 interface RoomOverviewCardsProps {
   bookings: Booking[]
@@ -27,6 +28,9 @@ export function RoomOverviewCards({
   rooms,
   isLoading = false
 }: RoomOverviewCardsProps) {
+  const staggerAnimation = useStaggerAnimation({ staggerDelay: 0.1, itemDelay: 0.2 })
+  const hoverAnimation = useHoverAnimation()
+  const loadingAnimation = useLoadingAnimation()
   const [animatedValues, setAnimatedValues] = useState<{
     totalBookings: number
     approvedBookings: number
@@ -277,87 +281,153 @@ export function RoomOverviewCards({
 
   if (isLoading) {
     return (
-      <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-              <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <motion.div
+                  className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded"
+                  animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <motion.div
+                  className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded"
+                  animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+                />
+              </div>
+              <motion.div
+                className="h-10 w-[200px] bg-gray-200 dark:bg-gray-700 rounded"
+                animate={{ scale: [1, 1.02, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              />
             </div>
-            <div className="h-10 w-[200px] bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...Array(8)].map((_, index) => (
-              <Card key={index} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                      <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                      <div className="h-6 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                    </div>
-                    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+            >
+              {[...Array(8)].map((_, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 + index * 0.05, duration: 0.4 }}
+                >
+                  <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-2">
+                          <motion.div
+                            className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded"
+                            animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: index * 0.1 }}
+                          />
+                          <motion.div
+                            className="h-6 w-12 bg-gray-200 dark:bg-gray-700 rounded"
+                            animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 + index * 0.1 }}
+                          />
+                        </div>
+                        <motion.div
+                          className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "linear", delay: index * 0.1 }}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
+          </CardContent>
+        </Card>
+      </motion.div>
     )
   }
 
   return (
-    <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Building className="w-5 h-5" />
-              Room Analytics Overview
-            </CardTitle>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Statistik dan analisis penggunaan ruangan
-            </p>
+    <motion.div
+      {...staggerAnimation.container}
+      className="w-full"
+    >
+      <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Building className="w-5 h-5" />
+                Room Analytics Overview
+              </CardTitle>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Statistik dan analisis penggunaan ruangan
+              </p>
+            </div>
           </div>
-
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {statCards.map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-            >
-              <Card className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                        {stat.label}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                          {stat.label.includes('Jam Puncak')
-                            ? (stat.subtitle || 'N/A')
-                            : `${stat.value}${stat.subtitle || ''}`}
-                        </p>
+        </CardHeader>
+        <CardContent>
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+          >
+            {statCards.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                {...staggerAnimation.item}
+                {...hoverAnimation}
+                className="group"
+              >
+                <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <motion.p
+                          className="text-sm font-medium text-gray-600 dark:text-gray-400"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.3 + index * 0.1, duration: 0.3 }}
+                        >
+                          {stat.label}
+                        </motion.p>
+                        <motion.div
+                          className="flex items-center gap-2"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.4 + index * 0.1, duration: 0.4, type: "spring", stiffness: 200 }}
+                        >
+                          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                            {stat.label.includes('Jam Puncak')
+                              ? (stat.subtitle || 'N/A')
+                              : `${stat.value}${stat.subtitle || ''}`}
+                          </p>
+                        </motion.div>
                       </div>
+                      <motion.div
+                        className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center`}
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                      >
+                        <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                      </motion.div>
                     </div>
-                    <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-75 ease-out`}>
-                      <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+        </CardContent>
+      </Card>
+    </motion.div>
   )
 }

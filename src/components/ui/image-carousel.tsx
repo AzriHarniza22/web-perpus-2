@@ -5,6 +5,7 @@ import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from './button'
+import { useDragAnimation } from '@/hooks/useAnimations'
 
 interface ImageCarouselProps {
   photos: string[]
@@ -107,6 +108,8 @@ export function ImageCarousel({
     }
   }
 
+  const dragProps = useDragAnimation()
+
   const handleImageLoad = () => {
     setIsLoading(false)
   }
@@ -147,9 +150,7 @@ export function ImageCarousel({
               src={photos[currentIndex]}
               alt={`${alt} - ${currentIndex + 1}`}
               fill
-              className={`object-cover transition-all duration-700 ease-out ${
-                isHovered ? 'scale-110 brightness-110' : 'scale-100 brightness-100'
-              }`}
+              className="object-cover"
               onClick={() => onImageClick?.(photos[currentIndex])}
               onLoad={handleImageLoad}
               priority={currentIndex === 0}
@@ -214,6 +215,7 @@ export function ImageCarousel({
                 onClick={() => goToImage(index)}
                 whileHover={{ scale: 1.2 }}
                 whileTap={{ scale: 0.9 }}
+                layout
               >
                 {index === currentIndex && (
                   <motion.div

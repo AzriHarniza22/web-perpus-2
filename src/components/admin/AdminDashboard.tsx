@@ -13,6 +13,33 @@ import { useBookings, useRooms } from '@/lib/api'
 import AdminSidebar from './AdminSidebar'
 import InteractiveCalendar from '@/app/InteractiveCalendar'
 
+// Consistent animation configurations
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }
+}
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1
+    }
+  }
+}
+
+const cardHover = {
+  scale: 1.02,
+  y: -2,
+  transition: { duration: 0.2, ease: "easeOut" }
+}
+
+const iconHover = {
+  scale: 1.1,
+  transition: { duration: 0.2, ease: "easeOut" }
+}
+
 interface Profile {
   id: string;
   email: string;
@@ -107,22 +134,32 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
 
           {/* Header - Fixed */}
           <motion.header
-            initial={{ y: -100 }}
-            animate={{ y: 0 }}
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
             className={`flex-shrink-0 bg-background/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
               sidebarCollapsed ? 'ml-16' : 'ml-64'
             }`}
           >
             <div className="px-4 py-3 flex justify-between items-center">
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
                 <Skeleton className="h-7 w-40 mb-1" />
                 <Skeleton className="h-3 w-48" />
               </motion.div>
-              <div className="flex items-center space-x-3">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="flex items-center space-x-3"
+              >
                 <Skeleton className="h-3 w-24 hidden md:block" />
                 <ThemeToggle />
                 <Skeleton className="h-8 w-16" />
-              </div>
+              </motion.div>
             </div>
           </motion.header>
 
@@ -130,27 +167,48 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
           <main className={`flex-1 overflow-auto transition-all duration-300 ${
             sidebarCollapsed ? 'ml-16' : 'ml-64'
           }`}>
-            <div className="p-4 h-full flex flex-col">
+            <motion.div
+              className="p-4 h-full flex flex-col"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
               {/* Title */}
-              <div className="flex-shrink-0 mb-3">
+              <motion.div
+                variants={fadeInUp}
+                className="flex-shrink-0 mb-3"
+              >
                 <Skeleton className="h-8 w-48 mb-1" />
                 <Skeleton className="h-4 w-64" />
-              </div>
+              </motion.div>
 
               {/* Stats Cards */}
-              <div className="flex-shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+              <motion.div
+                variants={staggerContainer}
+                className="flex-shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4"
+              >
                 {[...Array(4)].map((_, i) => (
-                  <Card key={i} className="bg-card">
-                    <CardContent className="p-3">
-                      <Skeleton className="h-4 w-20 mb-2" />
-                      <Skeleton className="h-6 w-12" />
-                    </CardContent>
-                  </Card>
+                  <motion.div
+                    key={i}
+                    variants={fadeInUp}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    <Card className="bg-card">
+                      <CardContent className="p-3">
+                        <Skeleton className="h-4 w-20 mb-2" />
+                        <Skeleton className="h-6 w-12" />
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
 
               {/* Main Grid - Flexible */}
-              <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0">
+              <motion.div
+                variants={fadeInUp}
+                transition={{ delay: 0.4 }}
+                className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0"
+              >
                 <div className="lg:col-span-2">
                   <Card className="h-full flex flex-col">
                     <CardHeader className="flex-shrink-0 pb-2">
@@ -168,13 +226,20 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                     </CardHeader>
                     <CardContent className="overflow-auto">
                       {[...Array(3)].map((_, i) => (
-                        <Skeleton key={i} className="h-16 w-full mb-2" />
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.5 + i * 0.1, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        >
+                          <Skeleton className="h-16 w-full mb-2" />
+                        </motion.div>
                       ))}
                     </CardContent>
                   </Card>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </main>
         </div>
       </Loading>
@@ -188,23 +253,34 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
 
       {/* Header - Fixed at top */}
       <motion.header
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
         className={`flex-shrink-0 bg-background/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 z-10 ${
           sidebarCollapsed ? 'ml-16' : 'ml-64'
         }`}
       >
         <div className="px-4 lg:px-6 py-3 flex justify-between items-center">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
             <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Dashboard
             </h1>
             <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400">Kelola ruangan dan reservasi</p>
           </motion.div>
-          <div className="flex items-center space-x-2 lg:space-x-4">
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="flex items-center space-x-2 lg:space-x-4"
+          >
             <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.4 }}
               className="text-sm text-gray-600 dark:text-gray-300 hidden md:block"
             >
               {profile?.full_name}
@@ -216,7 +292,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                 <span className="hidden lg:inline">Keluar</span>
               </Button>
             </form>
-          </div>
+          </motion.div>
         </div>
       </motion.header>
 
@@ -227,9 +303,9 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
         <div className="p-3 lg:p-4 h-full flex flex-col">
           {/* Stats Cards - Fixed height, no grow */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
             className="flex-shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-3 lg:mb-4"
           >
             {[
@@ -240,20 +316,23 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
             ].map((stat, index) => (
               <motion.div
                 key={stat.label}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2 + index * 0.05, type: "spring", stiffness: 200 }}
+                variants={fadeInUp}
+                whileHover={{ scale: 1.02, y: -2 }}
+                transition={{ delay: index * 0.1 }}
               >
-                <Card className="bg-card backdrop-blur-sm hover:shadow-lg transition-all group">
+                <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all duration-300 group cursor-pointer">
                   <CardContent className="p-2.5 lg:p-3">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
                         <p className="text-[10px] lg:text-xs font-medium text-gray-600 dark:text-gray-400 truncate">{stat.label}</p>
                         <p className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
                       </div>
-                      <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-75 ease-out`}>
+                      <motion.div
+                        className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center flex-shrink-0`}
+                        whileHover={{ scale: 1.1 }}
+                      >
                         <stat.icon className="w-5 h-5 text-white" />
-                      </div>
+                      </motion.div>
                     </div>
                   </CardContent>
                 </Card>
@@ -266,12 +345,13 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
             {/* Calendar - 2 columns on large screens */}
             <div className="lg:col-span-2 flex flex-col min-h-0">
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                variants={fadeInUp}
+                initial="initial"
+                animate="animate"
                 transition={{ delay: 0.3 }}
                 className="h-full flex flex-col"
               >
-                <Card className="bg-card backdrop-blur-sm h-full flex flex-col min-h-0">
+                <Card className="bg-card backdrop-blur-sm h-full flex flex-col min-h-0 hover:shadow-xl transition-all duration-300">
                   <CardHeader className="pb-2 lg:pb-3 flex-shrink-0">
                     <CardTitle className="flex items-center text-sm lg:text-base">
                       <Calendar className="w-4 h-4 mr-2 text-primary" />
@@ -294,12 +374,13 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
             <div className="flex flex-col gap-3 lg:gap-4 min-h-0">
               {/* Pending Approvals */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                variants={fadeInUp}
+                initial="initial"
+                animate="animate"
                 transition={{ delay: 0.4 }}
                 className="flex-1 min-h-0"
               >
-                <Card className="bg-card backdrop-blur-sm h-full flex flex-col">
+                <Card className="bg-card backdrop-blur-sm h-full flex flex-col hover:shadow-xl transition-all duration-300">
                   <CardHeader className="pb-2 lg:pb-3">
                     <CardTitle className="flex items-center text-sm lg:text-base">
                       <AlertTriangle className="w-4 h-4 mr-2 text-yellow-600" />
@@ -311,12 +392,22 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                   </CardHeader>
                   <CardContent className="p-2 lg:p-3 pt-0 flex-1 overflow-y-auto">
                     {adminStats.pendingApprovals > 0 ? (
-                      <div className="space-y-2">
+                      <motion.div
+                        className="space-y-2"
+                        variants={staggerContainer}
+                        initial="initial"
+                        animate="animate"
+                      >
                         {bookings
                           .filter(booking => booking.status === 'pending')
                           .slice(0, 4)
-                          .map((booking) => (
-                            <div key={booking.id} className="p-1 lg:p-1.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                          .map((booking, index) => (
+                            <motion.div
+                              key={booking.id}
+                              variants={fadeInUp}
+                              whileHover={{ scale: 1.02, x: 2 }}
+                              className="p-1 lg:p-1.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 cursor-pointer transition-all duration-200"
+                            >
                               <div className="flex items-start justify-between mb-0.5">
                                 <p className="font-medium text-gray-900 dark:text-white text-[10px] lg:text-xs truncate flex-1">
                                   {booking.rooms?.name}
@@ -331,21 +422,34 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                               <p className="text-[9px] lg:text-[10px] text-gray-500 dark:text-gray-500">
                                 {new Date(booking.start_time).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} • {new Date(booking.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                               </p>
-                            </div>
+                            </motion.div>
                           ))}
                         {adminStats.pendingApprovals > 4 && (
-                          <p className="text-[10px] lg:text-xs text-gray-500 dark:text-gray-400 text-center pt-1">
+                          <motion.p
+                            variants={fadeInUp}
+                            className="text-[10px] lg:text-xs text-gray-500 dark:text-gray-400 text-center pt-1"
+                          >
                             +{adminStats.pendingApprovals - 4} lagi
-                          </p>
+                          </motion.p>
                         )}
-                      </div>
+                      </motion.div>
                     ) : (
-                      <div className="text-center py-4">
-                        <div className="text-green-500 text-xl mb-1">✅</div>
+                      <motion.div
+                        variants={fadeInUp}
+                        className="text-center py-4"
+                      >
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
+                          className="text-green-500 text-xl mb-1"
+                        >
+                          ✅
+                        </motion.div>
                         <p className="text-xs text-gray-600 dark:text-gray-400">
                           Semua sudah diproses
                         </p>
-                      </div>
+                      </motion.div>
                     )}
                   </CardContent>
                 </Card>
@@ -353,12 +457,13 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
 
               {/* Upcoming Reservations */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                variants={fadeInUp}
+                initial="initial"
+                animate="animate"
                 transition={{ delay: 0.5 }}
                 className="flex-1 min-h-0"
               >
-                <Card className="bg-card backdrop-blur-sm h-full flex flex-col">
+                <Card className="bg-card backdrop-blur-sm h-full flex flex-col hover:shadow-xl transition-all duration-300">
                   <CardHeader className="pb-2 lg:pb-3">
                     <CardTitle className="flex items-center text-sm lg:text-base">
                       <TrendingUp className="w-4 h-4 mr-2 text-primary" />
@@ -399,26 +504,51 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
 
                       if (upcomingBookings.length === 0) {
                         return (
-                          <div className="text-center py-4">
-                            <div className="text-gray-400 text-2xl mb-1">📅</div>
+                          <motion.div
+                            variants={fadeInUp}
+                            className="text-center py-4"
+                          >
+                            <motion.div
+                              initial={{ scale: 0, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ delay: 0.7, type: "spring", stiffness: 200 }}
+                              className="text-gray-400 text-2xl mb-1"
+                            >
+                              📅
+                            </motion.div>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
                               Belum ada reservasi
                             </p>
-                          </div>
+                          </motion.div>
                         )
                       }
 
                       return (
-                        <div className="space-y-3">
+                        <motion.div
+                          className="space-y-3"
+                          variants={staggerContainer}
+                          initial="initial"
+                          animate="animate"
+                        >
                           {todayBookings.length > 0 && (
-                            <div>
+                            <motion.div variants={fadeInUp}>
                               <h4 className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
-                                <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></div>
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ delay: 0.6, type: "spring", stiffness: 300 }}
+                                  className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"
+                                ></motion.div>
                                 Hari Ini
                               </h4>
                               <div className="space-y-1.5">
-                                {todayBookings.map((booking) => (
-                                  <div key={booking.id} className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                                {todayBookings.map((booking, index) => (
+                                  <motion.div
+                                    key={booking.id}
+                                    variants={fadeInUp}
+                                    whileHover={{ scale: 1.02, x: 2 }}
+                                    className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 cursor-pointer transition-all duration-200"
+                                  >
                                     <div className="flex-1 min-w-0">
                                       <p className="font-medium text-gray-900 dark:text-white text-xs truncate">
                                         {booking.rooms?.name}
@@ -430,21 +560,31 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                                     <Badge variant={booking.status === 'approved' ? 'default' : 'secondary'} className="ml-2 flex-shrink-0 text-[9px] lg:text-[10px] px-1.5 py-0">
                                       {booking.status}
                                     </Badge>
-                                  </div>
+                                  </motion.div>
                                 ))}
                               </div>
-                            </div>
+                            </motion.div>
                           )}
 
                           {tomorrowBookings.length > 0 && (
-                            <div>
+                            <motion.div variants={fadeInUp}>
                               <h4 className="text-xs font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
-                                <div className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-1.5"></div>
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ delay: 0.7, type: "spring", stiffness: 300 }}
+                                  className="w-1.5 h-1.5 bg-primary-500 rounded-full mr-1.5"
+                                ></motion.div>
                                 Besok
                               </h4>
                               <div className="space-y-1.5">
-                                {tomorrowBookings.map((booking) => (
-                                  <div key={booking.id} className="flex items-center justify-between p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
+                                {tomorrowBookings.map((booking, index) => (
+                                  <motion.div
+                                    key={booking.id}
+                                    variants={fadeInUp}
+                                    whileHover={{ scale: 1.02, x: 2 }}
+                                    className="flex items-center justify-between p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800 cursor-pointer transition-all duration-200"
+                                  >
                                     <div className="flex-1 min-w-0">
                                       <p className="font-medium text-gray-900 dark:text-white text-xs truncate">
                                         {booking.rooms?.name}
@@ -456,12 +596,12 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                                     <Badge variant={booking.status === 'approved' ? 'default' : 'secondary'} className="ml-2 flex-shrink-0 text-[9px] lg:text-[10px] px-1.5 py-0">
                                       {booking.status}
                                     </Badge>
-                                  </div>
+                                  </motion.div>
                                 ))}
                               </div>
-                            </div>
+                            </motion.div>
                           )}
-                        </div>
+                        </motion.div>
                       )
                     })()}
                   </CardContent>
