@@ -9,7 +9,7 @@ import InteractiveCalendar from '@/app/InteractiveCalendar'
 import ReservationFormCard from '@/components/ReservationFormCard'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
-import { Loading } from '@/components/ui/loading'
+import { RoomBookingSkeleton } from '@/components/ui/skeletons'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/components/AuthProvider'
@@ -95,7 +95,53 @@ export default function BookRoomPage() {
 
 
   if (isLoading || loading) {
-    return <Loading variant="fullscreen" />
+    return (
+      <div className="h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex flex-col">
+        {/* Sidebar */}
+        <UserSidebar onToggle={setSidebarCollapsed} />
+
+        {/* Header */}
+        <PageHeader
+          title="Reservasi Ruangan"
+          description="Kapasitas ruangan akan ditampilkan"
+          user={user}
+          sidebarCollapsed={sidebarCollapsed}
+        />
+
+        {/* Back Button Section - Perfect equal spacing with header */}
+        <div className={`relative transition-all duration-300 ${
+          sidebarCollapsed ? 'ml-16' : 'ml-64'
+        }`}>
+          {/* Responsive spacer matching header height for perfect symmetry */}
+          <div className="h-[62px] sm:h-[68px] lg:h-[72px]"></div>
+
+          {/* Back button container - perfectly centered with responsive padding */}
+          <div className="relative px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+            <div className="max-w-full flex justify-start">
+              {/* Back navigation button - responsive optimized positioning */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="px-3 sm:px-4"
+                disabled
+              >
+                <ArrowLeft className="w-4 h-4 sm:mr-2" />
+                <span className="hidden md:inline lg:inline">Kembali ke Pilih Ruangan</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Reduced responsive spacer for more compact layout */}
+          <div className="h-[1px] sm:h-[1px] lg:h-[1px]"></div>
+        </div>
+
+        <main className={`flex-1 px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 pb-2 sm:pb-3 pt-0 transition-all duration-300 ${
+          sidebarCollapsed ? 'ml-16' : 'ml-64'
+        }`}>
+          <RoomBookingSkeleton />
+        </main>
+      </div>
+    )
   }
 
   if (!user) {

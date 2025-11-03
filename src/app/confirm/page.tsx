@@ -64,7 +64,7 @@ export default function ConfirmPage({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 py-4 px-4 sm:py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-background via-background to-muted/20 py-4 px-4 sm:py-12 sm:px-6 lg:px-8">
       <div className="max-w-lg w-full space-y-8">
         {/* Main Confirmation Card */}
         <Card className="backdrop-blur-sm bg-card/95 border-0 shadow-xl">

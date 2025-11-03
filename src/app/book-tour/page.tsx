@@ -9,7 +9,7 @@ import InteractiveCalendar from '@/app/InteractiveCalendar'
 import ReservationFormCard from '@/components/ReservationFormCard'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
-import { Loading } from '@/components/ui/loading'
+import { BookTourSkeleton } from '@/components/ui/skeletons'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/components/AuthProvider'
@@ -104,7 +104,26 @@ export default function BookTourPage() {
   }, [user, isLoading])
 
   if (isLoading || loading) {
-    return <Loading variant="fullscreen" />
+    return (
+      <div className="h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex flex-col">
+        {/* Sidebar */}
+        <UserSidebar onToggle={setSidebarCollapsed} />
+
+        {/* Header */}
+        <PageHeader
+          title="Reservasi Library Tour"
+          description="Kapasitas tour akan ditampilkan"
+          user={user}
+          sidebarCollapsed={sidebarCollapsed}
+        />
+
+        <main className={`flex-1 px-2 sm:px-3 md:px-4 lg:px-5 xl:px-6 pb-2 sm:pb-3 pt-24 transition-all duration-300 ${
+          sidebarCollapsed ? 'ml-16' : 'ml-64'
+        }`}>
+          <BookTourSkeleton />
+        </main>
+      </div>
+    )
   }
 
   if (!user) {

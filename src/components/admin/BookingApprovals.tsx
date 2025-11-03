@@ -457,7 +457,10 @@ export default function BookingApprovals() {
                         <div className="flex items-center justify-end gap-1">
                           {/* Primary Action Row */}
                           <div className="flex items-center gap-1">
-                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
                               <Button
                                 onClick={() => handleViewDetails(booking)}
                                 variant="outline"
@@ -469,7 +472,10 @@ export default function BookingApprovals() {
                             </motion.div>
 
                             {booking.proposal_file && (
-                              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                              <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -490,7 +496,10 @@ export default function BookingApprovals() {
 
                           {/* Decision Actions Row */}
                           <div className="flex items-center gap-1">
-                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
                               <Button
                                 onClick={() => updateBookingStatus(booking.id, 'approved')}
                                 size="sm"
@@ -502,7 +511,10 @@ export default function BookingApprovals() {
                               </Button>
                             </motion.div>
 
-                            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
                               <Button
                                 onClick={() => updateBookingStatus(booking.id, 'rejected')}
                                 variant="destructive"

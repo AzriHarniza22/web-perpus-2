@@ -9,7 +9,7 @@ import { User } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Loading } from '@/components/ui/loading'
+import { BookSkeleton } from '@/components/ui/skeletons'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import { Building, Users, CheckCircle, ArrowRight, Sparkles } from 'lucide-react'
@@ -64,7 +64,22 @@ export default function BookRoomPage() {
   }, [])
 
   if (loading) {
-    return <Loading variant="fullscreen" />
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Sidebar */}
+        <UserSidebar onToggle={setSidebarCollapsed} />
+
+        {/* Header */}
+        <PageHeader
+          title="Pesan Ruangan"
+          description="Pilih ruangan yang ingin Anda pesan"
+          user={user}
+          sidebarCollapsed={sidebarCollapsed}
+        />
+
+        <BookSkeleton />
+      </div>
+    )
   }
 
   if (!user) {

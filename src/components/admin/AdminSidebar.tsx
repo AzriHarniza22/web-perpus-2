@@ -11,9 +11,10 @@ import { useHoverAnimation } from '@/hooks/useAnimations'
 interface AdminSidebarProps {
   className?: string
   onToggle?: (collapsed: boolean) => void
+  loading?: boolean
 }
 
-export default function AdminSidebar({ className, onToggle }: AdminSidebarProps) {
+export default function AdminSidebar({ className, onToggle, loading = false }: AdminSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -66,7 +67,7 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
 
   return (
     <motion.div
-      initial={{ x: -250, opacity: 0 }}
+      initial={{ x: 0, opacity: 1 }}
       animate={{ x: 0, opacity: 1 }}
       className={`fixed left-0 top-0 h-full bg-background/95 backdrop-blur-lg border-r border-gray-200 dark:border-gray-800 shadow-xl z-40 transition-all duration-300 ${
         isCollapsed ? 'w-16' : 'w-64'
@@ -93,7 +94,7 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
       {/* Logo/Brand */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-800">
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
+          initial={{ opacity: 1, scale: 1 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
           className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'}`}
@@ -132,7 +133,7 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
           {menuItems.map((item, index) => (
             <motion.li
               key={item.href}
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 1, x: 0 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1, duration: 0.4, ease: "easeOut" }}
             >
@@ -175,7 +176,7 @@ export default function AdminSidebar({ className, onToggle }: AdminSidebarProps)
         <AnimatePresence>
           {!isCollapsed && (
             <motion.p
-              initial={{ opacity: 0 }}
+              initial={{ opacity: 1 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}

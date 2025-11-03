@@ -26,9 +26,7 @@ export function PageHeader({
   // Profile is not available in the new auth system, remove profile usage
 
   return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
+    <header
       className={`fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}
     >
       <div className="px-4 py-3 flex justify-between items-center">
@@ -72,6 +70,6 @@ export function PageHeader({
           )}
         </div>
       </div>
-    </motion.header>
+    </header>
   )
 }

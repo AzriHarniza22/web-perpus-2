@@ -231,9 +231,10 @@ export const createScaleVariants = (scale: number = 0.8): Variants => ({
 
 // GPU-accelerated properties for better performance
 export const gpuProps = {
-  willChange: "transform, opacity",
-  backfaceVisibility: "hidden" as const,
-  perspective: 1000
+  style: {
+    backfaceVisibility: "hidden" as const,
+    perspective: 1000
+  }
 }
 
 // Layout animation props

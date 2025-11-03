@@ -55,7 +55,7 @@ function Button({
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
-      {...hoverProps}
+      {...(asChild ? {} : hoverProps)}
       {...props}
       onAnimationStart={undefined}
       onDrag={undefined}

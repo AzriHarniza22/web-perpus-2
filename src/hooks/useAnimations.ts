@@ -2,7 +2,7 @@
 // Provides reusable animation logic with accessibility support
 
 import { useEffect, useState, RefObject, useRef } from 'react'
-import { useReducedMotion, useAnimation } from 'framer-motion'
+import { useReducedMotion, useAnimation, Easing } from 'framer-motion'
 import { fadeVariants, slideVariants, scaleVariants, translateHoverVariants, transitions, gpuProps } from '@/lib/animations'
 
 // Mock useReducedMotion for testing environments
@@ -88,7 +88,7 @@ export const useInViewAnimation = (options: UseInViewAnimationOptions = {}) => {
     animate: controls,
     variants: getVariants(),
     initial: 'hidden',
-    ...gpuProps
+    style: gpuProps.style
   }
 }
 
@@ -103,7 +103,7 @@ export const useHoverAnimation = () => {
     whileHover: shouldReduceMotion ? {} : { y: -2 },
     whileTap: shouldReduceMotion ? {} : { y: 1 },
     transition: shouldReduceMotion ? {} : transitions.spring,
-    ...gpuProps
+    style: gpuProps.style
   }
 }
 
@@ -155,7 +155,7 @@ export const useStaggerAnimation = (options: UseStaggerAnimationOptions = {}) =>
     },
     item: {
       variants: itemVariants,
-      ...gpuProps
+      style: gpuProps.style
     },
     controls
   }
@@ -174,9 +174,9 @@ export const useLoadingAnimation = () => {
       transition: shouldReduceMotion ? {} : {
         duration: 1,
         repeat: Infinity,
-        ease: "linear"
+        ease: "linear" as Easing
       },
-      ...gpuProps
+      style: gpuProps.style
     },
     pulse: {
       animate: shouldReduceMotion ? {} : {
@@ -186,9 +186,9 @@ export const useLoadingAnimation = () => {
       transition: shouldReduceMotion ? {} : {
         duration: 2,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: "easeInOut" as Easing
       },
-      ...gpuProps
+      style: gpuProps.style
     },
     dots: (index: number) => ({
       animate: shouldReduceMotion ? {} : {
@@ -200,7 +200,7 @@ export const useLoadingAnimation = () => {
         repeat: Infinity,
         delay: index * 0.2
       },
-      ...gpuProps
+      style: gpuProps.style
     })
   }
 }
@@ -236,7 +236,7 @@ export const useModalAnimation = () => {
         stiffness: 300,
         damping: 25
       },
-      ...gpuProps
+      style: gpuProps.style
     }
   }
 }
@@ -257,7 +257,7 @@ export const usePageTransition = () => {
       stiffness: 300,
       damping: 30
     },
-    ...gpuProps
+    style: gpuProps.style
   }
 }
 
@@ -319,6 +319,60 @@ export const useDragAnimation = () => {
     dragConstraints: { left: 0, right: 0 },
     dragElastic: shouldReduceMotion ? 0 : 0.2,
     whileDrag: shouldReduceMotion ? {} : { scale: 1.05 },
-    ...gpuProps
+    style: gpuProps.style
+  }
+}
+
+// ============================================================================
+// HOOK: useSkeletonAnimation
+// ============================================================================
+
+interface UseSkeletonAnimationOptions {
+  loading?: boolean
+  delay?: number
+}
+
+export const useSkeletonAnimation = (options: UseSkeletonAnimationOptions = {}) => {
+  const { loading = false, delay = 0 } = options
+  const shouldReduceMotion = useReducedMotionHook()
+
+  return {
+    fadeIn: {
+      initial: loading ? { opacity: 1 } : { opacity: 0 },
+      animate: { opacity: 1 },
+      transition: { duration: 0.3, delay: loading ? 0 : delay },
+      style: {
+        backfaceVisibility: "hidden" as const,
+        perspective: 1000
+      }
+    },
+    slideUp: {
+      initial: loading ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.3, delay: loading ? 0 : delay },
+      style: {
+        backfaceVisibility: "hidden" as const,
+        perspective: 1000
+      }
+    },
+    shimmer: loading ? {
+      style: {
+        backfaceVisibility: "hidden" as const,
+        perspective: 1000
+      }
+    } : {
+      animate: shouldReduceMotion ? {} : {
+        backgroundPosition: ['-200px 0', '200px 0']
+      },
+      transition: shouldReduceMotion ? {} : {
+        duration: 1.5,
+        repeat: Infinity,
+        ease: "linear" as Easing
+      },
+      style: {
+        backfaceVisibility: "hidden" as const,
+        perspective: 1000
+      }
+    }
   }
 }

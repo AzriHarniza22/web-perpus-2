@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Loading } from '@/components/ui/loading'
+import { ProfileSkeleton } from '@/components/ui/skeletons'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -242,32 +242,7 @@ export default function ProfilePage() {
   }
 
   if (isLoading) {
-    return (
-      <Loading variant="skeleton">
-        <div className="min-h-screen bg-background">
-          <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="mb-8">
-              <Skeleton className="h-8 w-48 mb-2" />
-              <Skeleton className="h-4 w-64" />
-            </div>
-            <Card className="max-w-2xl">
-              <CardHeader>
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-4 w-48" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="space-y-2">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </Loading>
-    )
+    return <ProfileSkeleton />
   }
 
   if (!user) {

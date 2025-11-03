@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Loading } from '@/components/ui/loading'
+import { HistorySkeleton } from '@/components/ui/skeletons'
 import UserSidebar from '@/components/UserSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -104,7 +104,22 @@ export default function HistoryPage() {
   }
 
   if (loading) {
-    return <Loading variant="fullscreen" />
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Sidebar */}
+        <UserSidebar onToggle={setSidebarCollapsed} />
+
+        {/* Header */}
+        <PageHeader
+          title="Riwayat Reservasi"
+          description="Lihat semua reservasi yang telah Anda buat"
+          user={user}
+          sidebarCollapsed={sidebarCollapsed}
+        />
+
+        <HistorySkeleton />
+      </div>
+    )
   }
 
   if (!user) {
@@ -134,7 +149,7 @@ export default function HistoryPage() {
             bookings.map((booking: BookingWithRoom, index) => (
               <motion.div
                 key={booking.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 1, y: 0 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
               >
@@ -214,7 +229,7 @@ export default function HistoryPage() {
             ))
           ) : (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 1, scale: 1 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
             >

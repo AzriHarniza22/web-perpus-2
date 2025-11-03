@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Loading } from '@/components/ui/loading'
+import { AdminProfileSkeleton } from '@/components/ui/skeletons'
+import { ProfileContentSkeleton } from '@/components/ui/skeletons'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import { PageHeader } from '@/components/ui/page-header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -258,43 +259,14 @@ export default function AdminProfilePage() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <Loading variant="skeleton">
-        <div className="min-h-screen bg-background">
-          <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="mb-8">
-              <Skeleton className="h-8 w-48 mb-2" />
-              <Skeleton className="h-4 w-64" />
-            </div>
-            <Card className="max-w-2xl">
-              <CardHeader>
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-4 w-48" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="space-y-2">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </Loading>
-    )
-  }
-
-  if (!user) {
+  if (!user && !isLoading) {
     return null // Will redirect
   }
 
   return (
     <div className="min-h-screen bg-background">
       {/* Admin Sidebar */}
-      <AdminSidebar onToggle={setSidebarCollapsed} />
+      <AdminSidebar onToggle={setSidebarCollapsed} loading={isLoading} />
 
       {/* Header */}
       <PageHeader
@@ -308,11 +280,10 @@ export default function AdminProfilePage() {
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}>
         <div className="max-w-2xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
+          {isLoading ? (
+            <ProfileContentSkeleton />
+          ) : (
+            <div className="space-y-6">
             {/* Profile Card */}
             <Card className="bg-card backdrop-blur-sm">
               <CardHeader>
@@ -504,7 +475,7 @@ export default function AdminProfilePage() {
                   <Avatar className="w-24 h-24">
                     <AvatarImage src={profilePhotoPreview || undefined} alt="Admin Profile" />
                     <AvatarFallback className="text-2xl">
-                      {profile?.full_name ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : user?.email?.[0].toUpperCase()}
+                      {profile?.full_name ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : user?.email?.[0]?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   {isEditing && (
@@ -536,7 +507,7 @@ export default function AdminProfilePage() {
                   </Label>
                   <Input
                     id="admin_email"
-                    value={user.email || ''}
+                    value={user?.email || ''}
                     disabled
                     className="bg-gray-50 dark:bg-gray-800"
                   />
@@ -660,7 +631,8 @@ export default function AdminProfilePage() {
               </CardContent>
             </Card>
 
-          </motion.div>
+            </div>
+          )}
         </div>
       </main>
     </div>

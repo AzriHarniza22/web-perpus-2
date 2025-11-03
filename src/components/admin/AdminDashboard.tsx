@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
+import { AdminDashboardContentSkeleton } from '@/components/ui/skeletons'
 import { Users, Building, Calendar, Clock, AlertTriangle, LogOut, Sparkles, TrendingUp, BookOpen, CheckCircle } from 'lucide-react'
 import { useBookings, useRooms } from '@/lib/api'
 import AdminSidebar from './AdminSidebar'
@@ -127,122 +128,48 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
 
   if (bookingsLoading || roomsLoading) {
     return (
-      <Loading variant="skeleton">
-        <div className="flex flex-col h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 overflow-hidden">
-          {/* Sidebar */}
-          <AdminSidebar onToggle={setSidebarCollapsed} />
+      <div className="flex flex-col h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 overflow-hidden">
+        {/* Sidebar */}
+        <AdminSidebar onToggle={setSidebarCollapsed} />
 
-          {/* Header - Fixed */}
-          <motion.header
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className={`flex-shrink-0 bg-background/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
-              sidebarCollapsed ? 'ml-16' : 'ml-64'
-            }`}
-          >
-            <div className="px-4 py-3 flex justify-between items-center">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-              >
-                <Skeleton className="h-7 w-40 mb-1" />
-                <Skeleton className="h-3 w-48" />
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="flex items-center space-x-3"
-              >
-                <Skeleton className="h-3 w-24 hidden md:block" />
-                <ThemeToggle />
-                <Skeleton className="h-8 w-16" />
-              </motion.div>
-            </div>
-          </motion.header>
-
-          {/* Main Content - Scrollable */}
-          <main className={`flex-1 overflow-auto transition-all duration-300 ${
+        {/* Header - Fixed */}
+        <motion.header
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className={`flex-shrink-0 bg-background/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
             sidebarCollapsed ? 'ml-16' : 'ml-64'
-          }`}>
+          }`}
+        >
+          <div className="px-4 py-3 flex justify-between items-center">
             <motion.div
-              className="p-4 h-full flex flex-col"
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
-              {/* Title */}
-              <motion.div
-                variants={fadeInUp}
-                className="flex-shrink-0 mb-3"
-              >
-                <Skeleton className="h-8 w-48 mb-1" />
-                <Skeleton className="h-4 w-64" />
-              </motion.div>
-
-              {/* Stats Cards */}
-              <motion.div
-                variants={staggerContainer}
-                className="flex-shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4"
-              >
-                {[...Array(4)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    variants={fadeInUp}
-                    transition={{ delay: i * 0.1 }}
-                  >
-                    <Card className="bg-card">
-                      <CardContent className="p-3">
-                        <Skeleton className="h-4 w-20 mb-2" />
-                        <Skeleton className="h-6 w-12" />
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </motion.div>
-
-              {/* Main Grid - Flexible */}
-              <motion.div
-                variants={fadeInUp}
-                transition={{ delay: 0.4 }}
-                className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-0"
-              >
-                <div className="lg:col-span-2">
-                  <Card className="h-full flex flex-col">
-                    <CardHeader className="flex-shrink-0 pb-2">
-                      <Skeleton className="h-5 w-32" />
-                    </CardHeader>
-                    <CardContent className="flex-1 min-h-0">
-                      <Skeleton className="h-full w-full rounded-lg" />
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="flex flex-col gap-4">
-                  <Card className="flex-1 min-h-0">
-                    <CardHeader className="flex-shrink-0 pb-2">
-                      <Skeleton className="h-5 w-28" />
-                    </CardHeader>
-                    <CardContent className="overflow-auto">
-                      {[...Array(3)].map((_, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.5 + i * 0.1, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-                        >
-                          <Skeleton className="h-16 w-full mb-2" />
-                        </motion.div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                </div>
-              </motion.div>
+              <Skeleton className="h-7 w-40 mb-1" />
+              <Skeleton className="h-3 w-48" />
             </motion.div>
-          </main>
-        </div>
-      </Loading>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="flex items-center space-x-3"
+            >
+              <Skeleton className="h-3 w-24 hidden md:block" />
+              <ThemeToggle />
+              <Skeleton className="h-8 w-16" />
+            </motion.div>
+          </div>
+        </motion.header>
+
+        {/* Main Content - Scrollable */}
+        <main className={`flex-1 overflow-auto transition-all duration-300 ${
+          sidebarCollapsed ? 'ml-16' : 'ml-64'
+        }`}>
+          <AdminDashboardContentSkeleton />
+        </main>
+      </div>
     )
   }
 

@@ -12,7 +12,7 @@ import { ImageCarousel } from '@/components/ui/image-carousel'
 import InteractiveCalendar from '@/app/InteractiveCalendar'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { supabase } from '@/lib/supabase'
-import { Loading } from '@/components/ui/loading'
+import { HomepageSkeleton } from '@/components/ui/skeletons'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
@@ -64,10 +64,12 @@ const HomePage = () => {
     })
   }
 
-  // Set loading to false when auth is loaded
+  // Set loading to false when auth is loaded and data is available
   useEffect(() => {
     if (!authLoading) {
-      setLoading(false)
+      // Simulate additional loading time for data fetching
+      const timer = setTimeout(() => setLoading(false), 500)
+      return () => clearTimeout(timer)
     }
   }, [authLoading])
 
@@ -95,7 +97,7 @@ const HomePage = () => {
 
 
   if (loading) {
-    return <Loading variant="fullscreen" message="Memuat Perpustakaan Aceh" />
+    return <HomepageSkeleton />
   }
 
   return (
