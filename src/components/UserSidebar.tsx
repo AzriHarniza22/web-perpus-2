@@ -42,12 +42,6 @@ export default function UserSidebar({ className, onToggle }: UserSidebarProps) {
       label: 'Riwayat',
       icon: History,
       active: pathname === '/history'
-    },
-    {
-      href: '/profile',
-      label: 'Profil',
-      icon: UserIcon,
-      active: pathname === '/profile'
     }
   ]
 
@@ -82,19 +76,19 @@ export default function UserSidebar({ className, onToggle }: UserSidebarProps) {
       </div>
 
       {/* Logo/Brand */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="px-5 py-4.25 min-h-19.75 border-b border-gray-200 dark:border-gray-800">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'}`}
         >
-          <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
             <Image
               src="/logo.svg"
               alt="Perpustakaan Aceh Logo"
               width={32}
               height={32}
-              className="w-8 h-8"
+              className="w-10 h-10"
             />
           </div>
           <AnimatePresence>
@@ -106,10 +100,10 @@ export default function UserSidebar({ className, onToggle }: UserSidebarProps) {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <h2 className="text-sm font-bold text-primary whitespace-nowrap">
+                <h2 className="text-base font-bold text-primary whitespace-nowrap">
                   User Panel
                 </h2>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Perpustakaan Aceh</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Perpustakaan Aceh</p>
               </motion.div>
             )}
           </AnimatePresence>

@@ -15,6 +15,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar'
 import BookingApprovals from '@/components/admin/BookingApprovals'
 import { useBookings, useRooms } from '@/lib/api'
 import { ApprovalsOverviewCards } from '@/components/admin/analytics/ApprovalsOverviewCards'
+import { UnifiedPageHeader } from '@/components/ui/unified-page-header'
 
 interface Profile {
   id: string;
@@ -110,49 +111,14 @@ export default function ApprovalsPage() {
       <AdminSidebar onToggle={setSidebarCollapsed} loading={loading || authLoading} />
 
       {/* Header */}
-      <div
-        className={`bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
-          sidebarCollapsed ? 'ml-16' : 'ml-64'
-        }`}
-      >
-          <div className="px-4 sm:px-6 py-4 flex justify-between items-center">
-            <div className="min-w-0 flex-1">
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent truncate">
-                Dashboard Persetujuan
-              </h1>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
-                Kelola semua permintaan reservasi ruangan dan tour
-              </p>
-            </div>
-            <div className="flex items-center space-x-2 sm:space-x-4 ml-4">
-              <span className="text-gray-600 dark:text-gray-300 hidden lg:block text-sm">
-                {loading ? 'Loading...' : `Selamat datang, ${profile?.full_name}`}
-              </span>
-              <ThemeToggle />
-              <form action="/auth/signout" method="post">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  type="submit"
-                  className="hidden sm:flex"
-                  aria-label="Keluar dari sistem"
-                >
-                  <LogOut className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Keluar
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  type="submit"
-                  className="sm:hidden p-2"
-                  aria-label="Keluar dari sistem"
-                >
-                  <LogOut className="w-4 h-4" aria-hidden="true" />
-                </Button>
-              </form>
-            </div>
-          </div>
-      </div>
+      <UnifiedPageHeader
+        title="Dashboard Persetujuan"
+        description="Kelola semua permintaan reservasi ruangan dan tour"
+        user={user}
+        profile={profile}
+        isAdmin={true}
+        sidebarCollapsed={sidebarCollapsed}
+      />
 
       {/* Main Content */}
       <main

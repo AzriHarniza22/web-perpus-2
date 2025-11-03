@@ -8,7 +8,7 @@ import TourInfoCard from '@/components/TourInfoCard'
 import InteractiveCalendar from '@/app/InteractiveCalendar'
 import ReservationFormCard from '@/components/ReservationFormCard'
 import UserSidebar from '@/components/UserSidebar'
-import { PageHeader } from '@/components/ui/page-header'
+import { UnifiedPageHeader } from '@/components/ui/unified-page-header'
 import { BookTourSkeleton } from '@/components/ui/skeletons'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -110,10 +110,11 @@ export default function BookTourPage() {
         <UserSidebar onToggle={setSidebarCollapsed} />
 
         {/* Header */}
-        <PageHeader
+        <UnifiedPageHeader
           title="Reservasi Library Tour"
-          description="Kapasitas tour akan ditampilkan"
+          description="Tour Seluruh Perpustakaan"
           user={user}
+          profile={null}
           sidebarCollapsed={sidebarCollapsed}
         />
 
@@ -174,10 +175,11 @@ export default function BookTourPage() {
       <UserSidebar onToggle={setSidebarCollapsed} />
 
       {/* Header */}
-      <PageHeader
+      <UnifiedPageHeader
         title={`Reservasi ${tour.name}`}
-        description={`Kapasitas: ${tour.capacity} orang`}
+        description="Tour Seluruh Perpustakaan"
         user={user}
+        profile={null}
         sidebarCollapsed={sidebarCollapsed}
       />
 

@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ProfileSkeleton } from '@/components/ui/skeletons'
 import UserSidebar from '@/components/UserSidebar'
-import { PageHeader } from '@/components/ui/page-header'
+import { UnifiedPageHeader } from '@/components/ui/unified-page-header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useToastContext } from '@/components/ToastProvider'
@@ -255,10 +255,11 @@ export default function ProfilePage() {
       <UserSidebar onToggle={setSidebarCollapsed} />
 
       {/* Header */}
-      <PageHeader
+      <UnifiedPageHeader
         title="Kelola Profil"
         description="Update informasi profil dan preferensi Anda"
         user={user}
+        profile={profile}
         sidebarCollapsed={sidebarCollapsed}
       />
 

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Loading } from '@/components/ui/loading'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AdminDashboardContentSkeleton } from '@/components/ui/skeletons'
+import { UnifiedPageHeader } from '@/components/ui/unified-page-header'
 import { Users, Building, Calendar, Clock, AlertTriangle, LogOut, Sparkles, TrendingUp, BookOpen, CheckCircle } from 'lucide-react'
 import { useBookings, useRooms } from '@/lib/api'
 import AdminSidebar from './AdminSidebar'
@@ -61,6 +62,17 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
   const bookings = bookingsData?.bookings || []
   const { data: rooms = [], isLoading: roomsLoading } = useRooms()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
+  // Transform profile to User type for UnifiedPageHeader
+  const transformedProfile = profile ? {
+    id: profile.id,
+    email: profile.email,
+    app_metadata: {},
+    user_metadata: {},
+    aud: 'authenticated',
+    created_at: profile.created_at,
+    // Add other required User properties
+  } : null
 
   // Calculate real admin stats using useMemo to prevent infinite re-renders
   const adminStats = useMemo(() => {
@@ -178,53 +190,18 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
       {/* Sidebar */}
       <AdminSidebar onToggle={setSidebarCollapsed} />
 
-      {/* Header - Fixed at top */}
-      <motion.header
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className={`flex-shrink-0 bg-background/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 z-10 ${
-          sidebarCollapsed ? 'ml-16' : 'ml-64'
-        }`}
-      >
-        <div className="px-4 lg:px-6 py-3 flex justify-between items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-          >
-            <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Dashboard
-            </h1>
-            <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400">Kelola ruangan dan reservasi</p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="flex items-center space-x-2 lg:space-x-4"
-          >
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.4 }}
-              className="text-sm text-gray-600 dark:text-gray-300 hidden md:block"
-            >
-              {profile?.full_name}
-            </motion.span>
-            <ThemeToggle />
-            <form action="/auth/signout" method="post">
-              <Button variant="outline" size="sm" type="submit">
-                <LogOut className="w-4 h-4 lg:mr-2 text-primary" />
-                <span className="hidden lg:inline">Keluar</span>
-              </Button>
-            </form>
-          </motion.div>
-        </div>
-      </motion.header>
+      {/* Header */}
+      <UnifiedPageHeader
+        title="Dashboard"
+        description="Kelola ruangan dan reservasi"
+        user={transformedProfile}
+        profile={profile}
+        isAdmin={true}
+        sidebarCollapsed={sidebarCollapsed}
+      />
 
       {/* Main Content - Scrollable area */}
-      <main className={`flex-1 overflow-auto transition-all duration-300 ${
+      <main className={`flex-1 overflow-auto transition-all duration-300 pt-24 ${
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}>
         <div className="p-3 lg:p-4 h-full flex flex-col">

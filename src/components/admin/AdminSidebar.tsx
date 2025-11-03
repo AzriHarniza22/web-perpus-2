@@ -50,12 +50,6 @@ export default function AdminSidebar({ className, onToggle, loading = false }: A
       label: 'History',
       icon: History,
       active: pathname === '/admin/history'
-    },
-    {
-      href: '/admin/profile',
-      label: 'Profil Admin',
-      icon: Shield,
-      active: pathname === '/admin/profile'
     }
   ]
 
@@ -92,20 +86,20 @@ export default function AdminSidebar({ className, onToggle, loading = false }: A
       </div>
 
       {/* Logo/Brand */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="px-5 py-4.25 min-h-19.75 border-b border-gray-200 dark:border-gray-800">
         <motion.div
           initial={{ opacity: 1, scale: 1 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
           className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'}`}
         >
-          <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
             <Image
               src="/logo.svg"
               alt="Perpustakaan Aceh Logo"
               width={32}
               height={32}
-              className="w-8 h-8"
+              className="w-10 h-10"
             />
           </div>
           <AnimatePresence>
@@ -117,10 +111,10 @@ export default function AdminSidebar({ className, onToggle, loading = false }: A
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <h2 className="text-sm font-bold text-primary whitespace-nowrap">
+                <h2 className="text-base font-bold text-primary whitespace-nowrap">
                   Admin Panel
                 </h2>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Perpustakaan Aceh</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Perpustakaan Aceh</p>
               </motion.div>
             )}
           </AnimatePresence>

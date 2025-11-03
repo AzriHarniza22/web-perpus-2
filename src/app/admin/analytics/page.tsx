@@ -15,6 +15,7 @@ import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard'
 import { useRooms, useBookings } from '@/lib/api'
 import { Booking } from '@/lib/types'
 import { useToastContext } from '@/components/ToastProvider'
+import { UnifiedPageHeader } from '@/components/ui/unified-page-header'
 
 interface Profile {
   id: string;
@@ -77,58 +78,14 @@ export default function AnalyticsPage() {
       <AdminSidebar onToggle={setSidebarCollapsed} loading={loading || authLoading} />
 
       {/* Header */}
-      <header
-        className={`bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
-          sidebarCollapsed ? 'ml-16' : 'ml-64'
-        }`}
-        role="banner"
-      >
-        <div className="px-4 sm:px-6 py-4 flex justify-between items-center">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="min-w-0 flex-1"
-          >
-            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent truncate">
-              Analytics & Reports
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
-              Analisis mendalam penggunaan sistem
-            </p>
-          </motion.div>
-          <div className="flex items-center space-x-2 sm:space-x-4 ml-4">
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-gray-600 dark:text-gray-300 hidden lg:block text-sm"
-            >
-              {loading || authLoading ? 'Loading...' : `Selamat datang, ${profile?.full_name}`}
-            </motion.span>
-            <ThemeToggle />
-            <form action="/auth/signout" method="post">
-              <Button
-                variant="outline"
-                size="sm"
-                type="submit"
-                className="hidden sm:flex"
-                aria-label="Keluar dari sistem"
-              >
-                <LogOut className="w-4 h-4 mr-2" aria-hidden="true" />
-                Keluar
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                type="submit"
-                className="sm:hidden p-2"
-                aria-label="Keluar dari sistem"
-              >
-                <LogOut className="w-4 h-4" aria-hidden="true" />
-              </Button>
-            </form>
-          </div>
-        </div>
-      </header>
+      <UnifiedPageHeader
+        title="Analytics & Reports"
+        description="Analisis mendalam penggunaan sistem"
+        user={user}
+        profile={profile}
+        isAdmin={true}
+        sidebarCollapsed={sidebarCollapsed}
+      />
 
       <main
         className={`transition-all duration-300 ${

@@ -1,14 +1,13 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BookOpen, TrendingUp, Clock, CheckCircle, Sparkles } from 'lucide-react'
 import UserSidebar from '@/components/UserSidebar'
-import { PageHeader } from '@/components/ui/page-header'
+import { UnifiedPageHeader } from '@/components/ui/unified-page-header'
 import InteractiveCalendar from '../app/InteractiveCalendar'
 
 interface DashboardLayoutProps {
@@ -20,7 +19,6 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ user, profile, myReservations, allBookings }: DashboardLayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const router = useRouter()
 
   const stats = useMemo(() => {
     const now = new Date()
@@ -66,9 +64,6 @@ export default function DashboardLayout({ user, profile, myReservations, allBook
     }))
   }, [allBookings])
 
-  const handleSignOut = useCallback(() => {
-    router.push('/auth/signout')
-  }, [router])
 
   return (
     <div className="min-h-screen bg-background">
@@ -76,11 +71,12 @@ export default function DashboardLayout({ user, profile, myReservations, allBook
       <UserSidebar onToggle={setSidebarCollapsed} />
 
       {/* Header */}
-      <PageHeader
+      <UnifiedPageHeader
         title="Dashboard"
         description="Kelola reservasi ruangan Anda dengan mudah"
         user={user}
-        onSignOut={handleSignOut}
+        profile={profile}
+        isAdmin={false}
         sidebarCollapsed={sidebarCollapsed}
       />
 

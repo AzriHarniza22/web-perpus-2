@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { HistorySkeleton } from '@/components/ui/skeletons'
 import UserSidebar from '@/components/UserSidebar'
-import { PageHeader } from '@/components/ui/page-header'
+import { UnifiedPageHeader } from '@/components/ui/unified-page-header'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, CalendarX, Trash2 } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -110,10 +110,11 @@ export default function HistoryPage() {
         <UserSidebar onToggle={setSidebarCollapsed} />
 
         {/* Header */}
-        <PageHeader
+        <UnifiedPageHeader
           title="Riwayat Reservasi"
           description="Lihat semua reservasi yang telah Anda buat"
           user={user}
+          profile={null}
           sidebarCollapsed={sidebarCollapsed}
         />
 
@@ -132,10 +133,11 @@ export default function HistoryPage() {
       <UserSidebar onToggle={setSidebarCollapsed} />
 
       {/* Header */}
-      <PageHeader
+      <UnifiedPageHeader
         title="Riwayat Reservasi"
         description="Lihat semua reservasi yang telah Anda buat"
         user={user}
+        profile={null}
         sidebarCollapsed={sidebarCollapsed}
       />
 

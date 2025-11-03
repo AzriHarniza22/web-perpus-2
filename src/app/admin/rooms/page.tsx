@@ -15,6 +15,7 @@ import { RoomsContentSkeleton } from '@/components/ui/skeletons'
 import { LogOut } from 'lucide-react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import RoomManagement from '@/components/admin/RoomManagement'
+import { UnifiedPageHeader } from '@/components/ui/unified-page-header'
 
 interface Profile {
   id: string;
@@ -75,39 +76,14 @@ export default function RoomsPage() {
       <AdminSidebar onToggle={setSidebarCollapsed} loading={loading || authLoading} />
 
       {/* Header */}
-      <div
-        className={`bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
-          sidebarCollapsed ? 'ml-16' : 'ml-64'
-        }`}
-      >
-        <div className="px-6 py-4 flex justify-between items-center">
-          <motion.div
-            initial={loading ? { opacity: 1 } : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Manajemen Ruangan
-            </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Kelola ruangan perpustakaan</p>
-          </motion.div>
-          <div className="flex items-center space-x-4">
-            <motion.span
-              initial={loading ? { opacity: 1 } : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-gray-600 dark:text-gray-300 hidden md:block"
-            >
-              {loading ? 'Loading...' : `Selamat datang, ${profile?.full_name}`}
-            </motion.span>
-            <ThemeToggle />
-            <form action="/auth/signout" method="post">
-              <Button variant="outline" size="sm" type="submit">
-                <LogOut className="w-4 h-4 mr-2" />
-                Keluar
-              </Button>
-            </form>
-          </div>
-        </div>
-      </div>
+      <UnifiedPageHeader
+        title="Manajemen Ruangan"
+        description="Kelola ruangan perpustakaan"
+        user={user}
+        profile={profile}
+        isAdmin={true}
+        sidebarCollapsed={sidebarCollapsed}
+      />
 
       <main className={`p-6 transition-all duration-300 ${
         sidebarCollapsed ? 'ml-16' : 'ml-64'

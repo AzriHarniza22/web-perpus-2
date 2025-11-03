@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { BookSkeleton } from '@/components/ui/skeletons'
 import UserSidebar from '@/components/UserSidebar'
-import { PageHeader } from '@/components/ui/page-header'
+import { UnifiedPageHeader } from '@/components/ui/unified-page-header'
 import { Building, Users, CheckCircle, ArrowRight, Sparkles } from 'lucide-react'
 import { Room } from '@/lib/api'
 import { ImageCarousel } from '@/components/ui/image-carousel'
@@ -70,10 +70,11 @@ export default function BookRoomPage() {
         <UserSidebar onToggle={setSidebarCollapsed} />
 
         {/* Header */}
-        <PageHeader
+        <UnifiedPageHeader
           title="Pesan Ruangan"
           description="Pilih ruangan yang ingin Anda pesan"
           user={user}
+          profile={null}
           sidebarCollapsed={sidebarCollapsed}
         />
 
@@ -106,10 +107,11 @@ export default function BookRoomPage() {
       <UserSidebar onToggle={setSidebarCollapsed} />
 
       {/* Header */}
-      <PageHeader
+      <UnifiedPageHeader
         title="Pesan Ruangan"
         description="Pilih ruangan yang ingin Anda pesan"
         user={user}
+        profile={null}
         sidebarCollapsed={sidebarCollapsed}
       />
 

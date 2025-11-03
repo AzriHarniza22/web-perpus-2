@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { AdminProfileSkeleton } from '@/components/ui/skeletons'
 import { ProfileContentSkeleton } from '@/components/ui/skeletons'
 import AdminSidebar from '@/components/admin/AdminSidebar'
-import { PageHeader } from '@/components/ui/page-header'
+import { UnifiedPageHeader } from '@/components/ui/unified-page-header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useToastContext } from '@/components/ToastProvider'
@@ -269,10 +269,12 @@ export default function AdminProfilePage() {
       <AdminSidebar onToggle={setSidebarCollapsed} loading={isLoading} />
 
       {/* Header */}
-      <PageHeader
+      <UnifiedPageHeader
         title="Kelola Profil Admin"
         description="Update informasi profil dan preferensi admin"
         user={user}
+        profile={profile}
+        isAdmin={true}
         sidebarCollapsed={sidebarCollapsed}
       />
 
