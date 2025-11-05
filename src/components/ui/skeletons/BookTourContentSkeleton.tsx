@@ -1,5 +1,4 @@
-// Book Tour Content Skeleton - Content area only
-// Header dan navigation menggunakan BaseSkeleton
+// Book Tour Content Skeleton - Content area only (3 cards for the tour booking)
 
 import { Skeleton } from '@/components/ui/skeleton'
 import { motion } from 'framer-motion'
@@ -9,12 +8,9 @@ export const BookTourContentSkeleton: React.FC = () => {
   const { slideUp, shimmer } = useSkeletonAnimation()
 
   return (
-    <motion.div
-      className="flex flex-col md:flex-row gap-2 sm:gap-3 lg:gap-3 xl:gap-4"
-      {...slideUp}
-    >
+    <>
       {/* Tour Info Card */}
-      <div className="flex-1">
+      <div className="flex-1 min-h-0">
         <motion.div
           {...slideUp}
           transition={{ ...slideUp.transition, delay: 0.1 }}
@@ -36,7 +32,7 @@ export const BookTourContentSkeleton: React.FC = () => {
       </div>
 
       {/* Calendar Card */}
-      <div className="flex-1">
+      <div className="flex-1 min-h-0">
         <motion.div
           {...slideUp}
           transition={{ ...slideUp.transition, delay: 0.2 }}
@@ -62,7 +58,7 @@ export const BookTourContentSkeleton: React.FC = () => {
       </div>
 
       {/* Form Card */}
-      <div className="flex-1">
+      <div className="flex-1 min-h-0">
         <motion.div
           {...slideUp}
           transition={{ ...slideUp.transition, delay: 0.3 }}
@@ -91,6 +87,6 @@ export const BookTourContentSkeleton: React.FC = () => {
           </motion.div>
         </motion.div>
       </div>
-    </motion.div>
+    </>
   )
 }

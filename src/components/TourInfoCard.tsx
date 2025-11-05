@@ -47,10 +47,10 @@ export default function TourInfoCard({ tour }: TourInfoCardProps) {
 
         <CardHeader className="relative z-10 flex-shrink-0">
           <CardTitle className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
               <MapPin className="w-5 h-5 text-white" />
             </div>
-            <span className="bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
               {tour.name}
             </span>
           </CardTitle>

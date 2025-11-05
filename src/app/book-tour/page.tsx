@@ -112,8 +112,8 @@ export default function BookTourPage() {
 
         {/* Header */}
         <UnifiedPageHeader
-          title="Reservasi Library Tour"
-          description="Tour Seluruh Perpustakaan"
+          title="Reservasi Tour"
+          description="Jadwalkan Tour Perpustakaan"
           user={user}
           profile={profile}
           sidebarCollapsed={sidebarCollapsed}
@@ -177,8 +177,8 @@ export default function BookTourPage() {
 
       {/* Header */}
       <UnifiedPageHeader
-        title={`Reservasi ${tour.name}`}
-        description="Tour Seluruh Perpustakaan"
+        title="Reservasi Tour"
+        description="Jadwalkan Tour Perpustakaan"
         user={user}
         profile={profile}
         sidebarCollapsed={sidebarCollapsed}
