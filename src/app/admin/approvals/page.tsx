@@ -23,6 +23,7 @@ interface Profile {
   full_name: string | null;
   institution: string | null;
   phone: string | null;
+  profile_photo: string | null;
   role: 'user' | 'admin';
   created_at: string;
   updated_at: string;
@@ -31,10 +32,6 @@ interface Profile {
 function ApprovalsContent() {
   const { data: bookingsData, isLoading: bookingsLoading } = useBookings()
   const { data: rooms } = useRooms()
-
-  if (bookingsLoading) {
-    return <ApprovalsContentSkeleton />
-  }
 
   return (
     <div className="space-y-6">
@@ -101,20 +98,33 @@ export default function ApprovalsPage() {
     }
   }, [user, router, authLoading])
 
+  // Transform profile to User type for UnifiedPageHeader
+  const transformedProfile = profile ? {
+    id: profile.id,
+    email: profile.email,
+    app_metadata: {},
+    user_metadata: {
+      full_name: profile.full_name || null,
+      role: profile.role || 'admin'
+    },
+    aud: 'authenticated',
+    created_at: profile.created_at,
+  } : null
+
   if (!profile && !loading) {
     return null
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 dark:from-background dark:via-primary/20 dark:to-secondary/20">
-      {/* Sidebar */}
-      <AdminSidebar onToggle={setSidebarCollapsed} loading={loading || authLoading} />
+      {/* Sidebar - Real component, not skeleton */}
+      <AdminSidebar onToggle={setSidebarCollapsed} />
 
-      {/* Header */}
+      {/* Header - Real component, not skeleton */}
       <UnifiedPageHeader
         title="Dashboard Persetujuan"
         description="Kelola semua permintaan reservasi ruangan dan tour"
-        user={user}
+        user={transformedProfile}
         profile={profile}
         isAdmin={true}
         sidebarCollapsed={sidebarCollapsed}

@@ -18,6 +18,7 @@ interface UnifiedPageHeaderProps {
   profile?: Profile | null
   isAdmin?: boolean
   sidebarCollapsed?: boolean
+  isLoading?: boolean
 }
 
 export function UnifiedPageHeader({
@@ -26,7 +27,8 @@ export function UnifiedPageHeader({
   user,
   profile,
   isAdmin = false,
-  sidebarCollapsed = false
+  sidebarCollapsed = false,
+  isLoading = false
 }: UnifiedPageHeaderProps) {
   const handleLogout = () => {
     // Create and submit a form to POST to the signout route
@@ -72,7 +74,7 @@ export function UnifiedPageHeader({
           transition={transitions.spring}
           className="flex items-center space-x-2 lg:space-x-4 flex-shrink-0"
         >
-          {user && (
+          {(user || isLoading) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <motion.button
@@ -85,11 +87,19 @@ export function UnifiedPageHeader({
                 >
                   <Avatar className="w-7 h-7">
                     <AvatarFallback className="text-xs">
-                      {(profile?.full_name || user?.email)?.[0].toUpperCase()}
+                      {isLoading ? (
+                        <div className="w-full h-full bg-gray-300 animate-pulse rounded" />
+                      ) : (
+                        (profile?.full_name || user?.user_metadata?.full_name || user?.email || 'U')?.[0].toUpperCase()
+                      )}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-black dark:text-white text-sm truncate max-w-[140px]">
-                    {profile?.full_name || (isAdmin ? user?.email : user?.email?.split('@')[0])}
+                  <span className="text-black dark:text-white text-sm truncate max-w-[220px]">
+                    {isLoading ? (
+                      <div className="w-32 h-4 bg-gray-300 animate-pulse rounded" />
+                    ) : (
+                      profile?.full_name || user?.user_metadata?.full_name || (isAdmin ? user?.email : user?.email?.split('@')[0]) || 'Loading...'
+                    )}
                   </span>
                   {isAdmin && (
                     <motion.div

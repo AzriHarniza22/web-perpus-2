@@ -26,7 +26,7 @@ interface AdminProfile {
   institution: string | null
   phone: string | null
   profile_photo: string | null
-  role: string
+  role: 'admin'
   created_at: string
   updated_at: string
 }
@@ -259,20 +259,30 @@ export default function AdminProfilePage() {
     }
   }
 
+  // Transform profile to User type for UnifiedPageHeader
+  const transformedProfile = user ? {
+    id: user.id,
+    email: user.email || '',
+    app_metadata: user.app_metadata || {},
+    user_metadata: user.user_metadata || {},
+    aud: user.aud || 'authenticated',
+    created_at: user.created_at || '',
+  } : null
+
   if (!user && !isLoading) {
     return null // Will redirect
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Admin Sidebar */}
-      <AdminSidebar onToggle={setSidebarCollapsed} loading={isLoading} />
+      {/* Admin Sidebar - Real component, not skeleton */}
+      <AdminSidebar onToggle={setSidebarCollapsed} />
 
-      {/* Header */}
+      {/* Header - Real component, not skeleton */}
       <UnifiedPageHeader
         title="Kelola Profil Admin"
         description="Update informasi profil dan preferensi admin"
-        user={user}
+        user={transformedProfile}
         profile={profile}
         isAdmin={true}
         sidebarCollapsed={sidebarCollapsed}

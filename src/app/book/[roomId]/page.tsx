@@ -8,11 +8,11 @@ import RoomInfoCard from '@/components/RoomInfoCard'
 import InteractiveCalendar from '@/app/InteractiveCalendar'
 import ReservationFormCard from '@/components/ReservationFormCard'
 import UserSidebar from '@/components/UserSidebar'
-import { PageHeader } from '@/components/ui/page-header'
+import { UnifiedPageHeader } from '@/components/ui/unified-page-header'
 import { RoomBookingSkeleton } from '@/components/ui/skeletons'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAuth } from '@/components/AuthProvider'
+import { useUserData } from '@/hooks/useUserData'
 import { Sparkles, ArrowLeft, CalendarIcon } from 'lucide-react'
 
 import { Room, Booking } from '@/lib/api'
@@ -20,7 +20,7 @@ import { Room, Booking } from '@/lib/api'
 export default function BookRoomPage() {
   const params = useParams()
   const roomId = params.roomId as string
-  const { user, isLoading } = useAuth()
+  const { user, profile, isLoading: userDataLoading } = useUserData()
   const [room, setRoom] = useState<Room | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
@@ -35,26 +35,6 @@ export default function BookRoomPage() {
       if (!user) {
         setLoading(false)
         return
-      }
-
-      // Ensure user profile exists
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .single()
-
-      if (!profile) {
-        // Create profile if it doesn't exist
-        await supabase
-          .from('profiles')
-          .insert({
-            id: user.id,
-            email: user.email,
-            full_name: user.user_metadata?.full_name || '',
-            institution: user.user_metadata?.institution || '',
-            phone: user.user_metadata?.phone || '',
-          })
       }
 
       // Get room details
@@ -87,24 +67,25 @@ export default function BookRoomPage() {
 
     if (roomId && user) {
       fetchData()
-    } else if (!isLoading && !user) {
+    } else if (!userDataLoading && !user) {
       setLoading(false)
     }
-  }, [roomId, router, user, isLoading])
+  }, [roomId, router, user, userDataLoading])
 
 
 
-  if (isLoading || loading) {
+  if (userDataLoading || loading) {
     return (
       <div className="h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex flex-col">
         {/* Sidebar */}
         <UserSidebar onToggle={setSidebarCollapsed} />
 
         {/* Header */}
-        <PageHeader
+        <UnifiedPageHeader
           title="Reservasi Ruangan"
           description="Kapasitas ruangan akan ditampilkan"
           user={user}
+          profile={profile}
           sidebarCollapsed={sidebarCollapsed}
         />
 
@@ -192,10 +173,11 @@ export default function BookRoomPage() {
       <UserSidebar onToggle={setSidebarCollapsed} />
 
       {/* Header */}
-      <PageHeader
+      <UnifiedPageHeader
         title={`Reservasi ${room.name}`}
         description={`Kapasitas: ${room.capacity} orang`}
         user={user}
+        profile={profile}
         sidebarCollapsed={sidebarCollapsed}
       />
 

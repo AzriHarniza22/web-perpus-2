@@ -74,10 +74,10 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 dark:from-background dark:via-primary/20 dark:to-secondary/20">
-      {/* Sidebar */}
-      <AdminSidebar onToggle={setSidebarCollapsed} loading={loading || authLoading} />
+      {/* Sidebar - Real component, not skeleton */}
+      <AdminSidebar onToggle={setSidebarCollapsed} />
 
-      {/* Header */}
+      {/* Header - Real component, not skeleton */}
       <UnifiedPageHeader
         title="Analytics & Reports"
         description="Analisis mendalam penggunaan sistem"
@@ -94,7 +94,7 @@ export default function AnalyticsPage() {
         role="main"
       >
         <div className="p-4 sm:p-6">
-          {loading || authLoading ? <AnalyticsContentSkeleton /> : <AnalyticsContent />}
+          <AnalyticsContent />
         </div>
       </main>
     </div>
@@ -109,11 +109,6 @@ function AnalyticsContent() {
   const [usersLoading, setUsersLoading] = useState(true)
   const [exportStatus, setExportStatus] = useState<{ status: 'idle' | 'loading' | 'success' | 'error', format?: string }>({ status: 'idle' })
   const toast = useToastContext()
-
-  // NOW WE CAN USE CONDITIONAL LOGIC
-  if (bookingsLoading) {
-    return <AnalyticsContentSkeleton />
-  }
 
   const bookings = (bookingsData?.bookings || []) as Booking[]
 
@@ -189,7 +184,7 @@ function AnalyticsContent() {
     rooms: rooms || [],
     tours: [], // TODO: Implement proper tours data fetching
     users,
-    isLoading: usersLoading || bookingsLoading || !rooms
+    isLoading: usersLoading || !rooms
   }
 
   return (

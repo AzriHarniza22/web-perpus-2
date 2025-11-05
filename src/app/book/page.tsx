@@ -15,53 +15,47 @@ import { UnifiedPageHeader } from '@/components/ui/unified-page-header'
 import { Building, Users, CheckCircle, ArrowRight, Sparkles } from 'lucide-react'
 import { Room } from '@/lib/api'
 import { ImageCarousel } from '@/components/ui/image-carousel'
+import { useUserData } from '@/hooks/useUserData'
 
 export default function BookRoomPage() {
   const [rooms, setRooms] = useState<Room[]>([])
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<User | null>(null)
+  const { user, profile, isLoading: userDataLoading } = useUserData()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    const checkAuthAndFetchRooms = async () => {
-      // Check if user is authenticated
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      setUser(currentUser)
-
-      if (!currentUser) {
-        console.log('User not authenticated')
+    const fetchRooms = async () => {
+      if (!user) {
         setLoading(false)
         return
       }
 
-      const fetchRooms = async () => {
-        try {
-          const { data, error } = await supabase
-            .from('rooms')
-            .select('*')
-            .eq('is_active', true)
-            .neq('name', 'Library Tour')
-            .order('name')
+      try {
+        const { data, error } = await supabase
+          .from('rooms')
+          .select('*')
+          .eq('is_active', true)
+          .neq('name', 'Library Tour')
+          .order('name')
 
-          if (error) {
-            console.error('Error fetching rooms:', error)
-            console.error('Error details:', JSON.stringify(error, null, 2))
-          } else {
-            console.log('Rooms fetched successfully:', data)
-            setRooms(data || [])
-          }
-        } catch (err) {
-          console.error('Unexpected error:', err)
+        if (error) {
+          console.error('Error fetching rooms:', error)
+          console.error('Error details:', JSON.stringify(error, null, 2))
+        } else {
+          console.log('Rooms fetched successfully:', data)
+          setRooms(data || [])
         }
-        setLoading(false)
+      } catch (err) {
+        console.error('Unexpected error:', err)
       }
-
-      fetchRooms()
+      setLoading(false)
     }
 
-    checkAuthAndFetchRooms()
-  }, [])
+    if (!userDataLoading) {
+      fetchRooms()
+    }
+  }, [user, userDataLoading])
 
   if (loading) {
     return (
@@ -74,7 +68,7 @@ export default function BookRoomPage() {
           title="Pesan Ruangan"
           description="Pilih ruangan yang ingin Anda pesan"
           user={user}
-          profile={null}
+          profile={profile}
           sidebarCollapsed={sidebarCollapsed}
         />
 
@@ -111,7 +105,7 @@ export default function BookRoomPage() {
         title="Pesan Ruangan"
         description="Pilih ruangan yang ingin Anda pesan"
         user={user}
-        profile={null}
+        profile={profile}
         sidebarCollapsed={sidebarCollapsed}
       />
 

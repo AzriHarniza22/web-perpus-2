@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { User } from '@supabase/supabase-js'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -26,10 +25,12 @@ interface BookingWithRoom {
   rooms?: { name: string }
 }
 
+import { useUserData } from '@/hooks/useUserData'
+
 export default function HistoryPage() {
   const [bookings, setBookings] = useState<BookingWithRoom[]>([])
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<User | null>(null)
+  const { user, profile, isLoading: userDataLoading } = useUserData()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null)
@@ -38,12 +39,8 @@ export default function HistoryPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const checkAuthAndFetchBookings = async () => {
-      // Check if user is authenticated
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      setUser(currentUser)
-
-      if (!currentUser) {
+    const fetchBookings = async () => {
+      if (!user) {
         router.push('/login')
         return
       }
@@ -57,15 +54,17 @@ export default function HistoryPage() {
             name
           )
         `)
-        .eq('user_id', currentUser.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
       setBookings(bookingsData || [])
       setLoading(false)
     }
 
-    checkAuthAndFetchBookings()
-  }, [router])
+    if (!userDataLoading) {
+      fetchBookings()
+    }
+  }, [user, userDataLoading, router])
 
   const deleteBooking = async () => {
     if (!selectedBookingId) return
@@ -114,7 +113,7 @@ export default function HistoryPage() {
           title="Riwayat Reservasi"
           description="Lihat semua reservasi yang telah Anda buat"
           user={user}
-          profile={null}
+          profile={profile}
           sidebarCollapsed={sidebarCollapsed}
         />
 
@@ -137,7 +136,7 @@ export default function HistoryPage() {
         title="Riwayat Reservasi"
         description="Lihat semua reservasi yang telah Anda buat"
         user={user}
-        profile={null}
+        profile={profile}
         sidebarCollapsed={sidebarCollapsed}
       />
 

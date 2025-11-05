@@ -1,42 +1,45 @@
 import { BaseSkeleton } from "./BaseSkeleton"
 import { Skeleton } from "@/components/ui/skeleton"
+import { motion } from "framer-motion"
+import { useSkeletonAnimation } from '@/hooks/useSkeletonAnimation'
+import { useUserData } from "@/hooks/useUserData"
 
-export const AdminApprovalsSkeleton: React.FC = () => (
-  <div className="min-h-screen bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10">
-    {/* Sidebar Skeleton */}
-    <div className="fixed left-0 top-0 h-full w-64 bg-white dark:bg-gray-900 border-r">
-      <div className="p-6 border-b">
-        <Skeleton className="h-8 w-32" />
-      </div>
-      <div className="p-4 space-y-2">
-        {[...Array(8)].map((_, i) => (
-          <Skeleton key={i} className="h-10 w-full" />
-        ))}
-      </div>
-    </div>
+export const AdminApprovalsSkeleton: React.FC = () => {
+  const { slideUp } = useSkeletonAnimation()
+  const { user, profile, isLoading } = useUserData()
 
-    {/* Header Skeleton */}
-    <div className="ml-64 bg-white/90 backdrop-blur-lg border-b h-16">
-      <div className="px-6 h-full flex justify-between items-center">
-        <div>
-          <Skeleton className="h-6 w-48 mb-1" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <Skeleton className="h-8 w-20" />
-      </div>
-    </div>
-
-    {/* Content Skeleton */}
-    <div className="ml-64 p-6">
-      <div className="mb-8">
+  return (
+    <BaseSkeleton 
+      className="space-y-6" 
+      user={user}
+      profile={profile}
+      isAdmin={true}
+      isLoading={isLoading}
+    >
+      <motion.div
+        {...slideUp}
+        className="mb-8"
+        data-testid="approvals-header-skeleton"
+      >
         <Skeleton className="h-8 w-64 mb-2" />
         <Skeleton className="h-5 w-96" />
-      </div>
+      </motion.div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <motion.div
+        {...slideUp}
+        transition={{ ...slideUp.transition, delay: 0.1 }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+        data-testid="overview-cards-skeleton"
+      >
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-card rounded-lg p-6">
+          <motion.div
+            key={i}
+            {...slideUp}
+            transition={{ ...slideUp.transition, delay: 0.2 + i * 0.1 }}
+            className="bg-card rounded-lg p-6"
+            data-testid={`overview-card-skeleton-${i}`}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <Skeleton className="h-4 w-20 mb-2" />
@@ -44,12 +47,17 @@ export const AdminApprovalsSkeleton: React.FC = () => (
               </div>
               <Skeleton className="w-12 h-12 rounded-full" />
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Approvals Card */}
-      <div className="bg-card rounded-lg p-6">
+      <motion.div
+        {...slideUp}
+        transition={{ ...slideUp.transition, delay: 0.5 }}
+        className="bg-card rounded-lg p-6"
+        data-testid="approvals-content-skeleton"
+      >
         <div className="flex items-center mb-4">
           <Skeleton className="w-5 h-5 mr-2" />
           <Skeleton className="h-6 w-48" />
@@ -59,7 +67,13 @@ export const AdminApprovalsSkeleton: React.FC = () => (
         {/* Booking Items */}
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="p-4 bg-muted/50 rounded-lg">
+            <motion.div
+              key={i}
+              {...slideUp}
+              transition={{ ...slideUp.transition, delay: 0.6 + i * 0.1 }}
+              className="p-4 bg-muted/50 rounded-lg"
+              data-testid={`booking-item-skeleton-${i}`}
+            >
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <Skeleton className="h-5 w-32 mb-1" />
@@ -71,10 +85,10 @@ export const AdminApprovalsSkeleton: React.FC = () => (
                 <Skeleton className="h-8 w-20" />
                 <Skeleton className="h-8 w-20" />
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </div>
-    </div>
-  </div>
-)
+      </motion.div>
+    </BaseSkeleton>
+  )
+}

@@ -1,11 +1,11 @@
-// History Content Skeleton
+// Admin History Content Skeleton
 // Content area only - sidebar dan page header dari BaseSkeleton
 
-import { Skeleton } from "@/components/ui/skeleton"
-import { motion } from "framer-motion"
-import { useSkeletonAnimation } from "@/hooks/useSkeletonAnimation"
+import { Skeleton } from '@/components/ui/skeleton'
+import { motion } from 'framer-motion'
+import { useSkeletonAnimation } from '@/hooks/useSkeletonAnimation'
 
-export const HistoryContentSkeleton: React.FC = () => {
+export const AdminHistoryContentSkeleton: React.FC = () => {
   const { slideUp, shimmer } = useSkeletonAnimation()
 
   return (

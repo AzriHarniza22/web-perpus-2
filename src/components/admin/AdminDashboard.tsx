@@ -48,7 +48,8 @@ interface Profile {
   full_name: string | null;
   institution: string | null;
   phone: string | null;
-  role: 'user' | 'admin' | 'staff';
+  profile_photo: string | null;
+  role: 'admin';
   created_at: string;
   updated_at: string;
 }
@@ -68,7 +69,10 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
     id: profile.id,
     email: profile.email,
     app_metadata: {},
-    user_metadata: {},
+    user_metadata: {
+      full_name: profile.full_name || null,
+      role: profile.role || 'admin'
+    },
     aud: 'authenticated',
     created_at: profile.created_at,
     // Add other required User properties
@@ -141,42 +145,21 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
   if (bookingsLoading || roomsLoading) {
     return (
       <div className="flex flex-col h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 overflow-hidden">
-        {/* Sidebar */}
+        {/* Sidebar - Real component, not skeleton */}
         <AdminSidebar onToggle={setSidebarCollapsed} />
 
-        {/* Header - Fixed */}
-        <motion.header
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className={`flex-shrink-0 bg-background/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
-            sidebarCollapsed ? 'ml-16' : 'ml-64'
-          }`}
-        >
-          <div className="px-4 py-3 flex justify-between items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-            >
-              <Skeleton className="h-7 w-40 mb-1" />
-              <Skeleton className="h-3 w-48" />
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="flex items-center space-x-3"
-            >
-              <Skeleton className="h-3 w-24 hidden md:block" />
-              <ThemeToggle />
-              <Skeleton className="h-8 w-16" />
-            </motion.div>
-          </div>
-        </motion.header>
+        {/* Header - Real component, not skeleton */}
+        <UnifiedPageHeader
+          title="Dashboard"
+          description="Kelola ruangan dan reservasi"
+          user={transformedProfile}
+          profile={profile}
+          isAdmin={true}
+          sidebarCollapsed={sidebarCollapsed}
+        />
 
         {/* Main Content - Scrollable */}
-        <main className={`flex-1 overflow-auto transition-all duration-300 ${
+        <main className={`flex-1 overflow-auto transition-all duration-300 pt-24 ${
           sidebarCollapsed ? 'ml-16' : 'ml-64'
         }`}>
           <AdminDashboardContentSkeleton />

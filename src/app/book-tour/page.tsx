@@ -12,7 +12,6 @@ import { UnifiedPageHeader } from '@/components/ui/unified-page-header'
 import { BookTourSkeleton } from '@/components/ui/skeletons'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAuth } from '@/components/AuthProvider'
 import { Sparkles, CalendarIcon } from 'lucide-react'
 
 import { Booking } from '@/lib/api'
@@ -31,9 +30,11 @@ interface Tour {
   updated_at: string
 }
 
+import { useUserData } from '@/hooks/useUserData'
+
 export default function BookTourPage() {
   const router = useRouter()
-  const { user, isLoading } = useAuth()
+  const { user, profile, isLoading: userDataLoading } = useUserData()
   const [tour, setTour] = useState<Tour | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
@@ -98,12 +99,12 @@ export default function BookTourPage() {
 
     if (user) {
       fetchData()
-    } else if (!isLoading && !user) {
+    } else if (!userDataLoading && !user) {
       setLoading(false)
     }
-  }, [user, isLoading])
+  }, [user, userDataLoading])
 
-  if (isLoading || loading) {
+  if (userDataLoading || loading) {
     return (
       <div className="h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex flex-col">
         {/* Sidebar */}
@@ -114,7 +115,7 @@ export default function BookTourPage() {
           title="Reservasi Library Tour"
           description="Tour Seluruh Perpustakaan"
           user={user}
-          profile={null}
+          profile={profile}
           sidebarCollapsed={sidebarCollapsed}
         />
 
@@ -179,7 +180,7 @@ export default function BookTourPage() {
         title={`Reservasi ${tour.name}`}
         description="Tour Seluruh Perpustakaan"
         user={user}
-        profile={null}
+        profile={profile}
         sidebarCollapsed={sidebarCollapsed}
       />
 

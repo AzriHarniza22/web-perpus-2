@@ -29,8 +29,10 @@ interface Profile {
   updated_at: string
 }
 
+import { useUserData } from '@/hooks/useUserData'
+
 export default function ProfilePage() {
-  const { user, isLoading } = useAuth()
+  const { user, profile, isLoading: userDataLoading } = useUserData()
   const { success } = useToastContext()
   const [saving, setSaving] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -45,7 +47,6 @@ export default function ProfilePage() {
     newPassword: '',
     confirmPassword: ''
   })
-  const [profile, setProfile] = useState<Profile | null>(null)
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null)
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null)
   const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
@@ -55,33 +56,20 @@ export default function ProfilePage() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!userDataLoading && !user) {
       router.push('/login')
       return
     }
 
-    if (user) {
-      // Fetch profile data
-      const fetchProfile = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single()
-
-        if (data) {
-          setProfile(data)
-          setFormData({
-            full_name: data.full_name || '',
-            institution: data.institution || '',
-            phone: data.phone || ''
-          })
-          setProfilePhotoPreview(data.profile_photo)
-        }
-      }
-      fetchProfile()
+    if (user && profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        institution: profile.institution || '',
+        phone: profile.phone || ''
+      })
+      setProfilePhotoPreview(profile.profile_photo)
     }
-  }, [user, isLoading, router])
+  }, [user, profile, userDataLoading, router])
 
   const handleSave = async () => {
     if (!user) return
@@ -123,17 +111,6 @@ export default function ProfilePage() {
 
       if (error) throw error
 
-      // Refresh profile data from database
-      const { data: updatedProfile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      if (updatedProfile) {
-        setProfile(updatedProfile)
-      }
-
       setProfilePhotoPreview(profilePhotoUrl)
       setProfilePhoto(null)
 
@@ -154,9 +131,9 @@ export default function ProfilePage() {
         institution: profile.institution || '',
         phone: profile.phone || ''
       })
+      setProfilePhotoPreview(profile.profile_photo || null)
     }
     setProfilePhoto(null)
-    setProfilePhotoPreview(profile?.profile_photo || null)
     setIsEditing(false)
   }
 
@@ -241,7 +218,7 @@ export default function ProfilePage() {
     }
   }
 
-  if (isLoading) {
+  if (userDataLoading) {
     return <ProfileSkeleton />
   }
 

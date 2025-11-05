@@ -23,7 +23,8 @@ interface Profile {
   full_name: string | null;
   institution: string | null;
   phone: string | null;
-  role: 'user' | 'admin';
+  profile_photo: string | null;
+  role: 'admin';
   created_at: string;
   updated_at: string;
 }
@@ -70,21 +71,33 @@ export default function AdminHistoryPage() {
     }
   }, [user, router, authLoading])
 
+  // Transform profile to User type for UnifiedPageHeader
+  const transformedProfile = profile ? {
+    id: profile.id,
+    email: profile.email,
+    app_metadata: {},
+    user_metadata: {
+      full_name: profile.full_name || null,
+      role: profile.role || 'admin'
+    },
+    aud: 'authenticated',
+    created_at: profile.created_at,
+  } : null
+
   if (!profile && !loading) {
     return null
   }
 
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 dark:from-background dark:via-primary/20 dark:to-secondary/20">
-      {/* Sidebar */}
-      <AdminSidebar onToggle={setSidebarCollapsed} loading={loading || authLoading} />
+      {/* Sidebar - Real component, not skeleton */}
+      <AdminSidebar onToggle={setSidebarCollapsed} />
 
-      {/* Header */}
+      {/* Header - Real component, not skeleton */}
       <UnifiedPageHeader
         title="Riwayat Reservasi"
         description="Tatap semua reservasi ruangan dan tour secara terintegrasi"
-        user={user}
+        user={transformedProfile}
         profile={profile}
         isAdmin={true}
         sidebarCollapsed={sidebarCollapsed}
@@ -97,21 +110,17 @@ export default function AdminHistoryPage() {
         role="main"
       >
         <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
-          {bookingsLoading ? (
-            <HistoryContentSkeleton />
-          ) : (
-            <>
-              {/* History Overview Cards */}
-              <HistoryOverviewCards
-                bookings={bookingsData?.bookings || []}
-                rooms={rooms}
-                isLoading={bookingsLoading}
-              />
+          <>
+            {/* History Overview Cards */}
+            <HistoryOverviewCards
+              bookings={bookingsData?.bookings || []}
+              rooms={rooms}
+              isLoading={bookingsLoading}
+            />
 
-              {/* Unified Booking Management */}
-              <UnifiedBookingManagement readonly={true} />
-            </>
-          )}
+            {/* Unified Booking Management */}
+            <UnifiedBookingManagement readonly={true} />
+          </>
         </div>
       </main>
     </div>
