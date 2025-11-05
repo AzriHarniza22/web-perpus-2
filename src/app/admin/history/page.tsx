@@ -91,7 +91,7 @@ export default function AdminHistoryPage() {
       />
 
       <main
-        className={`transition-all duration-300 ${
+        className={`pt-24 transition-all duration-300 ${
           sidebarCollapsed ? 'ml-16' : 'ml-64'
         }`}
         role="main"

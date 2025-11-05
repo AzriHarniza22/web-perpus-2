@@ -21,6 +21,7 @@ interface StatCard {
   icon: LucideIcon
   color: string
   bgColor: string
+  subtitle?: string
 }
 
 export function GeneralOverviewCards({
@@ -240,27 +241,31 @@ export function GeneralOverviewCards({
       value: animatedValues.totalTours,
       icon: Users,
       color: 'text-white',
-      bgColor: 'bg-blue-500'
+      bgColor: 'bg-blue-500',
+      subtitle: 'orang'
     },
     {
       label: 'Total Pengguna',
       value: animatedValues.totalUsers,
       icon: Users,
       color: 'text-white',
-      bgColor: 'bg-blue-500'
+      bgColor: 'bg-blue-500',
+      subtitle: 'orang'
     },
     {
       label: 'Tingkat Persetujuan',
       value: animatedValues.approvalRate,
       icon: Percent,
       color: 'text-white',
-      bgColor: 'bg-blue-500'
+      bgColor: 'bg-blue-500',
+      subtitle: '%'
     }
   ]
 
   if (isLoading) {
     return (
       <motion.div
+        {...staggerAnimation.container}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -269,6 +274,7 @@ export function GeneralOverviewCards({
         {[...Array(8)].map((_, index) => (
           <motion.div
             key={index}
+            {...staggerAnimation.item}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, duration: 0.4 }}
@@ -276,22 +282,29 @@ export function GeneralOverviewCards({
             <Card className="bg-card backdrop-blur-sm">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <motion.div
                       className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded"
                       animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: index * 0.1 }}
                     />
-                    <motion.div
-                      className="h-6 w-12 bg-gray-200 dark:bg-gray-700 rounded"
-                      animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
-                    />
+                    <div className="flex items-baseline gap-1">
+                      <motion.div
+                        className="h-6 w-12 bg-gray-200 dark:bg-gray-700 rounded"
+                        animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.2 + index * 0.1 }}
+                      />
+                      <motion.div
+                        className="h-3 w-8 bg-gray-200 dark:bg-gray-700 rounded"
+                        animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 + index * 0.1 }}
+                      />
+                    </div>
                   </div>
                   <motion.div
                     className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-lg"
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear", delay: index * 0.1 }}
                   />
                 </div>
               </CardContent>
@@ -327,14 +340,19 @@ export function GeneralOverviewCards({
                     {stat.label}
                   </motion.p>
                   <motion.div
-                    className="flex items-center gap-2"
+                    className="flex items-baseline gap-1"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.4 + index * 0.1, duration: 0.4, type: "spring", stiffness: 200 }}
                   >
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {stat.label.includes('Tingkat') ? `${stat.value}%` : stat.value}
+                      {stat.value}
                     </p>
+                    {stat.subtitle && (
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {stat.subtitle}
+                      </span>
+                    )}
                   </motion.div>
                 </div>
                 <motion.div

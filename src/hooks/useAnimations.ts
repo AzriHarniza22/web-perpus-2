@@ -35,7 +35,7 @@ export const useInViewAnimation = (options: UseInViewAnimationOptions = {}) => {
   const shouldReduceMotion = useReducedMotion()
   const controls = useAnimation()
   const ref = useRef<HTMLDivElement>(null)
-  const [inView, setInView] = useState(false)
+  const [inView, setInView] = useState(true)
 
   useEffect(() => {
     if (!ref.current || shouldReduceMotion) {
@@ -43,20 +43,37 @@ export const useInViewAnimation = (options: UseInViewAnimationOptions = {}) => {
       return
     }
 
+    // Set a timer as fallback to ensure visibility
+    const fallbackTimer = setTimeout(() => {
+      setInView(true)
+    }, 500)
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setInView(true)
-          if (triggerOnce) observer.disconnect()
+          clearTimeout(fallbackTimer)
+          if (triggerOnce) {
+            observer.disconnect()
+          }
         } else if (!triggerOnce) {
           setInView(false)
         }
       },
-      { threshold }
+      { 
+        threshold,
+        rootMargin: '50px'
+      }
     )
 
-    observer.observe(ref.current)
-    return () => observer.disconnect()
+    if (ref.current) {
+      observer.observe(ref.current)
+    }
+
+    return () => {
+      observer.disconnect()
+      clearTimeout(fallbackTimer)
+    }
   }, [threshold, triggerOnce, shouldReduceMotion])
 
   useEffect(() => {
@@ -87,7 +104,7 @@ export const useInViewAnimation = (options: UseInViewAnimationOptions = {}) => {
     ref,
     animate: controls,
     variants: getVariants(),
-    initial: 'hidden',
+    initial: 'visible',
     style: gpuProps.style
   }
 }
@@ -151,7 +168,7 @@ export const useStaggerAnimation = (options: UseStaggerAnimationOptions = {}) =>
     container: {
       animate: controls,
       variants: containerVariants,
-      initial: 'hidden'
+      initial: 'visible'  // Changed from 'hidden' to 'visible'
     },
     item: {
       variants: itemVariants,

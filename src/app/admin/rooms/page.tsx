@@ -85,7 +85,7 @@ export default function RoomsPage() {
         sidebarCollapsed={sidebarCollapsed}
       />
 
-      <main className={`p-6 transition-all duration-300 ${
+      <main className={`pt-24 p-6 transition-all duration-300 ${
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}>
         {loading ? (

@@ -88,7 +88,7 @@ export default function AnalyticsPage() {
       />
 
       <main
-        className={`transition-all duration-300 ${
+        className={`pt-24 transition-all duration-300 ${
           sidebarCollapsed ? 'ml-16' : 'ml-64'
         }`}
         role="main"
@@ -102,16 +102,18 @@ export default function AnalyticsPage() {
 }
 
 function AnalyticsContent() {
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { data: rooms } = useRooms()
   const { data: bookingsData, isLoading: bookingsLoading, error: bookingsError } = useBookings()
-
-  if (bookingsLoading) {
-    return <AnalyticsContentSkeleton />
-  }
   const [users, setUsers] = useState<Profile[]>([])
   const [usersLoading, setUsersLoading] = useState(true)
   const [exportStatus, setExportStatus] = useState<{ status: 'idle' | 'loading' | 'success' | 'error', format?: string }>({ status: 'idle' })
   const toast = useToastContext()
+
+  // NOW WE CAN USE CONDITIONAL LOGIC
+  if (bookingsLoading) {
+    return <AnalyticsContentSkeleton />
+  }
 
   const bookings = (bookingsData?.bookings || []) as Booking[]
 
