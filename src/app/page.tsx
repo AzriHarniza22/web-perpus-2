@@ -20,6 +20,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 const HomePage = () => {
   const { user, isLoading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
+  const [userRole, setUserRole] = useState<string | null>(null)
+  const [redirectReady, setRedirectReady] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('home')
   const router = useRouter()
@@ -64,12 +66,44 @@ const HomePage = () => {
     })
   }
 
-  // Set loading to false when auth is loaded and data is available
+  // Get user role when authenticated
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      if (user && !userRole) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+          setUserRole(profile?.role || null)
+        } catch (error) {
+          console.error('[HOMEPAGE] Error fetching user role:', error)
+          setUserRole(null)
+        }
+      }
+    }
+    
+    fetchUserRole()
+  }, [user, userRole])
+
+  // Handle redirect for authenticated users
+  useEffect(() => {
+    if (user && userRole && !redirectReady) {
+      console.log(`[HOMEPAGE] User authenticated, role: ${userRole}, redirecting to ${userRole === 'admin' ? '/admin' : '/dashboard'}`)
+      setRedirectReady(true)
+      
+      // Minimal delay to ensure smooth UX
+      setTimeout(() => {
+        router.push(userRole === 'admin' ? '/admin' : '/dashboard')
+      }, 100)
+    }
+  }, [user, userRole, redirectReady, router])
+
+  // Set loading to false when auth is loaded - removed unnecessary setTimeout delay
   useEffect(() => {
     if (!authLoading) {
-      // Simulate additional loading time for data fetching
-      const timer = setTimeout(() => setLoading(false), 500)
-      return () => clearTimeout(timer)
+      setLoading(false)
     }
   }, [authLoading])
 

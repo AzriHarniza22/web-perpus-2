@@ -70,25 +70,32 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Redirect authenticated users from root path to appropriate dashboard
-  if (user && isRootPage) {
-    const profile = await getProfileRole(supabase, user.id)
-    const redirectTo = profile?.role === 'admin' ? '/admin' : '/dashboard'
-    console.log(`[MIDDLEWARE] Redirecting authenticated user from root to: ${redirectTo}, role: ${profile?.role}`)
-    return NextResponse.redirect(new URL(redirectTo, request.url))
-  }
+  // NOTE: Removed auto-redirect for authenticated users from root path to prevent flash dashboard
+  // Client-side will handle redirect after auth check completes
+  console.log(`[MIDDLEWARE] Allowing authenticated user to access root page - client-side redirect will handle`)
 
   return supabaseResponse
 }
 
 // Helper function to get user role
-async function getProfileRole(supabase: any, userId: string) {
-  const { data } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', userId)
-    .single()
-  return data
+async function getProfileRole(supabase: any, userId: string): Promise<{ role: string | null } | null> {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+    
+    if (error) {
+      console.error('[MIDDLEWARE] Error fetching user role:', error)
+      return null
+    }
+    
+    return data
+  } catch (error) {
+    console.error('[MIDDLEWARE] Exception fetching user role:', error)
+    return null
+  }
 }
 
 export const config = {
