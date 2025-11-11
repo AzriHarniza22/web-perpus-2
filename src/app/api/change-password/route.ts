@@ -15,7 +15,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       console.log('❌ [CHANGE-PASSWORD] No authenticated user')
       return NextResponse.json({
         success: false,
-        error: 'Authentication required'
+        error: 'Otentikasi diperlukan'
       }, { status: 401 })
     }
 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       console.log('❌ [CHANGE-PASSWORD] Missing required fields')
       return NextResponse.json({
         success: false,
-        error: 'Current password and new password are required'
+        error: 'Password saat ini dan password baru wajib diisi'
       }, { status: 400 })
     }
 
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       console.log('❌ [CHANGE-PASSWORD] New password too short')
       return NextResponse.json({
         success: false,
-        error: 'New password must be at least 6 characters long'
+        error: 'Password baru minimal 6 karakter'
       }, { status: 400 })
     }
 
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       console.log('❌ [CHANGE-PASSWORD] Current password verification failed:', signInError.message)
       return NextResponse.json({
         success: false,
-        error: 'Current password is incorrect'
+        error: 'Password saat ini salah'
       }, { status: 400 })
     }
 
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       console.error('❌ [CHANGE-PASSWORD] Password update failed:', updateError)
       return NextResponse.json({
         success: false,
-        error: 'Failed to update password'
+        error: 'Gagal memperbarui password'
       }, { status: 500 })
     }
 
@@ -82,14 +82,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     return NextResponse.json({
       success: true,
-      message: 'Password changed successfully'
+      message: 'Password berhasil diperbarui'
     })
 
   } catch (error) {
     console.error('❌ [CHANGE-PASSWORD] Unexpected error:', error)
     return NextResponse.json({
       success: false,
-      error: 'An unexpected error occurred'
+      error: 'Terjadi kesalahan yang tidak terduga'
     }, { status: 500 })
   }
 }

@@ -14,41 +14,41 @@ export function validateRegistrationData(data: RegistrationData): ValidationErro
 
   // Email validation - optimized regex test
   if (!data.email?.trim()) {
-    errors.push({ field: 'email', message: 'Email is required' })
+    errors.push({ field: 'email', message: 'Email wajib diisi' })
   } else if (!EMAIL_REGEX.test(data.email)) {
-    errors.push({ field: 'email', message: 'Please enter a valid email address' })
+    errors.push({ field: 'email', message: 'Masukkan alamat email yang valid' })
   }
 
   // Password validation - simple length check
   if (!data.password) {
-    errors.push({ field: 'password', message: 'Password is required' })
+    errors.push({ field: 'password', message: 'Password wajib diisi' })
   } else if (data.password.length < PASSWORD_MIN_LENGTH) {
-    errors.push({ field: 'password', message: `Password must be at least ${PASSWORD_MIN_LENGTH} characters` })
+    errors.push({ field: 'password', message: `Password minimal ${PASSWORD_MIN_LENGTH} karakter` })
   }
 
   // Confirm password validation
   if (!data.confirmPassword) {
-    errors.push({ field: 'confirmPassword', message: 'Please confirm your password' })
+    errors.push({ field: 'confirmPassword', message: 'Konfirmasi password wajib diisi' })
   } else if (data.password !== data.confirmPassword) {
-    errors.push({ field: 'confirmPassword', message: 'Passwords do not match' })
+    errors.push({ field: 'confirmPassword', message: 'Konfirmasi password tidak sesuai' })
   }
 
   // Full name validation - optimized string check
   const trimmedName = data.fullName?.trim()
   if (!trimmedName) {
-    errors.push({ field: 'fullName', message: 'Full name is required' })
+    errors.push({ field: 'fullName', message: 'Nama lengkap wajib diisi' })
   } else if (trimmedName.length < 2) {
-    errors.push({ field: 'fullName', message: 'Full name must be at least 2 characters' })
+    errors.push({ field: 'fullName', message: 'Nama lengkap minimal 2 karakter' })
   }
 
   // Institution validation (optional) - only if provided
   if (data.institution?.trim() && data.institution.trim().length < 2) {
-    errors.push({ field: 'institution', message: 'Institution name must be at least 2 characters' })
+    errors.push({ field: 'institution', message: 'Nama institusi minimal 2 karakter' })
   }
 
   // Phone validation (optional) - only if provided
   if (data.phone?.trim() && !PHONE_REGEX.test(data.phone)) {
-    errors.push({ field: 'phone', message: 'Please enter a valid Indonesian phone number' })
+    errors.push({ field: 'phone', message: 'Masukkan nomor telepon Indonesia yang valid' })
   }
 
   return errors
@@ -59,14 +59,14 @@ export function validateLoginData(data: LoginData): ValidationError[] {
 
   // Email validation - optimized regex test
   if (!data.email?.trim()) {
-    errors.push({ field: 'email', message: 'Email is required' })
+    errors.push({ field: 'email', message: 'Email wajib diisi' })
   } else if (!EMAIL_REGEX.test(data.email)) {
-    errors.push({ field: 'email', message: 'Please enter a valid email address' })
+    errors.push({ field: 'email', message: 'Masukkan alamat email yang valid' })
   }
 
   // Password validation - simple length check
   if (!data.password) {
-    errors.push({ field: 'password', message: 'Password is required' })
+    errors.push({ field: 'password', message: 'Password wajib diisi' })
   }
 
   return errors
@@ -115,12 +115,12 @@ export interface FileValidationResult {
 export async function validateFileUpload(file: File): Promise<FileValidationResult> {
   // Check file size
   if (file.size > MAX_FILE_SIZE) {
-    return { isValid: false, error: 'File size exceeds 10MB limit' }
+    return { isValid: false, error: 'Ukuran file melebihi batas 10MB' }
   }
 
   // Check MIME type
   if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-    return { isValid: false, error: 'File type not allowed. Only PDF, DOC, DOCX, JPEG, PNG, GIF are accepted' }
+    return { isValid: false, error: 'Tipe file tidak diizinkan. Hanya PDF, DOC, DOCX, JPEG, PNG, GIF yang diterima' }
   }
 
   // Content validation - check file signature
@@ -129,7 +129,7 @@ export async function validateFileUpload(file: File): Promise<FileValidationResu
 
   const isValidSignature = validateFileSignature(file.type, signature)
   if (!isValidSignature) {
-    return { isValid: false, error: 'File content does not match the declared file type' }
+    return { isValid: false, error: 'Konten file tidak sesuai dengan tipe file yang dideklarasikan' }
   }
 
   return { isValid: true }

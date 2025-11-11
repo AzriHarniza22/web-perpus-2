@@ -33,17 +33,17 @@ interface TourBookingFormProps {
 
 const tourBookingSchema = z.object({
   selectedDate: z.date().optional(),
-  startHour: z.string().min(1, 'Please select start hour'),
-  startMinute: z.string().min(1, 'Please select start minute'),
-  endHour: z.string().min(1, 'Please select end hour'),
-  endMinute: z.string().min(1, 'Please select end minute'),
-  participantCount: z.number().min(1, 'Please enter at least 1 participant').max(50, 'Maximum 50 participants'),
+  startHour: z.string().min(1, 'Wajib memilih jam mulai'),
+  startMinute: z.string().min(1, 'Wajib memilih menit mulai'),
+  endHour: z.string().min(1, 'Wajib memilih jam selesai'),
+  endMinute: z.string().min(1, 'Wajib memilih menit selesai'),
+  participantCount: z.number().min(1, 'Minimal 1 peserta').max(50, 'Maksimal 50 peserta'),
   specialRequests: z.string().optional(),
   tourDocumentFile: z.string().optional(),
-  contactName: z.string().min(1, 'Contact name is required'),
-  contactInstitution: z.string().min(1, 'Institution is required'),
+  contactName: z.string().min(1, 'Nama kontak wajib diisi'),
+  contactInstitution: z.string().min(1, 'Institusi wajib diisi'),
 }).refine((data) => data.selectedDate !== undefined, {
-  message: 'Please select a date',
+  message: 'Wajib memilih tanggal',
   path: ['selectedDate'],
 }).refine((data) => {
   if (!data.selectedDate) return false
@@ -56,7 +56,7 @@ const tourBookingSchema = z.object({
 
   return startDateTime.isBefore(endDateTime)
 }, {
-  message: 'End time must be after start time',
+  message: 'Waktu selesai harus setelah waktu mulai',
   path: ['endHour'],
 })
 
@@ -184,7 +184,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
 
   const handleFileUpload = async (file: File) => {
     if (!user) {
-      const errorMsg = 'Not authenticated'
+      const errorMsg = 'Tidak terautentikasi'
       setUploadError(errorMsg)
       form.setError('tourDocumentFile', { message: errorMsg })
       return
@@ -198,13 +198,13 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
     try {
       const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
       if (!allowedTypes.includes(file.type)) {
-        const errorMsg = 'File must be a PDF or Word document'
+        const errorMsg = 'File harus berupa PDF atau dokumen Word'
         setUploadError(errorMsg)
         form.setError('tourDocumentFile', { message: errorMsg })
         return
       }
       if (file.size > 10 * 1024 * 1024) {
-        const errorMsg = 'File size must be less than 10MB'
+        const errorMsg = 'Ukuran file tidak boleh melebihi 10MB'
         setUploadError(errorMsg)
         form.setError('tourDocumentFile', { message: errorMsg })
         return
@@ -215,7 +215,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
       const { data: uploadData, error: uploadError } = await supabase.storage.from('proposals').upload(fileName, file)
       if (uploadError) {
         console.error(`TourBookingForm: Upload error for user ${user.id}:`, uploadError)
-        const errorMsg = 'Failed to upload file: ' + uploadError.message
+        const errorMsg = 'Gagal mengunggah file: ' + uploadError.message
         setUploadError(errorMsg)
         form.setError('tourDocumentFile', { message: errorMsg })
         return
@@ -225,7 +225,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
       console.log(`TourBookingForm: File uploaded successfully, path: ${fileName} for user ${user.id}`)
     } catch (error) {
       console.error('File upload error:', error)
-      const errorMsg = 'An error occurred during upload'
+      const errorMsg = 'Terjadi kesalahan saat mengunggah file'
       setUploadError(errorMsg)
       form.setError('tourDocumentFile', { message: errorMsg })
     } finally {
@@ -236,7 +236,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
   const onSubmit = async (data: TourBookingFormData) => {
     console.log(`TourBookingForm: onSubmit, user=${user ? user.id : 'null'}`)
     if (!user) {
-      form.setError('root', { message: 'Not authenticated' })
+      form.setError('root', { message: 'Tidak terautentikasi' })
       return
     }
 
@@ -262,7 +262,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
     })
 
     if (approvedConflict) {
-      form.setError('root', { message: 'This time slot is already approved' })
+      form.setError('root', { message: 'Slot waktu ini sudah disetujui' })
       setIsSubmitting(false)
       return
     }
@@ -287,7 +287,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
     if (!roomResult.success || !roomResult.roomId) {
       console.error('Library Tour room lookup failed:', roomResult.error)
       form.setError('root', {
-        message: roomResult.error || 'Library Tour room not found and could not be created'
+        message: roomResult.error || 'Ruang tour perpustakaan tidak ditemukan dan tidak dapat dibuat'
       })
       setIsSubmitting(false)
       return
@@ -351,7 +351,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to create tour booking')
+        throw new Error(error.error || 'Gagal membuat booking tour')
       }
 
       const result = await response.json()
@@ -369,7 +369,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
       }
 
       setTimeout(() => {
-        router.push('/dashboard?success=Tour booking submitted successfully')
+        router.push('/dashboard?success=Booking tour berhasil dikirim')
       }, 1500)
     } catch (error) {
       console.error('Tour booking error:', error)
@@ -377,7 +377,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
       setOptimisticBookings(prev => prev.filter(b => b.id !== optimisticBooking.id))
       setIsSubmittingOptimistically(false)
       setShowError(true)
-      form.setError('root', { message: error instanceof Error ? error.message : 'An error occurred' })
+      form.setError('root', { message: error instanceof Error ? error.message : 'Terjadi kesalahan' })
       setIsSubmitting(false)
       setTimeout(() => setShowError(false), 3000)
     } finally {
@@ -401,7 +401,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
             className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
           >
             <CheckCircle className="w-5 h-5" />
-            <span>Tour booking submitted successfully!</span>
+            <span>Booking tour berhasil dikirim!</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -416,7 +416,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
             className="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
           >
             <AlertCircle className="w-5 h-5" />
-            <span>Failed to submit tour booking</span>
+            <span>Gagal mengirim booking tour</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -902,7 +902,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                 {pendingOverlapWarning && (
                   <Alert>
                     <AlertDescription>
-                      ⚠️ This time slot overlaps with a pending reservation. Your booking will still be submitted but may be rejected if the other reservation is approved first.
+                      ⚠️ Slot waktu ini bentrok dengan reservasi yang masih pending. Booking Anda akan tetap dikirim namun mungkin ditolak jika reservasi lain disetujui lebih dahulu.
                     </AlertDescription>
                   </Alert>
                 )}

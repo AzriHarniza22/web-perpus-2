@@ -124,10 +124,17 @@ export function calculateRoomAnalytics(bookings: RoomBooking[], rooms: RoomData[
       ? Math.round((totalDuration / approvedBookings.length) * 10) / 10
       : 0
 
-    // Calculate utilization rate
-    analytics.utilizationRate = room && room.capacity > 0
-      ? Math.round((analytics.totalBookings / room.capacity) * 100)
-      : 0
+    // Calculate utilization rate based on approved bookings and average duration
+    // Utilization = (total approved booking hours / (24 hours * 30 days * room count)) * 100
+    // For a simplified calculation, we'll use: (approved bookings * avg duration hours) / (24 * 30) * 100
+    if (room && room.capacity > 0 && analytics.averageDuration > 0) {
+      const totalApprovedHours = analytics.approvedBookings * analytics.averageDuration
+      const totalAvailableHours = 24 * 30 // Assuming 30-day month
+      const rawUtilization = (totalApprovedHours / totalAvailableHours) * 100
+      analytics.utilizationRate = Math.min(Math.round(rawUtilization), 100)
+    } else {
+      analytics.utilizationRate = 0
+    }
 
     // Calculate peak hour
     const hourCounts = new Map<number, number>()
@@ -275,40 +282,60 @@ export function getGuestDistributionByRoom(bookings: RoomBooking[]) {
  * Get time heatmap data for rooms
  */
 export function getRoomTimeHeatmapData(bookings: RoomBooking[]) {
+  console.log('getRoomTimeHeatmapData called with bookings:', bookings?.length)
+  
+  // Initialize all time slots with zero counts
   const timeData = new Map<string, { hour: number; day: string; count: number }>()
+  
+  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  
+  // Initialize all hour-day combinations
+  for (let hour = 0; hour < 24; hour++) {
+    for (const day of daysOfWeek) {
+      const key = `${hour}-${day}`
+      timeData.set(key, { hour, day, count: 0 })
+    }
+  }
 
   // Filter out tour bookings, keeping only room bookings (is_tour=false or undefined)
   const roomBookings = bookings.filter(booking => booking.is_tour !== true)
+  console.log('Room bookings found:', roomBookings.length)
 
-  // Filter to only include approved and completed bookings, excluding rejected, cancelled, and pending
+  // Filter to only include approved and completed bookings
   const approvedAndCompletedBookings = roomBookings.filter(booking =>
     booking.status === 'approved' || booking.status === 'completed'
   )
+  console.log('Approved/completed bookings:', approvedAndCompletedBookings.length)
 
   approvedAndCompletedBookings.forEach(booking => {
     if (booking.start_time) {
       const date = new Date(booking.start_time)
       const hour = date.getHours()
-      const dayOfWeek = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][date.getDay()]
+      // Convert Sunday=0 to Monday=0 format
+      const dayOfWeekIndex = (date.getDay() + 6) % 7
+      const dayOfWeek = daysOfWeek[dayOfWeekIndex]
 
       const key = `${hour}-${dayOfWeek}`
-
-      if (!timeData.has(key)) {
-        timeData.set(key, { hour, day: dayOfWeek, count: 0 })
+      
+      if (timeData.has(key)) {
+        timeData.get(key)!.count += 1
+        console.log(`Added booking to ${key}, count now: ${timeData.get(key)!.count}`)
       }
-
-      timeData.get(key)!.count += 1
     }
   })
 
   const data = Array.from(timeData.values())
+  console.log('Heatmap data generated:', data.slice(0, 5)) // Log first 5 entries
 
-  // Calculate intensity (0-100)
+  // Calculate intensity (0-100) with proper scaling
   const maxCount = Math.max(...data.map(d => d.count), 1)
-  return data.map(d => ({
+  const result = data.map(d => ({
     ...d,
-    intensity: Math.round((d.count / maxCount) * 100)
+    intensity: maxCount > 0 ? Math.round((d.count / maxCount) * 100) : 0
   }))
+  
+  console.log('Final heatmap result with intensities:', result.slice(0, 5))
+  return result
 }
 
 /**
@@ -358,7 +385,7 @@ export function getAverageReservationDurationByRoom(bookings: RoomBooking[]) {
     .map(room => ({
       ...room,
       averageDuration: Math.round((room.totalDuration / room.bookingCount) * 10) / 10,
-      utilizationRate: room.capacity > 0 ? Math.round((room.totalDuration / (room.bookingCount * room.capacity)) * 100) : 0
+      utilizationRate: room.capacity > 0 ? Math.min(Math.round((room.totalDuration / (room.bookingCount * room.capacity)) * 100), 100) : 0
     }))
     .sort((a, b) => b.averageDuration - a.averageDuration)
     .slice(0, 10)
@@ -402,7 +429,7 @@ export function getAverageGuestsByRoom(bookings: RoomBooking[]) {
     .map(room => ({
       ...room,
       averageGuests: Math.round((room.totalGuests / room.bookingCount) * 10) / 10,
-      utilizationRate: room.capacity > 0 ? Math.round((room.totalGuests / (room.bookingCount * room.capacity)) * 100) : 0
+      utilizationRate: room.capacity > 0 ? Math.min(Math.round((room.totalGuests / (room.bookingCount * room.capacity)) * 100), 100) : 0
     }))
     .sort((a, b) => b.averageGuests - a.averageGuests)
     .slice(0, 10)

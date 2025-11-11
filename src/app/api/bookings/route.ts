@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
       if (error) {
         console.error('Bookings fetch error:', error)
-        return errorResponse(`Failed to fetch bookings: ${error.message}`, 500)
+        return errorResponse(`Gagal mengambil data booking: ${error.message}`, 500)
       }
 
       // Generate cursors for cursor-based pagination
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(result)
     } catch (error) {
       console.error('API error:', error)
-      return errorResponse('Internal server error', 500)
+      return errorResponse('Kesalahan server internal', 500)
     }
   })
 }
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         body = JSON.parse(rawBody)
       } catch (error) {
         console.error('JSON parse error:', error)
-        return errorResponse('Invalid JSON', 400)
+        return errorResponse('JSON tidak valid', 400)
       }
 
       const { room_id, start_time, end_time, event_description, proposal_file, notes, contact_name, contact_institution, is_tour } = body
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
       })
 
       if (!room_id || !start_time || !end_time) {
-        return errorResponse('Missing required fields', 400)
+        return errorResponse('Field wajib tidak lengkap', 400)
       }
 
       // Validate time range using utility
@@ -141,14 +141,14 @@ export async function POST(request: NextRequest) {
       )
 
       if (hasConflicts) {
-        return errorResponse('Time slot is already booked', 409, undefined, { conflicts })
+        return errorResponse('Slot waktu sudah dipesan', 409, undefined, { conflicts })
       }
 
       // Ensure profile exists using utility
       const profileResult = await ensureProfileExists(req.supabase, req.user)
       if ('error' in profileResult) {
         console.error('Profile creation error:', profileResult.error)
-        return errorResponse('Failed to create profile', 500)
+        return errorResponse('Gagal membuat profil', 500)
       }
 
       // Insert booking
@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
 
       if (insertError) {
         console.error('Booking insert error:', insertError)
-        return errorResponse('Failed to create booking', 500)
+        return errorResponse('Gagal membuat booking', 500)
       }
 
       console.log('Booking inserted successfully');
@@ -199,10 +199,10 @@ export async function POST(request: NextRequest) {
         console.error('Email notification error:', emailError)
       })
 
-      return successResponse({ booking }, 'Booking created successfully', { status: 201 })
+      return successResponse({ booking }, 'Booking berhasil dibuat', { status: 201 })
     } catch (error) {
       console.error('API error:', error)
-      return errorResponse('Internal server error', 500)
+      return errorResponse('Kesalahan server internal', 500)
     }
   })
 }

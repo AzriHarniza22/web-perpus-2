@@ -293,12 +293,26 @@ export function errorResponse(
 ): NextResponse<ApiResponse> {
   const response: ApiResponse = {
     success: false,
-    error,
-    details,
+    error: translateErrorMessage(error),
+    details: details ? translateErrorMessage(details) : undefined,
     debug
   }
 
   return NextResponse.json(response, { status })
+}
+
+/**
+ * Translate error messages to Indonesian
+ */
+function translateErrorMessage(message: string): string {
+  const translations: Record<string, string> = {
+    'Unauthorized': 'Tidak diotorisasi',
+    'Internal server error': 'Kesalahan server internal',
+    'Invalid time range: start time must be before end time': 'Rentang waktu tidak valid: waktu mulai harus sebelum waktu selesai',
+    'Failed to check for conflicts': 'Gagal memeriksa konflik'
+  }
+  
+  return translations[message] || message
 }
 
 /**

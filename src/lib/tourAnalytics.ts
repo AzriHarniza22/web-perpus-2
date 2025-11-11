@@ -106,6 +106,14 @@ export function calculateTourAnalytics(
   const approvedBookings = tourBookings.filter(b => b.status === 'approved').length
   const pendingBookings = tourBookings.filter(b => b.status === 'pending').length
   const rejectedBookings = tourBookings.filter(b => b.status === 'rejected').length
+  const cancelledBookings = tourBookings.filter(b => b.status === 'cancelled').length
+  const completedBookings = tourBookings.filter(b => b.status === 'completed').length
+
+  // Validate that all bookings are accounted for
+  const accountedBookings = approvedBookings + pendingBookings + rejectedBookings + cancelledBookings + completedBookings
+  if (accountedBookings !== totalBookings) {
+    console.warn(`Tour booking accounting mismatch: ${accountedBookings} accounted out of ${totalBookings} total`)
+  }
 
   const totalParticipants = tourBookings
     .filter(booking => booking.status === 'approved' || booking.status === 'completed')
@@ -136,7 +144,8 @@ export function calculateTourAnalytics(
   // For tours, we use a default capacity per tour booking or calculate from actual bookings
   const avgCapacityPerTour = 20 // Default capacity for tour bookings
   const totalCapacity = tourBookings.length * avgCapacityPerTour
-  const utilizationRate = totalCapacity > 0 ? Math.round((totalParticipants / totalCapacity) * 100) : 0
+  const rawUtilizationRate = totalCapacity > 0 ? (totalParticipants / totalCapacity) * 100 : 0
+  const utilizationRate = Math.min(Math.round(rawUtilizationRate), 100) // Cap at 100%
 
   // Find peak hour
   const hourCounts = new Map<number, number>()
@@ -267,11 +276,17 @@ export function calculateTimeHeatmap(
   bookings: Booking[],
   timeRange: 'week' | 'month' | '3months' = 'month'
 ): TimeHeatmapData {
-  const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
+  console.log('calculateTimeHeatmap called with bookings:', bookings?.length, 'timeRange:', timeRange)
+  
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const hours = Array.from({ length: 24 }, (_, i) => i)
 
-  // Initialize grid
+  // Initialize grid with proper structure
   const grid = days.map(() => Array(24).fill(0))
+
+  // Filter tour bookings
+  const tourBookings = bookings.filter(isTourBooking)
+  console.log('Filtered tour bookings:', tourBookings.length)
 
   // Filter bookings based on time range
   const now = new Date()
@@ -290,22 +305,29 @@ export function calculateTimeHeatmap(
   }
 
   // Process bookings within time range
-  // Only include approved and completed bookings, exclude rejected, cancelled, and pending
-   bookings
-     .filter(booking => new Date(booking.created_at) >= startDate)
-     .filter(booking => booking.status === 'approved' || booking.status === 'completed')
-     .forEach(booking => {
-       const date = new Date(booking.created_at)
-       const dayOfWeek = (date.getDay() + 6) % 7 // Convert Sunday=0 to Monday=0
-       const hour = date.getHours()
+  // Only include approved and completed bookings
+  const processedBookings = tourBookings
+    .filter(booking => new Date(booking.created_at) >= startDate)
+    .filter(booking => booking.status === 'approved' || booking.status === 'completed')
+  
+  console.log('Processed bookings for heatmap:', processedBookings.length)
+  
+  processedBookings.forEach(booking => {
+    const date = new Date(booking.created_at)
+    const dayOfWeek = (date.getDay() + 6) % 7 // Convert Sunday=0 to Monday=0
+    const hour = date.getHours()
 
-       if (dayOfWeek >= 0 && dayOfWeek < 7 && hour >= 0 && hour < 24) {
-         grid[dayOfWeek][hour] += booking.guest_count || 1
-       }
-     })
+    if (dayOfWeek >= 0 && dayOfWeek < 7 && hour >= 0 && hour < 24) {
+      grid[dayOfWeek][hour] += booking.guest_count || 1
+      console.log(`Added to grid[${dayOfWeek}][${hour}]: ${booking.guest_count || 1}`)
+    }
+  })
 
   // Find max value for scaling
-  const maxValue = Math.max(...grid.flat())
+  const maxValue = Math.max(...grid.flat(), 1)
+  
+  console.log('Generated heatmap grid with max value:', maxValue)
+  console.log('Sample grid data (first few cells):', grid.slice(0, 2).map(row => row.slice(0, 5)))
 
   return {
     days,

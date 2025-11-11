@@ -26,14 +26,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Tidak diotorisasi' }, { status: 401 })
     }
 
     const body = await request.json()
     const { status } = body
 
     if (!status) {
-      return NextResponse.json({ error: 'Status is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Status wajib diisi' }, { status: 400 })
     }
 
     const bookingId = (await params).id
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     if (updateError) {
       console.error('Booking update error:', updateError)
-      return NextResponse.json({ error: 'Failed to update booking status' }, { status: 500 })
+      return NextResponse.json({ error: 'Gagal memperbarui status booking' }, { status: 500 })
     }
 
     // Send notification if status is approved or rejected (fire and forget)
@@ -87,6 +87,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ success: true, booking }, { status: 200 })
   } catch (error) {
     console.error('API error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Kesalahan server internal' }, { status: 500 })
   }
 }

@@ -51,12 +51,12 @@ export default function ForgotPasswordPage() {
 
       // Basic validation
       if (!formData.email || !formData.email.trim()) {
-        setValidationErrors([{ field: 'email', message: 'Email is required' }])
+        setValidationErrors([{ field: 'email', message: 'Email wajib diisi' }])
         return
       }
 
       if (!isValidEmail(formData.email)) {
-        setValidationErrors([{ field: 'email', message: 'Please enter a valid email address' }])
+        setValidationErrors([{ field: 'email', message: 'Masukkan alamat email yang valid' }])
         return
       }
 

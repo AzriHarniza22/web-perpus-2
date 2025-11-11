@@ -32,8 +32,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       console.log('❌ [REGISTER] Validation failed:', validationErrors)
       return NextResponse.json({
         success: false,
-        error: 'Validation failed',
-        details: `Validation errors: ${validationErrors.map(e => e.message).join(', ')}`
+        error: 'Validasi gagal',
+        details: `Error validasi: ${validationErrors.map(e => e.message).join(', ')}`
       }, { status: 400 })
     }
     console.log('✅ [REGISTER] Validation passed')
@@ -57,8 +57,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       console.error('❌ [REGISTER] SUPABASE_SERVICE_ROLE_KEY is missing from environment variables')
       return NextResponse.json({
         success: false,
-        error: 'Service role key not configured',
-        details: 'SUPABASE_SERVICE_ROLE_KEY is missing from environment variables'
+        error: 'Kunci service role belum dikonfigurasi',
+        details: 'SUPABASE_SERVICE_ROLE_KEY tidak ditemukan di environment variables'
       } as ApiResponse<RegistrationResponse>, { status: 500 })
     }
     console.log('✅ [REGISTER] Environment variables validated')
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
 
     const response: ApiResponse<RegistrationResponse> = {
       success: true,
-      message: 'Registration and profile creation successful',
+      message: 'Pendaftaran dan pembuatan profil berhasil',
       data: {
         success: true,
         userId: authData.user.id,

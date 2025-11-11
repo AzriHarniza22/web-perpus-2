@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Rooms fetch error:', error)
-      return NextResponse.json({ error: 'Failed to fetch rooms' }, { status: 500 })
+      return NextResponse.json({ error: 'Gagal mengambil data ruangan' }, { status: 500 })
     }
 
     // Generate cursors for cursor-based pagination
@@ -103,6 +103,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result)
   } catch (error) {
     console.error('API error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Kesalahan server internal' }, { status: 500 })
   }
 }

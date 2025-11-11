@@ -27,18 +27,18 @@ import dayjs from 'dayjs'
 
 const bookingSchema = z.object({
   selectedDate: z.date().optional(),
-  startHour: z.string().min(1, 'Please select start hour'),
-  startMinute: z.string().min(1, 'Please select start minute'),
-  endHour: z.string().min(1, 'Please select end hour'),
-  endMinute: z.string().min(1, 'Please select end minute'),
-  eventDescription: z.string().min(1, 'Event description is required'),
-  guestCount: z.number().min(1, 'Please enter at least 1 guest').max(100, 'Maximum 100 guests'),
-  contactName: z.string().min(1, 'Contact name is required'),
-  contactInstitution: z.string().min(1, 'Institution is required'),
+  startHour: z.string().min(1, 'Wajib memilih jam mulai'),
+  startMinute: z.string().min(1, 'Wajib memilih menit mulai'),
+  endHour: z.string().min(1, 'Wajib memilih jam selesai'),
+  endMinute: z.string().min(1, 'Wajib memilih menit selesai'),
+  eventDescription: z.string().min(1, 'Deskripsi acara wajib diisi'),
+  guestCount: z.number().min(1, 'Minimal 1 tamu').max(100, 'Maksimal 100 tamu'),
+  contactName: z.string().min(1, 'Nama kontak wajib diisi'),
+  contactInstitution: z.string().min(1, 'Institusi wajib diisi'),
   notes: z.string().optional(),
   proposalFile: z.string().optional(),
 }).refine((data) => data.selectedDate !== undefined, {
-  message: 'Please select a date',
+  message: 'Wajib memilih tanggal',
   path: ['selectedDate'],
 }).refine((data) => {
   if (!data.selectedDate) return false
@@ -51,7 +51,7 @@ const bookingSchema = z.object({
 
   return startDateTime.isBefore(endDateTime)
 }, {
-  message: 'End time must be after start time',
+  message: 'Waktu selesai harus setelah waktu mulai',
   path: ['endHour'],
 })
 
@@ -136,7 +136,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
 
   const onSubmit = async (data: BookingFormData) => {
     if (!user) {
-      form.setError('root', { message: 'Not authenticated' })
+      form.setError('root', { message: 'Tidak terautentikasi' })
       return
     }
 
@@ -160,7 +160,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
     })
 
     if (approvedConflict) {
-      form.setError('root', { message: 'This time slot is already approved' })
+      form.setError('root', { message: 'Slot waktu ini sudah disetujui' })
       return
     }
 
@@ -219,7 +219,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
         setIsSubmittingOptimistically(false)
         setShowSuccess(true)
         setTimeout(() => {
-          router.push('/dashboard?success=Booking submitted successfully')
+          router.push('/dashboard?success=Reservasi berhasil dikirim')
         }, 1500)
       },
       onError: (err) => {
@@ -227,7 +227,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
         setOptimisticBookings(prev => prev.filter(b => b.id !== optimisticBooking.id))
         setIsSubmittingOptimistically(false)
         setShowError(true)
-        form.setError('root', { message: err instanceof Error ? err.message : 'An error occurred' })
+        form.setError('root', { message: err instanceof Error ? err.message : 'Terjadi kesalahan' })
         setTimeout(() => setShowError(false), 3000)
       },
     })
@@ -310,7 +310,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
             className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
           >
             <CheckCircle className="w-5 h-5" />
-            <span>Booking submitted successfully!</span>
+            <span>Reservasi berhasil dikirim!</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -325,7 +325,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
             className="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
           >
             <AlertCircle className="w-5 h-5" />
-            <span>Failed to submit booking</span>
+            <span>Gagal mengirim reservasi</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -759,13 +759,13 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                         // Validate file type and size
                         const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
                         if (!allowedTypes.includes(file.type)) {
-                          const errorMsg = 'File must be a PDF or Word document';
+                          const errorMsg = 'File harus berupa PDF atau dokumen Word';
                           setUploadError(errorMsg);
                           form.setError('proposalFile', { message: errorMsg });
                           return;
                         }
                         if (file.size > 10 * 1024 * 1024) {
-                          const errorMsg = 'File size must be less than 10MB';
+                          const errorMsg = 'Ukuran file tidak boleh melebihi 10MB';
                           setUploadError(errorMsg);
                           form.setError('proposalFile', { message: errorMsg });
                           return;
@@ -776,7 +776,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                           const fileName = `user-${user?.id}-${Date.now()}-${file.name}`;
                           const { data: uploadData, error: uploadError } = await supabase.storage.from('proposals').upload(fileName, file);
                           if (uploadError) {
-                            const errorMsg = 'Failed to upload file: ' + uploadError.message;
+                            const errorMsg = 'Gagal mengunggah file: ' + uploadError.message;
                             setUploadError(errorMsg);
                             form.setError('proposalFile', { message: errorMsg });
                             return;
@@ -784,7 +784,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                           setUploadedFilePath(fileName);
                           form.setValue('proposalFile', fileName);
                         } catch (error) {
-                          const errorMsg = 'Failed to upload file';
+                          const errorMsg = 'Gagal mengunggah file';
                           setUploadError(errorMsg);
                           form.setError('proposalFile', { message: errorMsg });
                         } finally {
@@ -890,7 +890,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
               {pendingOverlapWarning && (
                 <Alert>
                   <AlertDescription>
-                    ⚠️ This time slot overlaps with a pending reservation. Your booking will still be submitted but may be rejected if the other reservation is approved first.
+                    ⚠️ Slot waktu ini bentrok dengan reservasi yang masih pending. Reservasi Anda akan tetap dikirim namun mungkin ditolak jika reservasi lain disetujui lebih dahulu.
                   </AlertDescription>
                 </Alert>
               )}

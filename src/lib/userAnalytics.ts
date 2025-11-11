@@ -57,6 +57,51 @@ export interface InstitutionStats {
 }
 
 /**
+ * Clean user names by removing duplicates and formatting issues
+ */
+function cleanUserName(name: string): string {
+  if (!name) return 'Unknown'
+  
+  // Remove duplicate words (e.g., "azri azri" -> "azri")
+  const words = name.split(' ').filter(word => word.trim())
+  const uniqueWords = []
+  const seen = new Set()
+  
+  for (const word of words) {
+    const lowerWord = word.toLowerCase()
+    if (!seen.has(lowerWord)) {
+      seen.add(lowerWord)
+      uniqueWords.push(word)
+    }
+  }
+  
+  return uniqueWords.join(' ').trim() || 'Unknown'
+}
+
+/**
+ * Clean institution names by removing truncation and fixing formatting
+ */
+function cleanInstitutionName(institution: string): string {
+  if (!institution) return 'Unknown'
+  
+  // Common replacements for truncated names
+  const replacements: Record<string, string> = {
+    'usk': 'Universitas Syiah Kuala',
+    'qweqew': 'Unknown Institution',
+    'qweqewqwe': 'Unknown Institution',
+  }
+  
+  const cleaned = replacements[institution] || institution
+  
+  // Capitalize first letter of each word
+  return cleaned
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+    .trim() || 'Unknown'
+}
+
+/**
  * Aggregate user analytics data from bookings and users
  */
 export function aggregateUserAnalytics(
@@ -89,9 +134,9 @@ export function aggregateUserAnalytics(
       const user = userMap.get(userId)
       userBookingData.set(userId, {
         id: userId,
-        name: user?.full_name || 'Unknown',
+        name: cleanUserName(user?.full_name || 'Unknown'),
         email: user?.email || 'Unknown',
-        institution: user?.institution || 'Unknown',
+        institution: cleanInstitutionName(user?.institution || 'Unknown'),
         avatar: user?.profile_photo,
         bookingCount: 0,
         approvedBookingCount: 0,
@@ -263,13 +308,14 @@ function calculateInstitutionStats(
 ): InstitutionStats[] {
   return Array.from(institutionMap.entries()).map(([name, data]) => {
     const institutionUsers = users.filter(user => user.institution === name)
+    const totalBookings = institutionUsers.reduce((sum, user) => sum + user.bookingCount, 0)
     const avgBookingsPerUser = institutionUsers.length > 0
-      ? institutionUsers.reduce((sum, user) => sum + user.bookingCount, 0) / institutionUsers.length
+      ? totalBookings / institutionUsers.length
       : 0
 
     return {
       institution: name,
-      totalBookings: data.bookingCount,
+      totalBookings: totalBookings,
       approvedBookings: data.approvedBookingCount,
       totalUsers: data.userCount,
       avgBookingsPerUser: Math.round(avgBookingsPerUser * 10) / 10

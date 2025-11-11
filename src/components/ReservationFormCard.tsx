@@ -25,23 +25,23 @@ import { useToast } from '@/components/ui/toast'
 import { useHoverAnimation, useStaggerAnimation, useLoadingAnimation } from '@/hooks/useAnimations'
 
 const bookingSchema = z.object({
-  startHour: z.string().min(1, 'Please select start hour'),
-  startMinute: z.string().min(1, 'Please select start minute'),
-  endHour: z.string().min(1, 'Please select end hour'),
-  endMinute: z.string().min(1, 'Please select end minute'),
-  eventDescription: z.string().min(1, 'Event description is required'),
-  guestCount: z.number().min(1, 'Please enter at least 1 guest').max(100, 'Maximum 100 guests'),
-  contactName: z.string().min(1, 'Contact name is required'),
-  institution: z.string().min(1, 'Institution is required'),
+  startHour: z.string().min(1, 'Wajib memilih jam mulai'),
+  startMinute: z.string().min(1, 'Wajib memilih menit mulai'),
+  endHour: z.string().min(1, 'Wajib memilih jam selesai'),
+  endMinute: z.string().min(1, 'Wajib memilih menit selesai'),
+  eventDescription: z.string().min(1, 'Deskripsi acara wajib diisi'),
+  guestCount: z.number().min(1, 'Minimal 1 tamu').max(100, 'Maksimal 100 tamu'),
+  contactName: z.string().min(1, 'Nama kontak wajib diisi'),
+  institution: z.string().min(1, 'Institusi wajib diisi'),
   notes: z.string().optional(),
   proposalFile: z.instanceof(File).optional().refine((file) => {
     if (!file) return true;
     const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     return allowedTypes.includes(file.type);
-  }, 'File must be a PDF or Word document').refine((file) => {
+  }, 'File harus berupa PDF atau dokumen Word').refine((file) => {
     if (!file) return true;
     return file.size <= 10 * 1024 * 1024; // 10MB
-  }, 'File size must be less than 10MB'),
+  }, 'Ukuran file tidak boleh melebihi 10MB'),
 }).refine((data) => {
   const startTime = `${data.startHour}:${data.startMinute}`
   const endTime = `${data.endHour}:${data.endMinute}`
@@ -51,7 +51,7 @@ const bookingSchema = z.object({
 
   return startDateTime.isBefore(endDateTime)
 }, {
-  message: 'End time must be after start time',
+  message: 'Waktu selesai harus setelah waktu mulai',
   path: ['endHour'],
 })
 
@@ -109,7 +109,7 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
       endHour: data.endHour
     })
     if (!user || !selectedDate) {
-      form.setError('root', { message: 'Not authenticated or no date selected' })
+      form.setError('root', { message: 'Tidak terautentikasi atau tanggal belum dipilih' })
       return
     }
 
@@ -133,7 +133,7 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
     })
 
     if (approvedConflict) {
-      form.setError('root', { message: 'This time slot is already approved' })
+      form.setError('root', { message: 'Slot waktu ini sudah disetujui' })
       return
     }
 
@@ -167,7 +167,7 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
       const { data: uploadData, error: uploadError } = await supabase.storage.from('proposals').upload(fileName, file);
       if (uploadError) {
         console.error(`ReservationFormCard: Upload error for user ${user.id}:`, uploadError);
-        form.setError('root', { message: 'Failed to upload file: ' + uploadError.message });
+        form.setError('root', { message: 'Gagal mengunggah file: ' + uploadError.message });
         setUploadProgress(0);
         return;
       }
@@ -201,7 +201,7 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
       },
       onError: (err) => {
         setShowError(true)
-        form.setError('root', { message: err instanceof Error ? err.message : 'An error occurred' })
+        form.setError('root', { message: err instanceof Error ? err.message : 'Terjadi kesalahan' })
         setTimeout(() => setShowError(false), 3000)
       },
     })
@@ -225,7 +225,7 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
             className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
           >
             <CheckCircle className="w-5 h-5" />
-            <span>Booking submitted successfully!</span>
+            <span>Reservasi berhasil dikirim!</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -240,7 +240,7 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
             className="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2"
           >
             <AlertCircle className="w-5 h-5" />
-            <span>Failed to submit booking</span>
+            <span>Gagal mengirim reservasi</span>
           </motion.div>
         )}
       </AnimatePresence>

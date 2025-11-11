@@ -12,7 +12,6 @@ import { aggregateUserAnalytics } from './userAnalytics'
 import { aggregateMonthlyBookings, calculateStats } from './chart-data-utils'
 import { EnhancedExcelExportService, EnhancedExportData, EnhancedExportOptions } from './enhanced-excel-export/EnhancedExcelExportService'
 
-
 export interface ExportData {
   bookings: (Booking & {
     profiles?: User
@@ -51,6 +50,53 @@ export interface ExtendedExportOptions extends ExportOptions {
   performanceOptimizations?: boolean
   onProgress?: (progress: number, status: string) => void
 }
+
+/**
+ * Clean user names by removing duplicates and formatting issues
+ */
+function cleanUserName(name: string): string {
+  if (!name) return 'Unknown'
+
+  // Remove duplicate words (e.g., "azri azri" -> "azri")
+  const words = name.split(' ').filter(word => word.trim())
+  const uniqueWords = []
+  const seen = new Set()
+
+  for (const word of words) {
+    const lowerWord = word.toLowerCase()
+    if (!seen.has(lowerWord)) {
+      seen.add(lowerWord)
+      uniqueWords.push(word)
+    }
+  }
+
+  return uniqueWords.join(' ').trim() || 'Unknown'
+}
+
+/**
+ * Clean institution names by removing truncation and fixing formatting
+ */
+function cleanInstitutionName(institution: string): string {
+  if (!institution) return 'Unknown'
+
+  // Common replacements for truncated names
+  const replacements: Record<string, string> = {
+    'usk': 'Universitas Syiah Kuala',
+    'qweqew': 'Unknown Institution',
+    'qweqewqwe': 'Unknown Institution',
+  }
+
+  const cleaned = replacements[institution] || institution
+
+  // Capitalize first letter of each word
+  return cleaned
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+    .trim() || 'Unknown'
+}
+
+
 
 // Utility function to format filename with timestamp and filters
 export function generateFileName(
@@ -145,7 +191,7 @@ export async function exportToPDF(
   const { bookings, rooms, tours, users, filters, metadata } = data
   const fileName = options.fileName || generateFileName('pdf', 'analytics', filters)
 
-  // Prepare data for the PDF component
+  // Prepare data for the enhanced PDF component with comprehensive analytics
   const pdfData = {
     bookings,
     rooms,
@@ -159,8 +205,11 @@ export async function exportToPDF(
     userName: metadata.userName || 'Unknown User'
   }
 
-  // Generate PDF using react-pdf
+  // Generate PDF using react-pdf with the comprehensive AnalyticsReportPDF component
+  // Using the standard component with comprehensive analytics content
+  console.log('🔄 PDF Export: Using AnalyticsReportPDF with comprehensive analytics')
   const blob = await pdf(<AnalyticsReportPDF {...pdfData} />).toBlob()
+  console.log('✅ PDF Export: Generated successfully with comprehensive content')
 
   // Create download link
   const url = URL.createObjectURL(blob)
@@ -392,9 +441,9 @@ function getGeneralTabCSVData(data: ExportData): (string | number | string[])[][
     ['ID', 'Pengguna', 'Email', 'Institusi', 'Ruangan', 'Waktu Mulai', 'Waktu Selesai', 'Status', 'Deskripsi Acara', 'Catatan'],
     ...bookings.map(booking => [
       booking.id,
-      booking.profiles?.full_name || 'Unknown',
+      cleanUserName(booking.profiles?.full_name || 'Unknown'),
       booking.profiles?.email || 'Unknown',
-      booking.profiles?.institution || 'Unknown',
+      cleanInstitutionName(booking.profiles?.institution || 'Unknown'),
       booking.rooms?.name || 'Unknown',
       format(new Date(booking.start_time), 'dd/MM/yyyy HH:mm'),
       format(new Date(booking.end_time), 'dd/MM/yyyy HH:mm'),

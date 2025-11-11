@@ -58,30 +58,30 @@ export function handleError(error: unknown): AppError {
   if (error instanceof Error) {
     // Check for specific error types
     if (error.message.includes('supabaseKey is required')) {
-      return new AuthenticationError('Service role key not configured', { originalError: error.message })
+      return new AuthenticationError('Kunci service role belum dikonfigurasi', { originalError: error.message })
     }
 
     if (error.message.includes('cross-database references')) {
-      return new DatabaseError('Database function error', { originalError: error.message })
+      return new DatabaseError('Error fungsi database', { originalError: error.message })
     }
 
     if (error.message.includes('Auth session missing')) {
-      return new AuthenticationError('Authentication session not found', { originalError: error.message })
+      return new AuthenticationError('Sesi otentikasi tidak ditemukan', { originalError: error.message })
     }
 
     if (error.message.includes('permission denied')) {
-      return new AuthorizationError('Permission denied', { originalError: error.message })
+      return new AuthorizationError('Izin ditolak', { originalError: error.message })
     }
 
     if (error.message.includes('network') || error.message.includes('fetch')) {
-      return new NetworkError('Network error', { originalError: error.message })
+      return new NetworkError('Error jaringan', { originalError: error.message })
     }
 
     // Generic error
     return new AppError(error.message, 'UNKNOWN_ERROR', 500, { originalError: error.message })
   }
 
-  return new AppError('Unknown error occurred', 'UNKNOWN_ERROR', 500)
+  return new AppError('Terjadi error yang tidak diketahui', 'UNKNOWN_ERROR', 500)
 }
 
 // Error response formatter

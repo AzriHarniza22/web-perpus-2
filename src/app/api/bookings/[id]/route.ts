@@ -23,12 +23,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
       if (fetchError || !booking) {
         console.error('Booking fetch error:', fetchError)
-        return errorResponse('Booking not found', 404)
+        return errorResponse('Booking tidak ditemukan', 404)
       }
 
       // Check if status is 'pending'
       if (booking.status !== 'pending') {
-        return errorResponse('Only pending bookings can be cancelled', 400)
+        return errorResponse('Hanya booking dengan status pending yang dapat dibatalkan', 400)
       }
 
       // Update status to 'cancelled'
@@ -42,13 +42,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
       if (updateError) {
         console.error('Booking update error:', updateError)
-        return errorResponse('Failed to cancel booking', 500)
+        return errorResponse('Gagal membatalkan booking', 500)
       }
 
-      return successResponse({ booking: updatedBooking }, 'Booking cancelled successfully')
+      return successResponse({ booking: updatedBooking }, 'Booking berhasil dibatalkan')
     } catch (error) {
       console.error('API error:', error)
-      return errorResponse('Internal server error', 500)
+      return errorResponse('Kesalahan server internal', 500)
     }
   })
 }

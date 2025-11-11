@@ -65,20 +65,20 @@ export async function sendBookingConfirmation(bookingId: string) {
 
     // Send email notification
     const emailMessage = `
-      Dear ${user.full_name},
+      Yth. ${user.full_name},
 
-      Your booking for ${room.name} has been submitted successfully.
+      Booking ruangan Anda untuk ${room.name} telah berhasil diajukan.
 
-      Details:
-      - Date: ${new Date(booking.start_time).toLocaleDateString('id-ID')}
-      - Time: ${new Date(booking.start_time).toLocaleTimeString('id-ID')} - ${new Date(booking.end_time).toLocaleTimeString('id-ID')}
-      - Event: ${booking.event_description || 'N/A'}
+      Detail:
+      - Tanggal: ${new Date(booking.start_time).toLocaleDateString('id-ID')}
+      - Waktu: ${new Date(booking.start_time).toLocaleTimeString('id-ID')} - ${new Date(booking.end_time).toLocaleTimeString('id-ID')}
+      - Acara: ${booking.event_description || 'N/A'}
 
       Status: ${booking.status}
 
-      Please wait for approval from the library staff.
+      Mohon tunggu persetujuan dari petugas perpustakaan.
 
-      Best regards,
+      Salam,
       Perpustakaan Wilayah Aceh
     `
 
@@ -141,18 +141,18 @@ export async function sendBookingStatusUpdate(bookingId: string, newStatus: stri
 
     // Send email notification
     const emailMessage = `
-      Dear ${user.full_name},
+      Yth. ${user.full_name},
 
       Status booking Anda untuk ${room.name} telah diperbarui.
 
-      Details:
-      - Date: ${new Date(booking.start_time).toLocaleDateString('id-ID')}
-      - Time: ${new Date(booking.start_time).toLocaleTimeString('id-ID')} - ${new Date(booking.end_time).toLocaleTimeString('id-ID')}
-      - Event: ${booking.event_description || 'N/A'}
+      Detail:
+      - Tanggal: ${new Date(booking.start_time).toLocaleDateString('id-ID')}
+      - Waktu: ${new Date(booking.start_time).toLocaleTimeString('id-ID')} - ${new Date(booking.end_time).toLocaleTimeString('id-ID')}
+      - Acara: ${booking.event_description || 'N/A'}
 
       Status Baru: ${statusText}
 
-      Best regards,
+      Salam,
       Perpustakaan Wilayah Aceh
     `
 

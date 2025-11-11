@@ -103,12 +103,14 @@ export default function AnalyticsPage() {
 
 function AnalyticsContent() {
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
-  const { data: rooms } = useRooms()
-  const { data: bookingsData, isLoading: bookingsLoading, error: bookingsError } = useBookings()
   const [users, setUsers] = useState<Profile[]>([])
   const [usersLoading, setUsersLoading] = useState(true)
   const [exportStatus, setExportStatus] = useState<{ status: 'idle' | 'loading' | 'success' | 'error', format?: string }>({ status: 'idle' })
   const toast = useToastContext()
+
+  // Move React Query hooks after state hooks to ensure proper order
+  const { data: rooms } = useRooms()
+  const { data: bookingsData, isLoading: bookingsLoading, error: bookingsError } = useBookings()
 
   const bookings = (bookingsData?.bookings || []) as Booking[]
 
@@ -185,6 +187,15 @@ function AnalyticsContent() {
     tours: [], // TODO: Implement proper tours data fetching
     users,
     isLoading: usersLoading || !rooms
+  }
+
+  // Show loading state while data is being fetched
+  if (usersLoading || !rooms) {
+    return (
+      <div className="relative">
+        <AnalyticsContentSkeleton />
+      </div>
+    )
   }
 
   return (

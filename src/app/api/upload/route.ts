@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       const file = formData.get('file') as File
 
       if (!file) {
-        return errorResponse('No file provided', 400)
+        return errorResponse('File tidak disediakan', 400)
       }
 
       // Validate file
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
       if (error) {
         console.error('File upload error:', error)
-        return errorResponse('Failed to upload file', 500)
+        return errorResponse('Gagal mengunggah file', 500)
       }
 
       // Get public URL
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         fileUrl: publicUrl,
         fileSize: file.size,
         fileType: file.type
-      }, 'File uploaded successfully')
+      }, 'File berhasil diunggah')
 
     } catch (error) {
       console.error('Upload API error:', error)
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      return errorResponse('Internal server error', 500)
+      return errorResponse('Kesalahan server internal', 500)
     }
   })
 }
@@ -84,7 +84,7 @@ export async function PUT(request: NextRequest) {
         case 'cancel':
           // For cancellation, we rely on client-side abort controllers
           // This endpoint can be used for server-side cleanup if needed
-          return successResponse({ cancelled: true }, 'Upload cancelled')
+          return successResponse({ cancelled: true }, 'Pengunggahan dibatalkan')
 
         case 'cleanup':
           // Cleanup failed uploads
@@ -103,14 +103,14 @@ export async function PUT(request: NextRequest) {
             }
           }
 
-          return successResponse({ cleaned: true }, 'Cleanup completed')
+          return successResponse({ cleaned: true }, 'Pembersihan selesai')
 
         default:
-          return errorResponse('Invalid operation', 400)
+          return errorResponse('Operasi tidak valid', 400)
       }
     } catch (error) {
       console.error('Batch upload operation error:', error)
-      return errorResponse('Internal server error', 500)
+      return errorResponse('Kesalahan server internal', 500)
     }
   })
 }

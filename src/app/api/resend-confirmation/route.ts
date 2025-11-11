@@ -11,7 +11,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     if (!email) {
       return NextResponse.json({
         success: false,
-        error: 'Email is required'
+        error: 'Email wajib diisi'
       }, { status: 400 })
     }
 
@@ -29,13 +29,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       console.error('Error resending confirmation email:', error)
       return NextResponse.json({
         success: false,
-        error: 'Failed to resend confirmation email'
+        error: 'Gagal mengirim ulang email konfirmasi'
       }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Confirmation email resent successfully',
+      message: 'Email konfirmasi berhasil dikirim ulang',
       data: { success: true }
     })
 
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     console.error('Unexpected error in resend confirmation:', error)
     return NextResponse.json({
       success: false,
-      error: 'Internal server error'
+      error: 'Kesalahan server internal'
     }, { status: 500 })
   }
 }

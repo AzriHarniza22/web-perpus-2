@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
 
       if (error) {
         console.error('Tours fetch error:', error)
-        return NextResponse.json({ error: `Failed to fetch tours: ${error.message}` }, { status: 500 })
+        return NextResponse.json({ error: `Gagal mengambil data tour: ${error.message}` }, { status: 500 })
       }
 
       // Generate cursors for cursor-based pagination
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(result)
     } catch (error) {
       console.error('Tours API error:', error)
-      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      return NextResponse.json({ error: 'Kesalahan server internal' }, { status: 500 })
     }
   })
 }
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Tidak diotorisasi' }, { status: 401 })
     }
 
     const rawBody = await request.text()
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       body = JSON.parse(rawBody)
     } catch (error) {
       console.error('JSON parse error:', error)
-      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+      return NextResponse.json({ error: 'JSON tidak valid' }, { status: 400 })
     }
 
     const { room_id, start_time, end_time, event_description, proposal_file, notes, guest_count } = body
@@ -135,14 +135,14 @@ export async function POST(request: NextRequest) {
     const tour_id = room_id
 
     if (!tour_id || !start_time || !end_time) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+      return NextResponse.json({ error: 'Field wajib tidak lengkap' }, { status: 400 })
     }
 
     // Validate time range
     const start = new Date(start_time)
     const end = new Date(end_time)
     if (start >= end) {
-      return NextResponse.json({ error: 'Invalid time range: start time must be before end time' }, { status: 400 })
+      return NextResponse.json({ error: 'Rentang waktu tidak valid: waktu mulai harus sebelum waktu selesai' }, { status: 400 })
     }
 
     // Check for conflicting approved tour bookings
@@ -156,12 +156,12 @@ export async function POST(request: NextRequest) {
 
     if (conflictError) {
       console.error('Tour conflict check error:', conflictError)
-      return NextResponse.json({ error: 'Failed to check for conflicts' }, { status: 500 })
+      return NextResponse.json({ error: 'Gagal memeriksa konflik' }, { status: 500 })
     }
 
     if (conflicts && conflicts.length > 0) {
       return NextResponse.json({
-        error: 'Tour time slot is already booked',
+        error: 'Slot waktu tour sudah dipesan',
         conflicts: conflicts.map(c => ({
           id: c.id,
           status: c.status,
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
 
       if (profileError) {
         console.error('Profile creation error:', profileError)
-        return NextResponse.json({ error: 'Failed to create profile' }, { status: 500 })
+        return NextResponse.json({ error: 'Gagal membuat profil' }, { status: 500 })
       }
     }
 
@@ -223,7 +223,7 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error('Tour booking insert error:', insertError)
-      return NextResponse.json({ error: 'Failed to create tour booking' }, { status: 500 })
+      return NextResponse.json({ error: 'Gagal membuat booking tour' }, { status: 500 })
     }
 
     console.log('Tour booking inserted successfully');
@@ -246,6 +246,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, booking }, { status: 201 })
   } catch (error) {
     console.error('Tour booking API error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Kesalahan server internal' }, { status: 500 })
   }
 }
