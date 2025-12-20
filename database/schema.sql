@@ -118,15 +118,15 @@ CREATE POLICY "Users can update their own profile" ON profiles
 CREATE POLICY "Users can insert their own profile" ON profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
 
-CREATE POLICY "Admins can view all profiles" ON profiles
-  FOR SELECT USING (
-    (SELECT role FROM profiles WHERE id = auth.uid()) IN ('admin', 'staff')
-  );
+-- CREATE POLICY "Admins can view all profiles" ON profiles
+--   FOR SELECT USING (
+--     (SELECT role FROM profiles WHERE id = auth.uid()) IN ('admin', 'staff')
+--   );
 
-CREATE POLICY "Admins can update all profiles" ON profiles
-  FOR UPDATE USING (
-    (SELECT role FROM profiles WHERE id = auth.uid()) IN ('admin', 'staff')
-  );
+-- CREATE POLICY "Admins can update all profiles" ON profiles
+--   FOR UPDATE USING (
+--     (SELECT role FROM profiles WHERE id = auth.uid()) IN ('admin', 'staff')
+--   );
 
 -- RLS Policies for rooms table (FIXED - simplified logic)
 -- Drop all existing policies first
