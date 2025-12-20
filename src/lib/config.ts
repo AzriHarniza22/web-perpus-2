@@ -5,7 +5,7 @@ export const config = {
   // Supabase configuration
   supabase: {
     url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    anonKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
   },
 
@@ -62,7 +62,7 @@ export const config = {
 export const validateConfig = (): { isValid: boolean; missing: string[] } => {
   const required = [
     { key: 'NEXT_PUBLIC_SUPABASE_URL', value: config.supabase.url },
-    { key: 'NEXT_PUBLIC_SUPABASE_ANON_KEY', value: config.supabase.anonKey },
+    { key: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', value: config.supabase.anonKey },
     { key: 'SUPABASE_SERVICE_ROLE_KEY', value: config.supabase.serviceRoleKey },
   ]
 

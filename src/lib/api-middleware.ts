@@ -54,7 +54,7 @@ export interface FilterParams {
 export function createAuthenticatedClient(request: NextRequest): SupabaseClient {
   console.log('Creating authenticated client...')
   console.log('SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-  console.log('SUPABASE_ANON_KEY exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  console.log('SUPABASE_PUBLISHABLE_KEY exists:', !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
 
   const cookies = request.cookies.getAll()
   console.log('Available cookies:', cookies.map(c => ({ name: c.name, hasValue: !!c.value })))
@@ -65,7 +65,7 @@ export function createAuthenticatedClient(request: NextRequest): SupabaseClient 
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         getAll() {
