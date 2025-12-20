@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -29,6 +29,12 @@ export function ImageCarousel({
   const autoPlayRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const carouselRef = useRef<HTMLDivElement>(null)
 
+  // Normalize photo URLs to ensure they start with "/"
+  const normalizedPhotos = useMemo(() =>
+    photos.map(photo => photo.startsWith('/') ? photo : `/${photo}`),
+    [photos]
+  )
+
   // Animation variants for smoother transitions
   const slideVariants = {
     enter: (direction: number) => ({
@@ -54,13 +60,13 @@ export function ImageCarousel({
 
   const nextImage = useCallback(() => {
     setDirection(1)
-    setCurrentIndex((prev) => (prev + 1) % photos.length)
-  }, [photos.length])
+    setCurrentIndex((prev) => (prev + 1) % normalizedPhotos.length)
+  }, [normalizedPhotos.length])
 
   const prevImage = useCallback(() => {
     setDirection(-1)
-    setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length)
-  }, [photos.length])
+    setCurrentIndex((prev) => (prev - 1 + normalizedPhotos.length) % normalizedPhotos.length)
+  }, [normalizedPhotos.length])
 
   const goToImage = useCallback((index: number) => {
     if (index === currentIndex) return
@@ -147,11 +153,11 @@ export function ImageCarousel({
               <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-md" />
             )}
             <Image
-              src={photos[currentIndex]}
+              src={normalizedPhotos[currentIndex]}
               alt={`${alt} - ${currentIndex + 1}`}
               fill
               className="object-cover"
-              onClick={() => onImageClick?.(photos[currentIndex])}
+              onClick={() => onImageClick?.(normalizedPhotos[currentIndex])}
               onLoad={handleImageLoad}
               priority={currentIndex === 0}
             />

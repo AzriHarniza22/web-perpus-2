@@ -84,6 +84,7 @@ export function UnifiedPageHeader({
                   transition={{ delay: 0.1 }}
                   className="flex items-center space-x-2 hidden lg:flex cursor-pointer rounded-md px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none"
                   aria-label="User menu"
+                  suppressHydrationWarning={true}
                 >
                   <Avatar className="w-7 h-7">
                     <AvatarFallback className="text-xs">

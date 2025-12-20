@@ -30,8 +30,7 @@ export async function GET(request: NextRequest) {
             full_name,
             email,
             institution,
-            role,
-            profile_photo
+            role
           ),
           rooms:room_id (
             name,

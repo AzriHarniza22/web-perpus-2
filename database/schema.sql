@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS profiles (
   full_name TEXT,
   role user_role DEFAULT 'user',
   institution TEXT,
-  member_id TEXT,
   phone TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
@@ -100,15 +99,13 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies for profiles table (FIXED - no circular references)
+-- RLS Policies for profiles table
 -- Drop all existing policies first
 DROP POLICY IF EXISTS "Users can view their own profile" ON profiles;
 DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
 DROP POLICY IF EXISTS "Users can insert their own profile" ON profiles;
-DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
-DROP POLICY IF EXISTS "Admins can update all profiles" ON profiles;
 
--- Simple, non-circular policies for profiles
+-- Policies for profiles
 CREATE POLICY "Users can view their own profile" ON profiles
   FOR SELECT USING (auth.uid() = id);
 
@@ -117,16 +114,6 @@ CREATE POLICY "Users can update their own profile" ON profiles
 
 CREATE POLICY "Users can insert their own profile" ON profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
-
--- CREATE POLICY "Admins can view all profiles" ON profiles
---   FOR SELECT USING (
---     (SELECT role FROM profiles WHERE id = auth.uid()) IN ('admin', 'staff')
---   );
-
--- CREATE POLICY "Admins can update all profiles" ON profiles
---   FOR UPDATE USING (
---     (SELECT role FROM profiles WHERE id = auth.uid()) IN ('admin', 'staff')
---   );
 
 -- RLS Policies for rooms table (FIXED - simplified logic)
 -- Drop all existing policies first
@@ -220,7 +207,7 @@ BEGIN
       'Modern theater with state-of-the-art audio-visual equipment, perfect for presentations, seminars, and cultural events.',
       150,
       ARRAY['Proyektor', 'Sound System', 'Stage', 'AC', 'Microphone', 'Lighting System'],
-      ARRAY['theater1.jpg', 'theater2.jpg', 'theater3.jpg'],
+      ARRAY['/theater1.jpg', '/theater2.jpg', '/theater3.jpg'],
       'Theater-style seating with stage at front'
     ),
     (
@@ -228,7 +215,7 @@ BEGIN
       'Large multipurpose hall suitable for conferences, exhibitions, and major events.',
       350,
       ARRAY['AC', 'Sound System', 'Catering Facility', 'Stage', 'Parking Area', 'WiFi'],
-      ARRAY['aula_full1.jpg', 'aula_full2.jpg'],
+      ARRAY['/aula_full1.jpg', '/aula_full2.jpg'],
       'Open floor plan with stage area'
     ),
     (
@@ -236,7 +223,7 @@ BEGIN
       'Half section of the main hall with flexible partitioning for medium-sized events.',
       175,
       ARRAY['AC', 'Sound System', 'Flexible Partisi', 'WiFi', 'Projector'],
-      ARRAY['aula_half1.jpg', 'aula_half2.jpg'],
+      ARRAY['/aula_half1.jpg', '/aula_half2.jpg'],
       'Flexible partition layout'
     ),
     (
@@ -244,7 +231,7 @@ BEGIN
       'Accessible meeting room designed for inclusive gatherings and community programs.',
       30,
       ARRAY['Wheelchair Accessible', 'Assistive Technology', 'AC', 'WiFi', 'Whiteboard'],
-      ARRAY['inklusi1.jpg', 'inklusi2.jpg'],
+      ARRAY['/inklusi1.jpg', '/inklusi2.jpg'],
       'Accessible circular seating arrangement'
     ),
     (
@@ -252,7 +239,7 @@ BEGIN
       'Professional meeting room equipped for business meetings and video conferences.',
       20,
       ARRAY['Video Conference', 'Whiteboard', 'AC', 'WiFi', 'Projector', 'Conference Table'],
-      ARRAY['rapat1.jpg', 'rapat2.jpg'],
+      ARRAY['/rapat1.jpg', '/rapat2.jpg'],
       'Boardroom-style with video conference setup'
     ),
     (
@@ -260,7 +247,7 @@ BEGIN
       'Open-air stage perfect for outdoor events, cultural performances, and community gatherings.',
       200,
       ARRAY['Outdoor Stage', 'Sound System', 'Lighting', 'Weather Dependent'],
-      ARRAY['outdoor1.jpg', 'outdoor2.jpg', 'outdoor3.jpg'],
+      ARRAY['/outdoor1.jpg', '/outdoor2.jpg', '/outdoor3.jpg'],
       'Outdoor stage with open seating area'
     );
   END IF;
