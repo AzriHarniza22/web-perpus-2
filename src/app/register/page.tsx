@@ -115,7 +115,7 @@ export default function RegisterPage() {
         console.log('✅ Registration successful')
         router.push(`/confirm?email=${encodeURIComponent(formData.email)}`)
       } else {
-        const error = handleError(new Error(result.details || 'Registration failed'))
+        const error = handleError(new Error(result.error || 'Registration failed'))
         setError(error.message)
         // Error already handled above
       }

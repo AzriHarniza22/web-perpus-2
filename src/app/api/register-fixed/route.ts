@@ -102,7 +102,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       full_name: sanitizedData.fullName,
       institution: sanitizedData.institution,
       phone: sanitizedData.phone,
-      profile_photo: null,
       role: 'user',
     })
 
