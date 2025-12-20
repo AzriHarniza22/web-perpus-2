@@ -207,7 +207,7 @@ BEGIN
       'Modern theater with state-of-the-art audio-visual equipment, perfect for presentations, seminars, and cultural events.',
       150,
       ARRAY['Proyektor', 'Sound System', 'Stage', 'AC', 'Microphone', 'Lighting System'],
-      ARRAY['/theater1.jpg', '/theater2.jpg', '/theater3.jpg'],
+      ARRAY['/gedungperpusaceh.jpg'],
       'Theater-style seating with stage at front'
     ),
     (
@@ -215,7 +215,7 @@ BEGIN
       'Large multipurpose hall suitable for conferences, exhibitions, and major events.',
       350,
       ARRAY['AC', 'Sound System', 'Catering Facility', 'Stage', 'Parking Area', 'WiFi'],
-      ARRAY['/aula_full1.jpg', '/aula_full2.jpg'],
+      ARRAY['/gedungperpusaceh.jpg'],
       'Open floor plan with stage area'
     ),
     (
@@ -223,7 +223,7 @@ BEGIN
       'Half section of the main hall with flexible partitioning for medium-sized events.',
       175,
       ARRAY['AC', 'Sound System', 'Flexible Partisi', 'WiFi', 'Projector'],
-      ARRAY['/aula_half1.jpg', '/aula_half2.jpg'],
+      ARRAY['/gedungperpusaceh.jpg'],
       'Flexible partition layout'
     ),
     (
@@ -231,7 +231,7 @@ BEGIN
       'Accessible meeting room designed for inclusive gatherings and community programs.',
       30,
       ARRAY['Wheelchair Accessible', 'Assistive Technology', 'AC', 'WiFi', 'Whiteboard'],
-      ARRAY['/inklusi1.jpg', '/inklusi2.jpg'],
+      ARRAY['/gedungperpusaceh.jpg'],
       'Accessible circular seating arrangement'
     ),
     (
@@ -239,7 +239,7 @@ BEGIN
       'Professional meeting room equipped for business meetings and video conferences.',
       20,
       ARRAY['Video Conference', 'Whiteboard', 'AC', 'WiFi', 'Projector', 'Conference Table'],
-      ARRAY['/rapat1.jpg', '/rapat2.jpg'],
+      ARRAY['/gedungperpusaceh.jpg'],
       'Boardroom-style with video conference setup'
     ),
     (
@@ -247,7 +247,7 @@ BEGIN
       'Open-air stage perfect for outdoor events, cultural performances, and community gatherings.',
       200,
       ARRAY['Outdoor Stage', 'Sound System', 'Lighting', 'Weather Dependent'],
-      ARRAY['/outdoor1.jpg', '/outdoor2.jpg', '/outdoor3.jpg'],
+      ARRAY['/gedungperpusaceh.jpg'],
       'Outdoor stage with open seating area'
     );
   END IF;

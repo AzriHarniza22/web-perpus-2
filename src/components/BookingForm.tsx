@@ -906,23 +906,15 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                   disabled={createBookingMutation.isPending || isSubmittingOptimistically || isUploadingFile}
                 >
                   {isUploadingFile ? (
-                    <motion.div
-                      className="flex items-center justify-center"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    >
+                    <div className="flex items-center justify-center">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
                       Menunggu upload file selesai...
-                    </motion.div>
+                    </div>
                   ) : createBookingMutation.isPending || isSubmittingOptimistically ? (
-                    <motion.div
-                      className="flex items-center justify-center"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    >
+                    <div className="flex items-center justify-center">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
                       Mengirim Reservasi...
-                    </motion.div>
+                    </div>
                   ) : (
                     <motion.div
                       className="flex items-center justify-center"

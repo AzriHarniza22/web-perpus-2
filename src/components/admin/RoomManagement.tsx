@@ -223,7 +223,7 @@ export default function RoomManagement() {
                 <div className="flex flex-wrap gap-2 mt-2">
                   {formData.photos.map((url, index) => (
                     <div key={index} className="relative">
-                      <Image src={url} alt={`Foto ruangan ${index + 1}`} width={80} height={80} className="object-cover rounded-lg border" />
+                      <Image src={url.startsWith('/') ? url : `/${url}`} alt={`Foto ruangan ${index + 1}`} width={80} height={80} className="object-cover rounded-lg border" />
                       <button
                         type="button"
                         onClick={() => removePhoto(index)}

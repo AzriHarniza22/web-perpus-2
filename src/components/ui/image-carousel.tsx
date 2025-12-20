@@ -29,9 +29,9 @@ export function ImageCarousel({
   const autoPlayRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const carouselRef = useRef<HTMLDivElement>(null)
 
-  // Normalize photo URLs to ensure they start with "/"
+  // Normalize photo URLs to ensure they start with "/" or are full URLs
   const normalizedPhotos = useMemo(() =>
-    photos.map(photo => photo.startsWith('/') ? photo : `/${photo}`),
+    photos.map(photo => photo.startsWith('http') ? photo : photo.startsWith('/') ? photo : `/${photo}`),
     [photos]
   )
 
