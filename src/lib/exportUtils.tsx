@@ -388,7 +388,7 @@ export async function exportToEnhancedExcel(
   chartData?: {
     [chartKey: string]: {
       title: string
-      data: any
+      data: unknown
       type: string
       viewMode?: string
     }
