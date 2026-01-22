@@ -132,8 +132,15 @@ export default function LoginPage({
       console.log(`[LOGIN] Profile data:`, profile)
       console.log(`[LOGIN] Profile error details:`, profileError)
 
-      // Redirect based on role or saved redirect path
-      const destination = params?.redirect || (profile?.role === 'admin' ? '/admin' : '/dashboard')
+      // Redirect based on role - admins always go to /admin, users follow redirect or go to /dashboard
+      let destination: string
+      if (profile?.role === 'admin') {
+        // Admin users always go to admin dashboard, ignore redirect param
+        destination = '/admin'
+      } else {
+        // Regular users follow redirect param or go to user dashboard
+        destination = params?.redirect || '/dashboard'
+      }
       console.log(`[LOGIN] Redirecting to: ${destination}`)
       console.log(`[LOGIN] Current URL before redirect:`, window.location.href)
 
