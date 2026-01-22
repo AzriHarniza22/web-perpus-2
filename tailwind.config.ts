@@ -1,6 +1,6 @@
 import type { Config } from 'tailwindcss'
 
-const config = {
+const config: Config = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -22,11 +22,6 @@ const config = {
     },
   },
   plugins: [],
-  // Disable problematic vendor prefixes
-  corePlugins: {
-    // Disable preflight to avoid CSS reset with problematic prefixes
-    preflight: false,
-  },
-} satisfies Config
+}
 
 export default config
