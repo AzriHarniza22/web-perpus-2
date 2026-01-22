@@ -13,6 +13,7 @@ type Profile = {
   full_name: string | null
   institution: string | null
   phone: string | null
+  profile_photo: string | null
   role: 'admin'
   created_at: string
   updated_at: string
@@ -36,7 +37,7 @@ export default function AdminPage() {
         console.log(`[ADMIN PAGE] Checking admin access for user: ${user.id}`)
         const { data: profileData, error } = await supabase
           .from('profiles')
-          .select('id, email, full_name, role, institution, phone, created_at, updated_at')
+          .select('id, email, full_name, role, institution, phone, profile_photo, created_at, updated_at')
           .eq('id', user.id)
           .single()
 
