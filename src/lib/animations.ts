@@ -232,8 +232,8 @@ export const createScaleVariants = (scale: number = 0.8): Variants => ({
 // GPU-accelerated properties for better performance
 export const gpuProps = {
   style: {
-    backfaceVisibility: "hidden" as const,
-    perspective: 1000
+    backfaceVisibility: "visible" as const,
+    transform: "translateZ(0)"
   }
 }
 

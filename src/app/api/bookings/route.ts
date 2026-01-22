@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
         return errorResponse('JSON tidak valid', 400)
       }
 
-      const { room_id, start_time, end_time, event_description, proposal_file, notes, contact_name, contact_institution, is_tour } = body
+      const { room_id, start_time, end_time, event_description, proposal_file, notes, contact_name, contact_institution, is_tour, guest_count } = body
 
       console.log('DEBUG - API received booking data:', {
         room_id,
@@ -122,6 +122,13 @@ export async function POST(request: NextRequest) {
 
       if (!room_id || !start_time || !end_time) {
         return errorResponse('Field wajib tidak lengkap', 400)
+      }
+
+      // Validate guest_count if provided
+      if (guest_count !== undefined) {
+        if (typeof guest_count !== 'number' || guest_count < 1 || guest_count > 100) {
+          return errorResponse('Jumlah peserta harus berupa angka antara 1 dan 100', 400)
+        }
       }
 
       // Validate time range using utility
@@ -161,6 +168,7 @@ export async function POST(request: NextRequest) {
         notes,
         contact_name,
         contact_institution,
+        guest_count: guest_count ?? null,
         status: 'pending',
         is_tour: is_tour ?? false
       }

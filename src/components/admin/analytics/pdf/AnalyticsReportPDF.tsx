@@ -577,7 +577,7 @@ export const AnalyticsReportPDF: React.FC<AnalyticsReportPDFProps> = ({
           <View style={styles.leftColumn}>
             <Text style={styles.subsectionTitle}>Statistik Utama</Text>
             <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{bookings.length}</Text>
+              <Text style={styles.statNumber}>{bookings.filter(b => b.status !== 'cancelled').length}</Text>
               <Text style={styles.statLabel}>Total Reservasi</Text>
             </View>
             <View style={styles.statBox}>
@@ -618,8 +618,8 @@ export const AnalyticsReportPDF: React.FC<AnalyticsReportPDFProps> = ({
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statNumber}>
-                {bookings.length > 0 
-                  ? ((bookings.filter(b => b.status === 'approved' || b.status === 'completed').length / bookings.length) * 100).toFixed(1)
+                {bookings.filter(b => b.status !== 'cancelled').length > 0
+                  ? ((bookings.filter(b => b.status === 'approved' || b.status === 'completed').length / bookings.filter(b => b.status !== 'cancelled').length) * 100).toFixed(1)
                   : '0'}%
               </Text>
               <Text style={styles.statLabel}>Tingkat Persetujuan</Text>
@@ -677,13 +677,13 @@ export const AnalyticsReportPDF: React.FC<AnalyticsReportPDFProps> = ({
             Key Insights - General Information
           </Text>
           <Text style={[styles.text, { fontSize: 10, color: '#0c4a6e', marginTop: 5 }]}>
-            • Total bookings: {bookings.length} with {bookings.filter(b => b.status === 'approved' || b.status === 'completed').length} approved
+            • Total bookings: {bookings.filter(b => b.status !== 'cancelled').length} with {bookings.filter(b => b.status === 'approved' || b.status === 'completed').length} approved
           </Text>
           <Text style={[styles.text, { fontSize: 10, color: '#0c4a6e' }]}>
             • Peak activity at {peakHours[0]?.hour || 'N/A'} with {peakHours[0]?.count || 0} bookings
           </Text>
           <Text style={[styles.text, { fontSize: 10, color: '#0c4a6e' }]}>
-            • Overall approval rate: {bookings.length > 0 ? ((bookings.filter(b => b.status === 'approved' || b.status === 'completed').length / bookings.length) * 100).toFixed(1) : '0'}%
+            • Overall approval rate: {bookings.filter(b => b.status !== 'cancelled').length > 0 ? ((bookings.filter(b => b.status === 'approved' || b.status === 'completed').length / bookings.filter(b => b.status !== 'cancelled').length) * 100).toFixed(1) : '0'}%
           </Text>
         </View>
 
@@ -1445,8 +1445,8 @@ export const AnalyticsReportPDF: React.FC<AnalyticsReportPDFProps> = ({
         </Text>
         <Text style={styles.text}>
           • Tingkat persetujuan reservasi: {
-            bookings.length > 0
-              ? ((bookings.filter(b => b.status === 'approved' || b.status === 'completed').length / bookings.length) * 100).toFixed(1)
+            bookings.filter(b => b.status !== 'cancelled').length > 0
+              ? ((bookings.filter(b => b.status === 'approved' || b.status === 'completed').length / bookings.filter(b => b.status !== 'cancelled').length) * 100).toFixed(1)
               : '0'
           }%
         </Text>
@@ -1460,7 +1460,7 @@ export const AnalyticsReportPDF: React.FC<AnalyticsReportPDFProps> = ({
           • Peak hour keseluruhan: {peakHours[0]?.hour || 'N/A'}
         </Text>
         <Text style={styles.text}>
-          • Total layanan yang diberikan: {bookings.length} reservasi untuk {bookings.reduce((sum, b) => sum + (b.guest_count || 0), 0)} orang
+          • Total layanan yang diberikan: {bookings.filter(b => b.status !== 'cancelled').length} reservasi untuk {bookings.filter(b => b.status !== 'cancelled').reduce((sum, b) => sum + (b.guest_count || 0), 0)} orang
         </Text>
 
         {/* Summary Box for User Analysis */}

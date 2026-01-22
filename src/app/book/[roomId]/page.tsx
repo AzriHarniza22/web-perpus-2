@@ -223,13 +223,13 @@ export default function BookRoomPage() {
 
                 {/* Reservation Calendar Card - Equal width on all screen sizes */}
                 <div className="flex-1 min-h-0">
-                  <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group flex flex-col h-full">
+                  <Card className="bg-card backdrop-blur-sm relative overflow-hidden flex flex-col h-full">
                     {/* Background Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 via-indigo-50/30 to-secondary-50/50 dark:from-primary-900/20 dark:via-indigo-900/20 dark:to-secondary-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary-50/50 via-indigo-50/30 to-secondary-50/50 dark:from-primary-900/20 dark:via-indigo-900/20 dark:to-secondary-900/20 opacity-0 transition-opacity duration-300" />
 
-                    <CardHeader className="relative z-10 flex-shrink-0">
+                    <CardHeader className="relative z-10 shrink-0">
                       <CardTitle className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center transition-transform">
                           <CalendarIcon className="w-5 h-5 text-white" />
                         </div>
                         <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">

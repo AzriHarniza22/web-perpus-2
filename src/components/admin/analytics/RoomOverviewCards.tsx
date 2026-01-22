@@ -69,9 +69,9 @@ export function RoomOverviewCards({
     peakHour: '0'
   })
 
-  // Filter room bookings (non-tour bookings)
+  // Filter room bookings (non-tour bookings) dan tidak dibatalkan
   const filteredBookings = useMemo(() => {
-    return bookings.filter(booking => booking.is_tour === false)
+    return bookings.filter(booking => booking.is_tour === false && booking.status !== 'cancelled')
   }, [bookings])
 
   // Calculate room analytics
@@ -331,10 +331,9 @@ export function RoomOverviewCards({
         <motion.div
           key={stat.label}
           {...staggerAnimation.item}
-          {...hoverAnimation}
           className="group"
         >
-          <Card className="bg-card backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+          <Card className="bg-card backdrop-blur-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">

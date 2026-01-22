@@ -427,20 +427,16 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          whileHover={{ y: -2 }}
-          whileTap={{ y: 1 }}
         >
-          <Card className="bg-card hover:shadow-xl transition-all duration-300">
+          <Card className="bg-card">
 
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <motion.div
+                <div
                   className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
                   <CalendarIcon className="w-5 h-5 text-white" />
-                </motion.div>
+                </div>
                 <span className="text-blue-600">
                   Pilih Tanggal
                 </span>
@@ -573,20 +569,16 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          whileHover={{ y: -2 }}
-          whileTap={{ y: 1 }}
         >
-          <Card className="bg-card hover:shadow-xl transition-all duration-300">
+          <Card className="bg-card">
 
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
-                <motion.div
+                <div
                   className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center"
-                  whileHover={{ scale: 1.1, rotate: -5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
                   <Users className="w-5 h-5 text-white" />
-                </motion.div>
+                </div>
                 <span className="text-blue-600">
                   Detail Booking Tour
                 </span>
@@ -604,10 +596,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  >
+                  <div>
                     <Label>Waktu Mulai</Label>
                     <div className="flex gap-2">
                       <Select value={form.watch('startHour')} onValueChange={(value: string) => form.setValue('startHour', value)}>
@@ -634,11 +623,8 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                         </SelectContent>
                       </Select>
                     </div>
-                  </motion.div>
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  >
+                  </div>
+                  <div>
                     <Label>Waktu Selesai</Label>
                     <div className="flex gap-2">
                       <Select value={form.watch('endHour')} onValueChange={(value: string) => form.setValue('endHour', value)}>
@@ -665,7 +651,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                         </SelectContent>
                       </Select>
                     </div>
-                  </motion.div>
+                  </div>
                 </motion.div>
 
                 <motion.div
@@ -786,9 +772,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                   transition={{ delay: 0.8 }}
                 >
                   <Label htmlFor="tourDocumentFile">Upload Dokumen (Opsional)</Label>
-                  <motion.div
-                    whileHover={{ scale: 1.01 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  <div
                     className="relative"
                   >
                     <Input
@@ -824,7 +808,7 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                         </motion.div>
                       )}
                     </AnimatePresence>
-                  </motion.div>
+                  </div>
                   <p className="text-xs text-gray-500 mt-1">Format yang diterima: PDF, DOC, DOCX (Maks 10MB)</p>
                   <AnimatePresence>
                     {isUploadingFile && (
@@ -907,15 +891,13 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                   </Alert>
                 )}
 
-                <motion.div
+                <div
                   className="relative z-10"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                 >
                   <Button
                     type="submit"
                     disabled={isSubmitting || isSubmittingOptimistically || isUploadingFile}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUploadingFile ? (
                       <motion.div
@@ -927,26 +909,20 @@ export default function TourBookingForm({ existingBookings = [], onBookingSucces
                         Menunggu upload file selesai...
                       </motion.div>
                     ) : isSubmitting || isSubmittingOptimistically ? (
-                      <motion.div
-                        className="flex items-center justify-center"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      >
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                      <div className="flex items-center justify-center">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                         Mengirim Booking...
-                      </motion.div>
+                      </div>
                     ) : (
-                      <motion.div
+                      <div
                         className="flex items-center justify-center"
-                        whileHover={{ x: 2 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
                       >
                         <ArrowRight className="w-4 h-4 mr-2 text-white" />
                         Kirim Booking Tour
-                      </motion.div>
+                      </div>
                     )}
                   </Button>
-                </motion.div>
+                </div>
               </form>
             </CardContent>
           </Card>

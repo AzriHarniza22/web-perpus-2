@@ -103,7 +103,7 @@ export function HistoryOverviewCards({
     ).length
 
     const currentValues = {
-      totalBookings: bookings.length,
+      totalBookings: bookings.filter((b) => b.status !== 'cancelled').length,
       completedBookings: statusBreakdown.completed,
       roomBookings,
       tourBookings,

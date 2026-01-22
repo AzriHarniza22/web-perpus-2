@@ -209,7 +209,7 @@ function processMonthlyData(bookings: Booking[]) {
   const monthlyData = new Map()
 
   bookings.forEach(booking => {
-    const date = parseISO(booking.created_at)
+    const date = parseISO(booking.start_time)
     const monthKey = format(date, 'yyyy-MM')
 
     if (!monthlyData.has(monthKey)) {
@@ -284,7 +284,7 @@ function processDailyData(bookings: Booking[]) {
   const dailyData = new Map()
 
   bookings.forEach(booking => {
-    const date = parseISO(booking.created_at)
+    const date = parseISO(booking.start_time)
     const dayKey = format(date, 'yyyy-MM-dd')
 
     if (!dailyData.has(dayKey)) {

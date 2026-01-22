@@ -166,9 +166,7 @@ export function ForgotPasswordModal({ children }: ForgotPasswordModalProps) {
               )}
             </AnimatePresence>
 
-            <motion.div
-              {...hoverAnimation}
-            >
+            <motion.div>
               <Button
                 type="submit"
                 className="w-full h-11"

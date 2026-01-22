@@ -32,9 +32,9 @@ export function RoomTimeHeatmap({
 }: RoomTimeHeatmapProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>('30')
 
-  // Filter room bookings (non-tour bookings)
+  // Filter room bookings (non-tour bookings) dan tidak dibatalkan
   const filteredBookings = useMemo(() => {
-    return bookings.filter(booking => booking.is_tour === false)
+    return bookings.filter(booking => booking.is_tour === false && booking.status !== 'cancelled')
   }, [bookings])
 
   // Process heatmap data
@@ -214,7 +214,7 @@ function processHeatmapData(bookings: Booking[], daysBack: number): HeatmapData[
 
   // Filter bookings by date range
   const filteredBookings = bookings.filter(booking => {
-    const bookingDate = parseISO(booking.created_at)
+    const bookingDate = parseISO(booking.start_time)
     return bookingDate >= startDate && bookingDate <= endDate
   })
 
@@ -223,7 +223,7 @@ function processHeatmapData(bookings: Booking[], daysBack: number): HeatmapData[
 
   // Process bookings into day/hour grid
   filteredBookings.forEach(booking => {
-    const bookingDate = parseISO(booking.created_at)
+    const bookingDate = parseISO(booking.start_time)
     const dayOfWeek = getDay(bookingDate) // 0 = Sunday, 1 = Monday, etc.
     const hour = bookingDate.getHours()
 

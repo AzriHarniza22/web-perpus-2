@@ -112,7 +112,7 @@ export default function TourApprovals() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/50 backdrop-blur-sm hover:shadow-xl hover:shadow-secondary-500/10 transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50">
+              <Card className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-900/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
                 <CardContent className="py-0 px-4">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex-1 space-y-3">

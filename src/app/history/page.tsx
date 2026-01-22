@@ -71,14 +71,42 @@ export default function HistoryPage() {
 
     setIsDeleting(true)
     try {
+      console.log('=== CLIENT DELETION DEBUG ===')
+      console.log('Deleting booking ID:', selectedBookingId)
+      
       const response = await fetch(`/api/bookings/${selectedBookingId}`, {
         method: 'DELETE',
       })
 
+      console.log('Response status:', response.status)
+      console.log('Response ok:', response.ok)
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to delete booking')
+        let errorMessage = 'Failed to delete booking'
+        try {
+          const errorData = await response.json()
+          console.log('Error response data:', errorData)
+          errorMessage = errorData.error || errorData.message || errorMessage
+          
+          // Provide more specific error messages based on status code
+          if (response.status === 404) {
+            errorMessage = 'Booking tidak ditemukan. Mungkin sudah dihapus sebelumnya.'
+          } else if (response.status === 400) {
+            errorMessage = `Tidak dapat membatalkan booking: ${errorMessage}`
+          } else if (response.status === 403) {
+            errorMessage = 'Anda tidak memiliki izin untuk membatalkan booking ini.'
+          } else if (response.status === 401) {
+            errorMessage = 'Sesi Anda telah berakhir. Silakan login kembali.'
+          }
+        } catch (parseError) {
+          console.error('Error parsing response:', parseError)
+        }
+        
+        throw new Error(errorMessage)
       }
+
+      const responseData = await response.json()
+      console.log('Success response data:', responseData)
 
       // Update local state to reflect cancelled status
       setBookings(prevBookings =>
@@ -93,10 +121,14 @@ export default function HistoryPage() {
       setIsDeleteDialogOpen(false)
       setSelectedBookingId(null)
       setSelectedRoomName('')
+      
+      console.log('=== END CLIENT DELETION DEBUG ===')
+      
     } catch (error) {
       console.error('Error deleting booking:', error)
-      // You could add a toast notification here if available
-      alert('Failed to delete booking. Please try again.')
+      // Show specific error message to user
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete booking. Please try again.'
+      alert(`Gagal membatalkan reservasi: ${errorMessage}`)
     } finally {
       setIsDeleting(false)
     }

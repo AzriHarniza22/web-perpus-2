@@ -67,9 +67,9 @@ export function TourOverviewCards({
     peakHour: '0'
   })
 
-  // Filter tour bookings using the utility function
+  // Filter tour bookings menggunakan utility function dan tidak dibatalkan
   const tourBookings = useMemo(() => {
-    return bookings.filter(isTourBooking)
+    return bookings.filter(booking => isTourBooking(booking) && booking.status !== 'cancelled')
   }, [bookings])
 
   // Calculate tour analytics

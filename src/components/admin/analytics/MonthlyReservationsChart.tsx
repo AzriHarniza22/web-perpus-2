@@ -50,7 +50,7 @@ export function MonthlyReservationsChart({ bookings, isLoading = false }: Monthl
   ]
 
   const getChartOptions = (mode?: ViewMode) => {
-    return getChartOptionsByType(chartType, {
+    const baseOptions = getChartOptionsByType(chartType, {
       plugins: {
         tooltip: {
           callbacks: {
@@ -65,6 +65,22 @@ export function MonthlyReservationsChart({ bookings, isLoading = false }: Monthl
         }
       }
     }) as ChartOptions<'line' | 'bar'>
+
+    // For line charts, add fill area styling to match Room Monthly Trends
+    if (chartType === 'line') {
+      return {
+        ...baseOptions,
+        elements: {
+          ...baseOptions.elements,
+          line: {
+            ...baseOptions.elements?.line,
+            fill: true
+          }
+        }
+      } as ChartOptions<'line' | 'bar'>
+    }
+
+    return baseOptions
   }
 
   return (

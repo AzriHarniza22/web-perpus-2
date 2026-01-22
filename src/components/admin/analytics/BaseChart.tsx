@@ -251,7 +251,6 @@ export function BaseChart<T extends ChartType = ChartType>({
                         size="sm"
                         onClick={() => handleViewModeChange(mode)}
                         className={availableViewModes.indexOf(mode) === 0 ? 'rounded-r-none' : 'rounded-l-none'}
-                        {...hoverAnimation}
                       >
                         {mode.charAt(0).toUpperCase() + mode.slice(1)}
                       </Button>
@@ -275,7 +274,6 @@ export function BaseChart<T extends ChartType = ChartType>({
                         size="sm"
                         onClick={() => handleChartTypeChange(type)}
                         className={availableChartTypes.indexOf(type) === 0 ? 'rounded-r-none' : 'rounded-l-none'}
-                        {...hoverAnimation}
                       >
                         {type.charAt(0).toUpperCase() + type.slice(1)}
                       </Button>

@@ -40,20 +40,42 @@ type StatusFilter = 'all' | 'approved' | 'pending' | 'rejected'
 
 export function DailyDistributionChart({ bookings, isLoading = false }: DailyDistributionChartProps) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [timeRange, setTimeRange] = useState<string>('7') // days
+  const [timeRange, setTimeRange] = useState<string>('all') // Changed default to show all data
 
   // Process data based on filters
   const chartData = useMemo(() => {
-    return processDailyDistributionData(bookings, statusFilter, parseInt(timeRange))
+    const daysBack = timeRange === 'all' ? 0 : parseInt(timeRange)
+    return processDailyDistributionData(bookings, statusFilter, daysBack)
   }, [bookings, statusFilter, timeRange])
 
   const totalInRange = useMemo(() => {
-    return chartData.datasets[0]?.data.reduce((sum: number, value: number) => sum + value, 0) || 0
-  }, [chartData])
+    // Calculate total based on current filters
+    if (timeRange === 'all') {
+      // When showing all data, count all bookings that match the status filter
+      return bookings.filter(booking => {
+        // Jangan hitung booking yang dibatalkan
+        if (booking.status === 'cancelled') {
+          return false
+        }
+        
+        if (statusFilter !== 'all' && booking.status !== statusFilter) {
+          return false
+        }
+        return true
+      }).length
+    } else {
+      // When showing specific range, sum the chart data
+      return chartData.datasets[0]?.data.reduce((sum: number, value: number) => sum + value, 0) || 0
+    }
+  }, [bookings, statusFilter, timeRange, chartData])
 
   const averagePerDay = useMemo(() => {
+    if (timeRange === 'all') {
+      // For all data, we don't calculate average per day since we're showing all bookings
+      return 0
+    }
     return chartData.labels.length > 0 ? Math.round(totalInRange / chartData.labels.length) : 0
-  }, [chartData, totalInRange])
+  }, [chartData, totalInRange, timeRange])
 
   if (isLoading) {
     return (
@@ -94,12 +116,14 @@ export function DailyDistributionChart({ bookings, isLoading = false }: DailyDis
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              Total: {totalInRange}
+              {timeRange === 'all' ? 'Total' : 'Total dalam Range'}: {totalInRange}
             </Badge>
-            <Badge variant="outline" className="flex items-center gap-1">
-              <BarChart3 className="w-3 h-3" />
-              Avg: {averagePerDay}/hari
-            </Badge>
+            {timeRange !== 'all' && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <BarChart3 className="w-3 h-3" />
+                Avg: {averagePerDay}/hari
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -125,10 +149,11 @@ export function DailyDistributionChart({ bookings, isLoading = false }: DailyDis
             </Select>
 
             <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-[120px]">
+              <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="Range" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">Semua Data</SelectItem>
                 <SelectItem value="7">7 Hari</SelectItem>
                 <SelectItem value="14">14 Hari</SelectItem>
                 <SelectItem value="30">30 Hari</SelectItem>
@@ -154,17 +179,27 @@ export function DailyDistributionChart({ bookings, isLoading = false }: DailyDis
 }
 
 function processDailyDistributionData(bookings: Booking[], statusFilter: StatusFilter, daysBack: number) {
-  const endDate = new Date()
-  const startDate = new Date()
-  startDate.setDate(endDate.getDate() - daysBack)
+  // If daysBack is 0 or negative, show all bookings (no date filtering)
+  const showAll = daysBack <= 0
+  
+  let startDate: Date | null = null
+  let endDate: Date | null = null
+  
+  if (!showAll) {
+    endDate = new Date()
+    startDate = new Date()
+    startDate.setDate(endDate.getDate() - daysBack)
+  }
 
   // Filter bookings by date range and status
   const filteredBookings = bookings.filter(booking => {
-    const bookingDate = parseISO(booking.created_at)
+    const bookingDate = parseISO(booking.start_time)
 
-    // Date range filter
-    if (bookingDate < startDate || bookingDate > endDate) {
-      return false
+    // Date range filter (only if not showing all)
+    if (!showAll && startDate && endDate) {
+      if (bookingDate < startDate || bookingDate > endDate) {
+        return false
+      }
     }
 
     // Status filter
@@ -178,23 +213,36 @@ function processDailyDistributionData(bookings: Booking[], statusFilter: StatusF
   // Group by day
   const dailyData = new Map()
 
-  // Initialize all days in range
-  for (let i = 0; i < daysBack; i++) {
-    const date = new Date(startDate)
-    date.setDate(startDate.getDate() + i)
-    const dayKey = format(date, 'yyyy-MM-dd')
-    dailyData.set(dayKey, 0)
+  // Initialize all days in range (hanya jika tidak menampilkan semua data)
+  if (!showAll && startDate) {
+    for (let i = 0; i < daysBack; i++) {
+      const date = new Date(startDate)
+      date.setDate(startDate.getDate() + i)
+      const dayKey = format(date, 'yyyy-MM-dd')
+      dailyData.set(dayKey, 0)
+    }
   }
 
   // Count bookings per day
   filteredBookings.forEach(booking => {
-    const dayKey = format(parseISO(booking.created_at), 'yyyy-MM-dd')
+    const dayKey = format(parseISO(booking.start_time), 'yyyy-MM-dd')
     if (dailyData.has(dayKey)) {
       dailyData.set(dayKey, dailyData.get(dayKey) + 1)
     }
   })
 
-  const sortedDays = Array.from(dailyData.keys()).sort()
+  // Jika menampilkan semua data, gunakan semua tanggal dari filteredBookings
+  let sortedDays: string[]
+  if (showAll) {
+    // Untuk semua data, kumpulkan semua tanggal unik dari filteredBookings
+    const uniqueDays = new Set(filteredBookings.map(booking =>
+      format(parseISO(booking.start_time), 'yyyy-MM-dd')
+    ))
+    sortedDays = Array.from(uniqueDays).sort()
+  } else {
+    // Untuk range tertentu, gunakan semua hari dalam range
+    sortedDays = Array.from(dailyData.keys()).sort()
+  }
 
   // Color based on status filter
   const getColor = () => {
@@ -224,12 +272,25 @@ function processDailyDistributionData(bookings: Booking[], statusFilter: StatusF
 
   const colors = getColor()
 
+  // Hitung data untuk setiap hari
+  const dataForDays = sortedDays.map(day => {
+    if (showAll) {
+      // Untuk semua data, hitung jumlah booking per hari
+      return filteredBookings.filter(booking =>
+        format(parseISO(booking.start_time), 'yyyy-MM-dd') === day
+      ).length
+    } else {
+      // Untuk range tertentu, gunakan nilai dari dailyData
+      return dailyData.get(day) || 0
+    }
+  })
+
   return {
     labels: sortedDays.map(day => format(parseISO(day), 'dd/MM', { locale: id })),
     datasets: [
       {
         label: statusFilter === 'all' ? 'Total Reservasi' : `Reservasi ${statusFilter}`,
-        data: sortedDays.map(day => dailyData.get(day)),
+        data: dataForDays,
         backgroundColor: colors.background,
         borderColor: colors.border,
         borderWidth: 1,

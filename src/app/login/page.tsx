@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo, use } from 'react'
+import { useState, useCallback, useMemo, use, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -40,6 +40,11 @@ export default function LoginPage({
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  // Clear logout flag when login page loads
+  useEffect(() => {
+    // Note: logout flag is now handled by AuthProvider context, no need to clear sessionStorage
+  }, [])
 
   // Debounced validation for real-time feedback
   const { debouncedValidate } = useDebouncedValidation<LoginData>((data) => {

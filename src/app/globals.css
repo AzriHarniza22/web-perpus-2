@@ -85,6 +85,10 @@
   --sidebar-accent-foreground: #5a5c69;
   --sidebar-border: #e3e6f0;
   --sidebar-ring: #0061f2;
+  
+  /* Modern CSS properties only */
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .dark {
@@ -130,11 +134,31 @@
 }
 
 @layer base {
+  /* Modern CSS reset without problematic vendor prefixes */
+  html {
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
+  
   body {
     @apply bg-background text-foreground;
+    text-size-adjust: 100%;
+  }
+  
+  /* Use modern CSS properties only */
+  :where(*) {
+    font-smooth: always;
+  }
+  
+  /* Ensure modern CSS properties are used consistently */
+  body, html {
+    font-smooth: always;
+    text-rendering: optimizeLegibility;
   }
 }
 
@@ -221,12 +245,76 @@
   }
 
   .calendar-button:hover {
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .calendar-button:active {
+    transform: translateY(1px);
+    transition-duration: 0.1s;
   }
 
-  .calendar-button:active {
-    transform: scale(0.95);
+  /* ============================================
+     STANDARDIZED HOVER EFFECTS
+     ============================================ */
+  
+  /* Card Hover - Non-clickable cards (info display only) */
+  .card-hover-subtle {
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+  }
+
+  .card-hover-subtle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Card Hover - Clickable cards (links, actions) */
+  .card-hover-interactive {
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+    cursor: pointer;
+  }
+
+  .card-hover-interactive:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  .card-hover-interactive:active {
+    transform: translateY(-1px);
     transition-duration: 0.1s;
+  }
+
+  /* Button Hover Consistency */
+  .btn-hover-consistent {
+    transition: all 0.15s ease-out;
+    will-change: transform, box-shadow, background-color, color;
+  }
+
+  .btn-hover-consistent:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    filter: brightness(1.05);
+  }
+
+  .btn-hover-consistent:active {
+    transform: translateY(1px);
+    transition-duration: 0.1s;
+    filter: brightness(0.95);
+  }
+
+  /* Ensure text inside buttons inherits hover effects */
+  .btn-hover-consistent * {
+    pointer-events: none;
+  }
+
+  /* Framer Motion Button Consistency */
+  button[data-slot="button"] {
+    transition: all 0.2s ease-out;
+  }
+
+  button[data-slot="button"]:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
   }
 
   .fade-in-up {

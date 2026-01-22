@@ -44,9 +44,9 @@ export function TourAverageTimeChart({
   tours,
   isLoading = false
 }: TourAverageTimeChartProps) {
-  // Filter tour bookings using the same logic as other tour components
+  // Filter tour bookings using the same logic as other tour components dan tidak dibatalkan
   const tourBookings = useMemo(() => {
-    return bookings.filter(booking => isTourBooking(booking) && booking.start_time && booking.end_time)
+    return bookings.filter(booking => isTourBooking(booking) && booking.status !== 'cancelled' && booking.start_time && booking.end_time)
   }, [bookings])
 
   // Process average duration data by month
@@ -54,7 +54,7 @@ export function TourAverageTimeChart({
     const monthlyData = new Map()
 
     tourBookings.forEach(booking => {
-      const date = parseISO(booking.created_at)
+      const date = parseISO(booking.start_time)
       const monthKey = format(date, 'yyyy-MM')
 
       if (!monthlyData.has(monthKey)) {

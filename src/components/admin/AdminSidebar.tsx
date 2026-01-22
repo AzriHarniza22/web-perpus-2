@@ -70,11 +70,8 @@ export default function AdminSidebar({ className, onToggle, loading = false }: A
       {/* Toggle Button */}
       <div className="absolute -right-3 top-6 z-50">
         <motion.button
-          {...hoverAnimation}
           onClick={toggleSidebar}
-          className="w-6 h-6 bg-background border border-gray-200 dark:border-gray-700 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
+          className="w-6 h-6 bg-background border border-gray-200 dark:border-gray-700 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors btn-hover-consistent"
         >
           <motion.div
             animate={{ rotate: isCollapsed ? 180 : 0 }}
@@ -91,9 +88,10 @@ export default function AdminSidebar({ className, onToggle, loading = false }: A
           initial={{ opacity: 1, scale: 1 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'}`}
+          className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}
+          style={{ paddingLeft: '12px', paddingRight: '16px' }}
         >
-          <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 flex items-center justify-center shrink-0">
             <Image
               src="/logo.svg"
               alt="Perpustakaan Aceh Logo"
@@ -132,20 +130,16 @@ export default function AdminSidebar({ className, onToggle, loading = false }: A
               transition={{ delay: index * 0.1, duration: 0.4, ease: "easeOut" }}
             >
               <motion.button
-                {...hoverAnimation}
                 onClick={() => router.push(item.href)}
-                className={`w-full flex items-center px-3 py-3 rounded-lg transition-all duration-200 ${
-                  isCollapsed ? 'justify-center' : 'space-x-3'
-                } ${
+                style={{ paddingLeft: '12px', paddingRight: '16px' }}
+                className={`w-full flex items-center py-3 rounded-lg transition-all duration-200 btn-hover-consistent gap-3 ${
                   item.active
                     ? 'bg-primary text-white shadow-lg'
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-primary dark:hover:text-primary-400'
                 }`}
                 title={isCollapsed ? item.label : undefined}
-                whileHover={item.active ? {} : { scale: 1.02, x: 4 }}
-                whileTap={{ scale: 0.98 }}
               >
-                <item.icon className={`w-5 h-5 flex-shrink-0 ${item.active ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`} />
+                <item.icon className={`w-5 h-5 shrink-0 ${item.active ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`} />
                 <AnimatePresence>
                   {!isCollapsed && (
                     <motion.span

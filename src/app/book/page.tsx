@@ -78,21 +78,11 @@ export default function BookRoomPage() {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Anda perlu login untuk memesan ruangan
-          </h1>
-          <p className="text-gray-600 mb-6">
-            Silakan login terlebih dahulu untuk melanjutkan pemesanan.
-          </p>
-          <Button onClick={() => router.push('/login')}>
-            Login
-          </Button>
-        </div>
-      </div>
-    )
+    // Immediately redirect to login to prevent flash messages
+    if (typeof window !== 'undefined') {
+      window.location.replace('/login')
+    }
+    return null // Don't render anything
   }
 
   return (
@@ -121,14 +111,8 @@ export default function BookRoomPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                whileHover={{
-                  y: -8,
-                  scale: 1.02,
-                  transition: { duration: 0.3, ease: "easeOut" }
-                }}
-                whileTap={{ scale: 0.98 }}
               >
-                <Card className="bg-card backdrop-blur-sm shadow-md hover:shadow-xl transition-all duration-500 cursor-pointer group relative overflow-hidden flex flex-col h-full border border-gray-200 dark:border-gray-800">
+                <Card className="bg-card backdrop-blur-sm shadow-md relative overflow-hidden flex flex-col h-full border border-gray-200 dark:border-gray-800">
 
                   {/* Header with Image or Icon */}
                   {room.photos && room.photos.length > 1 ? (
@@ -137,7 +121,7 @@ export default function BookRoomPage() {
                     </div>
                   ) : (
                     <div className="h-48 bg-muted relative overflow-hidden">
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300 rounded-md" />
+                      <div className="absolute inset-0 bg-black/20 transition-all duration-300 rounded-md" />
                       <div className="absolute inset-0 flex items-center justify-center rounded-md overflow-hidden">
                         {room.photos && room.photos.length === 1 ? (
                           <Image
@@ -197,21 +181,17 @@ export default function BookRoomPage() {
                       </div>
                     </div>
 
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="mt-auto"
-                    >
+                    <div className="mt-auto">
                       <Button
                         onClick={() => router.push(`/book/${room.id}`)}
                         variant="default"
                         size="lg"
-                        className="w-full group-hover:shadow-lg transition-all duration-300"
+                        className="w-full transition-all duration-300"
                       >
                         Pesan Ruangan Ini
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
-                    </motion.div>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>

@@ -155,8 +155,9 @@ function AnalyticsDashboardContent({
     if (!filterState.dateRange?.from || !filterState.dateRange?.to) return bookings
 
     return bookings.filter(booking => {
-      const bookingDate = new Date(booking.created_at)
-      return isWithinInterval(bookingDate, {
+      // Use start_time if available, otherwise fallback to created_at
+      const dateTime = booking.start_time ? new Date(booking.start_time) : new Date(booking.created_at)
+      return isWithinInterval(dateTime, {
         start: filterState.dateRange!.from!,
         end: filterState.dateRange!.to!
       })
@@ -267,8 +268,9 @@ function AnalyticsDashboardContent({
       // Filter current bookings based on export date range
       if (exportDateRange?.from && exportDateRange?.to) {
         exportBookings = bookings.filter(booking => {
-          const bookingDate = new Date(booking.created_at)
-          return isWithinInterval(bookingDate, {
+          // Use start_time if available, otherwise fallback to created_at
+          const dateTime = booking.start_time ? new Date(booking.start_time) : new Date(booking.created_at)
+          return isWithinInterval(dateTime, {
             start: exportDateRange.from!,
             end: exportDateRange.to!
           })

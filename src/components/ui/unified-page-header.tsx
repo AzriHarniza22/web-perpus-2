@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { LogOut, Shield, ChevronDown, User as UserIcon } from 'lucide-react'
 import { fadeVariants, slideVariants, transitions } from '@/lib/animations'
+import { createClient } from '@/lib/supabase/client'
 
 interface UnifiedPageHeaderProps {
   title: string
@@ -30,13 +31,56 @@ export function UnifiedPageHeader({
   sidebarCollapsed = false,
   isLoading = false
 }: UnifiedPageHeaderProps) {
-  const handleLogout = () => {
-    // Create and submit a form to POST to the signout route
-    const form = document.createElement('form')
-    form.method = 'POST'
-    form.action = '/auth/signout'
-    document.body.appendChild(form)
-    form.submit()
+  const supabase = createClient()
+
+  const handleLogout = async () => {
+    console.log('[UNIFIED HEADER] Starting logout process')
+
+    try {
+      // Redirect immediately to prevent any flash
+      window.location.replace('/login')
+
+      // Sign out in background (fire and forget)
+      supabase.auth.signOut().catch(error => {
+        console.error('[UNIFIED HEADER] Supabase sign out error:', error)
+      })
+
+      // Clear storage in background
+      setTimeout(() => {
+        // Clear localStorage
+        const localKeys = []
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && (key.includes('sb-') || key.includes('supabase') || key.includes('auth'))) {
+            localKeys.push(key)
+          }
+        }
+        localKeys.forEach(key => localStorage.removeItem(key))
+
+        // Clear sessionStorage
+        for (let i = sessionStorage.length - 1; i >= 0; i--) {
+          const key = sessionStorage.key(i)
+          if (key && (key.includes('sb-') || key.includes('supabase') || key.includes('auth'))) {
+            sessionStorage.removeItem(key)
+          }
+        }
+
+        // Clear cookies
+        const cookies = document.cookie.split(';')
+        cookies.forEach(cookie => {
+          const eqPos = cookie.indexOf('=')
+          const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim()
+          if (name && (name.includes('sb-') || name.includes('supabase'))) {
+            document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
+          }
+        })
+      }, 100)
+
+    } catch (error) {
+      console.error('[UNIFIED HEADER] Unexpected error:', error)
+      // Fallback redirect
+      window.location.replace('/login')
+    }
   }
 
   return (

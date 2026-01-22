@@ -276,7 +276,7 @@ export function ApprovalsOverviewCards({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1, duration: 0.5 }}
         >
-          <Card className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:shadow-lg transition-all duration-200 hover:scale-105">
+          <Card className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -297,7 +297,7 @@ export function ApprovalsOverviewCards({
                     )}
                   </div>
                 </div>
-                <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-75 ease-out`}>
+                <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-75 ease-out`}>
                   <stat.icon className={`w-5 h-5 ${stat.color}`} />
                 </div>
               </div>

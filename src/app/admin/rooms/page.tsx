@@ -92,7 +92,7 @@ export default function RoomsPage() {
       {/* Header - Real component, not skeleton */}
       <UnifiedPageHeader
         title="Manajemen Ruangan"
-        description="Kelola ruangan perpustakaan"
+        description="Kelola ruangan perpustakaan - tambah, edit, dan nonaktifkan ruangan"
         user={transformedProfile}
         profile={profile}
         isAdmin={true}
@@ -102,23 +102,12 @@ export default function RoomsPage() {
       <main className={`pt-24 p-6 transition-all duration-300 ${
         sidebarCollapsed ? 'ml-16' : 'ml-64'
       }`}>
-        <>
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Manajemen Ruangan
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300">
-              Kelola ruangan perpustakaan - tambah, edit, dan nonaktifkan ruangan
-            </p>
-          </div>
-
-          {/* Room Management Component */}
-          <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <RoomManagement />
-            </CardContent>
-          </Card>
-        </>
+        {/* Room Management Component */}
+        <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm">
+          <CardContent className="p-6">
+            <RoomManagement />
+          </CardContent>
+        </Card>
       </main>
     </div>
   )

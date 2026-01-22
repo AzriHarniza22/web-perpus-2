@@ -52,9 +52,9 @@ export function TourGuestsCard({
 }: TourGuestsCardProps) {
   const [chartType, setChartType] = useState<ChartType>('line')
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
-  // Filter tour bookings using the utility function
+  // Filter tour bookings using the utility function dan tidak dibatalkan
   const tourBookings = useMemo(() => {
-    return bookings.filter(isTourBooking)
+    return bookings.filter(booking => isTourBooking(booking) && booking.status !== 'cancelled')
   }, [bookings])
 
   // Process chart data based on view mode
@@ -126,9 +126,9 @@ export function TourGuestsCard({
   
   function processMonthlyGuestData(bookings: Booking[]) {
     const monthlyData = new Map()
-  
+
     bookings.forEach(booking => {
-      const date = parseISO(booking.created_at)
+      const date = parseISO(booking.start_time)
       const monthKey = format(date, 'yyyy-MM')
   
       if (!monthlyData.has(monthKey)) {
@@ -173,9 +173,9 @@ export function TourGuestsCard({
   
   function processDailyGuestData(bookings: Booking[]) {
     const dailyData = new Map()
-  
+
     bookings.forEach(booking => {
-      const date = parseISO(booking.created_at)
+      const date = parseISO(booking.start_time)
       const dayKey = format(date, 'yyyy-MM-dd')
   
       if (!dailyData.has(dayKey)) {

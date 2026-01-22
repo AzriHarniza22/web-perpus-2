@@ -276,10 +276,10 @@ export default function RoomManagement() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -10, scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ y: -10, x: 2 }}
+              whileTap={{ x: 1 }}
             >
-              <Card className="bg-card backdrop-blur-sm shadow-md hover:shadow-xl transition-all duration-500 cursor-pointer group relative overflow-hidden flex flex-col h-full border border-gray-200 dark:border-gray-800">
+              <Card className="bg-card backdrop-blur-sm shadow-md group relative overflow-hidden flex flex-col h-full border border-gray-200 dark:border-gray-800">
                {/* Header with Image or Icon */}
                {room.photos && room.photos.length > 1 ? (
                  <div className="h-48 bg-muted relative overflow-hidden">
@@ -358,7 +358,7 @@ export default function RoomManagement() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleEdit(room)}
-                        className="p-2 hover:bg-primary/10 hover:border-primary/30 hover:text-primary hover:scale-110 transition-all"
+                        className="p-2 hover:bg-primary/10 hover:border-primary/30 hover:text-primary hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -366,7 +366,7 @@ export default function RoomManagement() {
                         size="sm"
                         variant={room.is_active ? "secondary" : "default"}
                         onClick={() => toggleActive(room.id, room.is_active)}
-                        className="p-2 hover:scale-110 transition-transform"
+                        className="p-2 hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform"
                       >
                         <Power className="w-4 h-4" />
                       </Button>
@@ -374,7 +374,7 @@ export default function RoomManagement() {
                         size="sm"
                         variant="destructive"
                         onClick={() => handleDelete(room.id)}
-                        className="p-2 hover:bg-red-600 hover:scale-110 transition-all"
+                        className="p-2 hover:bg-red-600 hover:translate-x-0.5 hover:-translate-y-0.5 transition-transform"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

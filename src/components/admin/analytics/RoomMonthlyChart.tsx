@@ -52,9 +52,9 @@ export function RoomMonthlyChart({
   const [chartType, setChartType] = useState<ChartType>('line')
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
 
-  // Filter room bookings (non-tour bookings)
+  // Filter room bookings (non-tour bookings) dan tidak dibatalkan
   const filteredBookings = useMemo(() => {
-    return bookings.filter(booking => booking.is_tour === false)
+    return bookings.filter(booking => booking.is_tour === false && booking.status !== 'cancelled')
   }, [bookings])
 
   // Process data based on view mode
@@ -202,7 +202,7 @@ function processMonthlyData(bookings: Booking[]) {
   const monthlyData = new Map()
 
   bookings.forEach(booking => {
-    const date = parseISO(booking.created_at)
+    const date = parseISO(booking.start_time)
     const monthKey = format(date, 'yyyy-MM')
 
     if (!monthlyData.has(monthKey)) {
@@ -275,7 +275,7 @@ function processDailyData(bookings: Booking[]) {
   const dailyData = new Map()
 
   bookings.forEach(booking => {
-    const date = parseISO(booking.created_at)
+    const date = parseISO(booking.start_time)
     const dayKey = format(date, 'yyyy-MM-dd')
 
     if (!dailyData.has(dayKey)) {

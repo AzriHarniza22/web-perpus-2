@@ -20,8 +20,8 @@ export function PageTransition({ children }: PageTransitionProps) {
         {...pageProps}
         style={{
           willChange: "transform, opacity",
-          backfaceVisibility: "hidden",
-          perspective: 1000
+          transform: "translateZ(0)",
+          backfaceVisibility: "visible"
         }}
       >
         {children}

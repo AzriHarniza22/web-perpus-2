@@ -44,9 +44,9 @@ export function TourAverageGuestsChart({
   tours,
   isLoading = false
 }: TourAverageGuestsChartProps) {
-  // Filter tour bookings using the utility function
+  // Filter tour bookings using the utility function dan tidak dibatalkan
   const tourBookings = useMemo(() => {
-    return bookings.filter(isTourBooking)
+    return bookings.filter(booking => isTourBooking(booking) && booking.status !== 'cancelled')
   }, [bookings])
 
   // Process average guests data by month
@@ -54,7 +54,7 @@ export function TourAverageGuestsChart({
     const monthlyData = new Map()
 
     tourBookings.forEach(booking => {
-      const date = parseISO(booking.created_at)
+      const date = parseISO(booking.start_time)
       const monthKey = format(date, 'yyyy-MM')
 
       if (!monthlyData.has(monthKey)) {

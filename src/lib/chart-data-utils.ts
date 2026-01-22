@@ -33,6 +33,45 @@ export interface StatusAggregation {
 }
 
 /**
+ * Helper function to convert color to rgba format
+ */
+function convertColorToRgba(color: string, alpha: number): string {
+  // Handle hex color format (#1f2937)
+  if (color.startsWith('#')) {
+    const cleanHex = color.replace('#', '')
+    const r = parseInt(cleanHex.substring(0, 2), 16)
+    const g = parseInt(cleanHex.substring(2, 4), 16)
+    const b = parseInt(cleanHex.substring(4, 6), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+  
+  // Handle rgb color format (rgb(59, 130, 246))
+  if (color.startsWith('rgb(')) {
+    const rgbMatch = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+    if (rgbMatch) {
+      const r = parseInt(rgbMatch[1])
+      const g = parseInt(rgbMatch[2])
+      const b = parseInt(rgbMatch[3])
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`
+    }
+  }
+  
+  // Handle rgba color format (rgba(59, 130, 246, 0.1))
+  if (color.startsWith('rgba(')) {
+    const rgbaMatch = color.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/)
+    if (rgbaMatch) {
+      const r = parseInt(rgbaMatch[1])
+      const g = parseInt(rgbaMatch[2])
+      const b = parseInt(rgbaMatch[3])
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`
+    }
+  }
+  
+  // Default fallback
+  return `rgba(59, 130, 246, ${alpha})`
+}
+
+/**
  * Generic data aggregation utility for time-based grouping
  */
 export function aggregateTimeSeriesData<T extends Record<string, unknown>>(
@@ -47,7 +86,7 @@ export function aggregateTimeSeriesData<T extends Record<string, unknown>>(
   }
 ): Map<string, StatusAggregation & Record<string, number>> {
   const {
-    dateField = 'created_at' as keyof T,
+    dateField = 'start_time' as keyof T, // Changed default to start_time for reservation analytics
     groupBy,
     valueFields = [],
     statusField = 'status' as keyof T,
@@ -103,7 +142,6 @@ export function aggregateTimeSeriesData<T extends Record<string, unknown>>(
     }
 
     const current = aggregatedData.get(key)!
-    current.total += 1
 
     // Aggregate by status if status field exists
     const status = item[statusField] as string
@@ -111,24 +149,33 @@ export function aggregateTimeSeriesData<T extends Record<string, unknown>>(
       // Map booking statuses to our aggregation keys
       switch (status) {
         case 'approved':
+          current.total += 1
           current.approved += 1
           break
         case 'pending':
+          current.total += 1
           current.pending += 1
           break
         case 'rejected':
+          current.total += 1
           current.rejected += 1
           break
         case 'cancelled':
+          // Jangan tambahkan ke total untuk booking yang dibatalkan
           current.cancelled = (current.cancelled || 0) + 1
           break
         case 'completed':
+          current.total += 1
           current.completed = (current.completed || 0) + 1
           break
         default:
           // For any other status, add to total but don't categorize
+          current.total += 1
           break
       }
+    } else {
+      // If no status field, include in total
+      current.total += 1
     }
 
     // Aggregate value fields
@@ -177,9 +224,14 @@ export function formatChartData(
       label,
       data: sortedEntries.map(([, values]) => values[key] || 0),
       borderColor: color,
-      backgroundColor: backgroundColor || `${color}1A`, // Add alpha for background
-      fill: false,
-      tension: 0.4
+      backgroundColor: backgroundColor || convertColorToRgba(color || 'rgb(59, 130, 246)', 0.1), // Use rgba format for fill area
+      fill: true, // Enable fill area for line charts
+      tension: 0.4,
+      pointBackgroundColor: color,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6
     }))
   }
 }
@@ -298,24 +350,51 @@ export function calculateStats(data: AggregatedData) {
     return { total: 0, average: 0, max: 0, min: 0, count: 0 }
   }
 
-  const allValues = data.datasets.flatMap(dataset => dataset.data)
-  console.log('All values:', allValues)
+  // For booking statistics, we want to count unique bookings, not sum all dataset values
+  // The 'total' dataset represents the actual booking count per time period
+  const totalDataset = data.datasets.find(dataset => dataset.label === 'Total')
 
-  const total = allValues.reduce((sum, val) => sum + val, 0)
-  const average = allValues.length > 0 ? total / allValues.length : 0
-  const max = Math.max(...allValues, 0)
-  const min = Math.min(...allValues, 0)
+  if (totalDataset) {
+    // Use the total dataset values which represent unique bookings per time period
+    const totalValues = totalDataset.data
+    console.log('Total dataset values:', totalValues)
 
-  const result = {
-    total: Math.round(total),
-    average: Math.round(average * 10) / 10,
-    max: Math.round(max),
-    min: Math.round(min),
-    count: allValues.length
+    const total = totalValues.reduce((sum, val) => sum + val, 0)
+    const average = totalValues.length > 0 ? total / totalValues.length : 0
+    const max = Math.max(...totalValues, 0)
+    const min = Math.min(...totalValues, 0)
+
+    const result = {
+      total: Math.round(total),
+      average: Math.round(average * 10) / 10,
+      max: Math.round(max),
+      min: Math.round(min),
+      count: totalValues.length
+    }
+
+    console.log('Stats result (using total dataset):', result)
+    return result
+  } else {
+    // Fallback to original behavior if no total dataset found
+    const allValues = data.datasets.flatMap(dataset => dataset.data)
+    console.log('All values (fallback):', allValues)
+
+    const total = allValues.reduce((sum, val) => sum + val, 0)
+    const average = allValues.length > 0 ? total / allValues.length : 0
+    const max = Math.max(...allValues, 0)
+    const min = Math.min(...allValues, 0)
+
+    const result = {
+      total: Math.round(total),
+      average: Math.round(average * 10) / 10,
+      max: Math.round(max),
+      min: Math.round(min),
+      count: allValues.length
+    }
+
+    console.log('Stats result (fallback):', result)
+    return result
   }
-
-  console.log('Stats result:', result)
-  return result
 }
 
 /**

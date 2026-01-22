@@ -117,10 +117,26 @@ export const useHoverAnimation = () => {
   const shouldReduceMotion = useReducedMotionHook()
 
   return {
-    whileHover: shouldReduceMotion ? {} : { y: -2 },
-    whileTap: shouldReduceMotion ? {} : { y: 1 },
+    whileHover: shouldReduceMotion ? {} : {
+      y: -2,
+      scale: 1.02,
+      transition: { duration: 0.2 }
+    },
+    whileTap: shouldReduceMotion ? {} : {
+      y: 1,
+      scale: 0.98,
+      transition: { duration: 0.1 }
+    },
     transition: shouldReduceMotion ? {} : transitions.spring,
-    style: gpuProps.style
+    style: {
+      ...gpuProps.style,
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '8px',
+      userSelect: 'none' as const,
+      cursor: 'pointer' as const
+    }
   }
 }
 

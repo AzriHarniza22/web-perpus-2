@@ -183,8 +183,10 @@ const InteractiveCalendar = ({
                     ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-700'}
                     ${dateStatus === 'approved' && !isTodayDate ? `bg-red-100 text-red-600 ${isSelected ? 'ring-2 ring-red-200' : ''}` : ''}
                     ${dateStatus === 'pending' && !isTodayDate ? `bg-yellow-100 text-yellow-600 ${isSelected ? 'ring-2 ring-yellow-200' : ''}` : ''}
+                    ${isSelected && dateStatus === 'approved' ? 'bg-red-200 text-red-600' : ''}
+                    ${isSelected && dateStatus === 'pending' ? 'bg-yellow-200 text-yellow-600' : ''}
+                    ${isSelected && !dateStatus ? 'bg-blue-500 text-white' : ''}
                     ${isTodayDate ? 'bg-primary text-white font-bold' : ''}
-                    ${isSelected ? 'bg-blue-500 text-white' : ''}
                     ${day < new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()) ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
                 >

@@ -186,6 +186,9 @@ function processPeakHoursData(bookings: Booking[], timeRange: TimeRange) {
 
   // Count bookings per hour
   bookings.forEach(booking => {
+    // Skip cancelled bookings
+    if (booking.status === 'cancelled') return;
+
     // Use start_time for room bookings, created_at for others
     const dateTime = booking.start_time ? parseISO(booking.start_time) : parseISO(booking.created_at)
     const hour = dateTime.getHours()

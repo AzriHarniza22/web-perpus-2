@@ -28,11 +28,15 @@ export async function middleware(request: NextRequest) {
   )
 
   // Refresh session if expired - required for Server Components
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
 
   const path = request.nextUrl.pathname
 
-  console.log(`[MIDDLEWARE] Path: ${path}, User: ${user ? user.id : 'null'}`)
+  console.log(`[MIDDLEWARE] Path: ${path}, User: ${user ? user.id : 'null'}, Auth Error: ${authError?.message || 'none'}`)
+  console.log(`[MIDDLEWARE] Cookies count: ${request.cookies.getAll().length}`)
+  console.log(`[MIDDLEWARE] Has session cookie: ${request.cookies.getAll().some(c => c.name.includes('sb-'))}`)
+  console.log(`[DEBUG] Request URL: ${request.url}`)
+  console.log(`[DEBUG] User Agent: ${request.headers.get('user-agent')}`)
 
   // Define route patterns
   const isAuthPage = path === '/login' || path === '/signup' || path === '/confirm'
@@ -70,9 +74,15 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // NOTE: Removed auto-redirect for authenticated users from root path to prevent flash dashboard
-  // Client-side will handle redirect after auth check completes
-  console.log(`[MIDDLEWARE] Allowing authenticated user to access root page - client-side redirect will handle`)
+  // Allow all users to access root page to prevent race conditions
+  // Client-side will handle authentication redirects after auth state is confirmed
+  console.log(`[MIDDLEWARE] Allowing access to root page - client-side will handle redirects`)
+  
+  // Special handling for authenticated users on root page - don't redirect server-side
+  if (user && path === '/') {
+    console.log(`[MIDDLEWARE] Authenticated user on root page, allowing client-side redirect`)
+    return supabaseResponse
+  }
 
   return supabaseResponse
 }

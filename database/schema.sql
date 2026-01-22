@@ -130,7 +130,7 @@ CREATE POLICY "Admins and staff can manage all rooms" ON rooms
     (SELECT role FROM profiles WHERE id = auth.uid()) IN ('admin', 'staff')
   );
 
--- RLS Policies for bookings table (FIXED - no circular references)
+-- RLS Policies for bookings table (FIXED - allows users to cancel their own pending bookings)
 -- Drop all existing policies first
 DROP POLICY IF EXISTS "Anyone can view approved bookings" ON bookings;
 DROP POLICY IF EXISTS "Users can view their own bookings" ON bookings;
@@ -149,9 +149,11 @@ CREATE POLICY "Users can view their own bookings" ON bookings
 CREATE POLICY "Users can create their own bookings" ON bookings
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+-- Fixed policy: Users can update their own bookings from pending to cancelled
+-- This uses OLD.status to check the previous state before the update
 CREATE POLICY "Users can update their own pending bookings" ON bookings
   FOR UPDATE USING (
-    auth.uid() = user_id AND status = 'pending'
+    auth.uid() = user_id AND OLD.status = 'pending'
   );
 
 CREATE POLICY "Admins and staff can manage all bookings" ON bookings

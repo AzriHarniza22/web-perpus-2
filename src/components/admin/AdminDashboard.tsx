@@ -204,15 +204,15 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
               <motion.div
                 key={stat.label}
                 variants={fadeInUp}
-                whileHover={{ scale: 1.02, y: -2 }}
+                whileHover={{ y: -2 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all duration-300 group cursor-pointer">
-                  <CardContent className="p-2.5 lg:p-3">
+                <Card className="bg-card backdrop-blur-sm group">
+                  <CardContent className="p-3 lg:p-4">
                     <div className="flex items-center justify-between">
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] lg:text-xs font-medium text-gray-600 dark:text-gray-400 truncate">{stat.label}</p>
-                        <p className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                        <p className="text-xs lg:text-sm font-medium text-gray-600 dark:text-gray-400 truncate">{stat.label}</p>
+                        <p className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
                       </div>
                       <motion.div
                         className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center flex-shrink-0`}
@@ -238,7 +238,7 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                 transition={{ delay: 0.3 }}
                 className="h-full flex flex-col"
               >
-                <Card className="bg-card backdrop-blur-sm h-full flex flex-col min-h-0 hover:shadow-xl transition-all duration-300">
+                <Card className="bg-card backdrop-blur-sm h-full flex flex-col min-h-0">
                   <CardHeader className="pb-2 lg:pb-3 flex-shrink-0">
                     <CardTitle className="flex items-center text-sm lg:text-base">
                       <Calendar className="w-4 h-4 mr-2 text-primary" />
@@ -329,11 +329,11 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
                           transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
-                          className="text-green-500 text-xl mb-1"
+                          className="text-green-500 text-3xl mb-2"
                         >
                           ✅
                         </motion.div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           Semua sudah diproses
                         </p>
                       </motion.div>
@@ -399,11 +399,11 @@ export default function AdminDashboard({ profile }: AdminDashboardProps) {
                               initial={{ scale: 0, rotate: -180 }}
                               animate={{ scale: 1, rotate: 0 }}
                               transition={{ delay: 0.7, type: "spring", stiffness: 200 }}
-                              className="text-gray-400 text-2xl mb-1"
+                              className="text-gray-400 text-3xl mb-2"
                             >
                               📅
                             </motion.div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                               Belum ada reservasi
                             </p>
                           </motion.div>

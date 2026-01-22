@@ -367,7 +367,6 @@ export default function BookingDetailModal({
                     size="lg"
                     asChild
                     className="w-full justify-start bg-primary/5 hover:bg-primary/10 dark:bg-primary-900/10 dark:hover:bg-primary-900/20 border-2 border-primary/20 dark:border-primary-800 hover:border-primary/30 dark:hover:border-primary-700 text-primary-700 dark:text-primary-300 hover:text-primary-800 dark:hover:text-primary-200 shadow-sm hover:shadow-md transition-all duration-200"
-                    {...hoverAnimation}
                   >
                     <a
                       href={supabase.storage.from('proposals').getPublicUrl(booking.proposal_file).data.publicUrl}
@@ -404,7 +403,6 @@ export default function BookingDetailModal({
                       size="lg"
                       className="bg-green-600 hover:bg-green-700 text-white font-medium shadow-md hover:shadow-green-500/25 hover:shadow-lg transition-all duration-200 flex-1"
                       disabled={updateBookingStatusMutation.isPending}
-                      {...hoverAnimation}
                     >
                       <CheckCircle className="w-5 h-5 mr-2 flex-shrink-0" />
                       <span>Setujui</span>
@@ -415,7 +413,6 @@ export default function BookingDetailModal({
                       size="lg"
                       disabled={updateBookingStatusMutation.isPending}
                       className="hover:shadow-lg transition-all duration-200 flex-1"
-                      {...hoverAnimation}
                     >
                       <XCircle className="w-5 h-5 mr-2 flex-shrink-0" />
                       <span>Tolak</span>

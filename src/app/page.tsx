@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabase'
 import { HomepageSkeleton } from '@/components/ui/skeletons'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 
 
 const HomePage = () => {
@@ -89,15 +90,16 @@ const HomePage = () => {
 
   // Handle redirect for authenticated users
   useEffect(() => {
-    if (user && userRole && !redirectReady) {
-      console.log(`[HOMEPAGE] User authenticated, role: ${userRole}, redirecting to ${userRole === 'admin' ? '/admin' : '/dashboard'}`)
-      setRedirectReady(true)
-      
-      // Minimal delay to ensure smooth UX
-      setTimeout(() => {
+    // Add delay to allow server-side auth check to complete
+    const redirectTimer = setTimeout(() => {
+      if (user && userRole && !redirectReady) {
+        console.log(`[HOMEPAGE] User authenticated, role: ${userRole}, redirecting to ${userRole === 'admin' ? '/admin' : '/dashboard'}`)
+        setRedirectReady(true)
         router.push(userRole === 'admin' ? '/admin' : '/dashboard')
-      }, 100)
-    }
+      }
+    }, 500) // 500ms delay to allow server-side auth to settle
+
+    return () => clearTimeout(redirectTimer)
   }, [user, userRole, redirectReady, router])
 
   // Set loading to false when auth is loaded - removed unnecessary setTimeout delay
@@ -192,22 +194,19 @@ const HomePage = () => {
             {/* Theme Toggle & Auth Buttons */}
             <div className="hidden md:flex items-center space-x-4">
               <ThemeToggle />
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <Button
+                variant="ghost"
                 onClick={() => router.push('/login')}
                 className="px-6 py-2 text-primary font-medium hover:text-primary transition-colors"
               >
                 Masuk
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05, boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)' }}
-                whileTap={{ scale: 0.95 }}
+              </Button>
+              <Button
                 onClick={() => router.push('/register')}
                 className="px-6 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-full font-medium shadow-lg transition-all"
               >
                 Daftar
-              </motion.button>
+              </Button>
             </div>
 
             {/* Mobile Menu Button */}
@@ -246,18 +245,19 @@ const HomePage = () => {
                   </a>
                 ))}
                 <div className="flex space-x-4 pt-4">
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={() => router.push('/login')}
                     className="px-6 py-2 text-primary font-medium hover:text-primary transition-colors"
                   >
                     Masuk
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => router.push('/register')}
                     className="px-6 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-full font-medium"
                   >
                     Daftar
-                  </button>
+                  </Button>
                 </div>
               </div>
             </motion.div>
@@ -349,15 +349,13 @@ const HomePage = () => {
                 variants={fadeInUp}
                 className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
               >
-                <motion.button
-                  whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(37, 99, 235, 0.4)' }}
-                  whileTap={{ scale: 0.95 }}
+                <Button
                   onClick={() => router.push('/register')}
                   className="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white text-lg font-semibold rounded-full shadow-2xl transition-all flex items-center justify-center gap-2"
                 >
                   Mulai Reservasi
                   <ArrowRight size={20} className="text-white" />
-                </motion.button>
+                </Button>
               </motion.div>
 
               <motion.div
@@ -701,9 +699,7 @@ const HomePage = () => {
         transition={{ delay: 2, type: "spring", stiffness: 260, damping: 20 }}
         className="fixed bottom-8 right-8 z-50"
       >
-        <motion.button
-          whileHover={{ scale: 1.1, rotate: 5 }}
-          whileTap={{ scale: 0.9 }}
+        <Button
           onClick={() => router.push('/register')}
           className="w-16 h-16 bg-gradient-to-r from-primary to-secondary rounded-full shadow-2xl flex items-center justify-center text-white relative overflow-hidden group"
         >
@@ -719,7 +715,7 @@ const HomePage = () => {
             transition={{ duration: 2, repeat: Infinity, delay: 1 }}
             className="absolute inset-0 bg-background/20 rounded-full"
           />
-        </motion.button>
+        </Button>
 
         {/* Tooltip */}
         <motion.div

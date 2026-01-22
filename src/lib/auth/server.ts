@@ -25,11 +25,23 @@ export const getUser = cache(async (): Promise<User | null> => {
     const { data: { user }, error } = await supabase.auth.getUser()
 
     console.log(`[AUTH] getUser called, user: ${user ? user.id : 'null'}, error: ${error ? error.message : 'none'}`)
+    
+    // Additional debug logging
+    if (user) {
+      console.log(`[AUTH] User details:`, {
+        id: user.id,
+        email: user.email,
+        created_at: user.created_at,
+        last_sign_in_at: user.last_sign_in_at
+      })
+    }
 
     if (error) {
       // Only log non-session-missing errors
       if (!error.message.includes('Auth session missing')) {
         console.error('Error getting user:', error.message)
+      } else {
+        console.log('[AUTH] Session missing - this is expected for unauthenticated users')
       }
       return null
     }

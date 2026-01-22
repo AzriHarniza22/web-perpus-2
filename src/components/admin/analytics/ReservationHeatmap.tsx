@@ -16,7 +16,7 @@ interface ReservationHeatmapProps {
   isLoading?: boolean
 }
 
-type TimeRange = '30' | '60' | '90'
+type TimeRange = 'all' | '30' | '60' | '90'
 
 interface HeatmapData {
   day: number
@@ -26,13 +26,13 @@ interface HeatmapData {
 }
 
 export function ReservationHeatmap({ bookings, isLoading = false }: ReservationHeatmapProps) {
-  const [timeRange, setTimeRange] = useState<TimeRange>('30')
+  const [timeRange, setTimeRange] = useState<TimeRange>('all')
   const inViewAnimation = useInViewAnimation({ variant: 'slide', direction: 'up', delay: 0.1 })
   const hoverAnimation = useHoverAnimation()
 
   // Process heatmap data
   const heatmapData = useMemo(() => {
-    return processHeatmapData(bookings, parseInt(timeRange))
+    return processHeatmapData(bookings, timeRange)
   }, [bookings, timeRange])
 
   const maxCount = useMemo(() => {
@@ -156,6 +156,7 @@ export function ReservationHeatmap({ bookings, isLoading = false }: ReservationH
                   <SelectValue placeholder="Periode" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Semua Data</SelectItem>
                   <SelectItem value="30">30 Hari</SelectItem>
                   <SelectItem value="60">60 Hari</SelectItem>
                   <SelectItem value="90">90 Hari</SelectItem>
@@ -283,15 +284,24 @@ export function ReservationHeatmap({ bookings, isLoading = false }: ReservationH
   )
 }
 
-function processHeatmapData(bookings: Booking[], daysBack: number): HeatmapData[] {
-  const endDate = new Date()
-  const startDate = new Date()
-  startDate.setDate(endDate.getDate() - daysBack)
-
-  // Filter bookings by date range
+function processHeatmapData(bookings: Booking[], timeRange: TimeRange): HeatmapData[] {
+  // Filter bookings by status (exclude cancelled)
   const filteredBookings = bookings.filter(booking => {
-    const bookingDate = parseISO(booking.created_at)
-    return bookingDate >= startDate && bookingDate <= endDate
+    // Skip cancelled bookings
+    if (booking.status === 'cancelled') return false
+
+    // If timeRange is 'all', include all bookings
+    if (timeRange === 'all') return true
+
+    // Otherwise, filter by date range
+    const daysBack = parseInt(timeRange)
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setDate(endDate.getDate() - daysBack)
+
+    // Use start_time if available, otherwise fallback to created_at
+    const dateTime = booking.start_time ? parseISO(booking.start_time) : parseISO(booking.created_at)
+    return dateTime >= startDate && dateTime <= endDate
   })
 
   // Initialize heatmap data structure
@@ -299,7 +309,7 @@ function processHeatmapData(bookings: Booking[], daysBack: number): HeatmapData[
 
   // Process bookings into day/hour grid
   filteredBookings.forEach(booking => {
-    const bookingDate = parseISO(booking.created_at)
+    const bookingDate = booking.start_time ? parseISO(booking.start_time) : parseISO(booking.created_at)
     const dayOfWeek = getDay(bookingDate) // 0 = Sunday, 1 = Monday, etc.
     const hour = bookingDate.getHours()
 

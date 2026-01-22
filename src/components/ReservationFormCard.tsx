@@ -637,14 +637,10 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
                   disabled={createBookingMutation.isPending || !selectedDate}
                 >
                   {createBookingMutation.isPending ? (
-                    <motion.div
-                      className="flex items-center justify-center"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    >
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                    <div className="flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                       Mengirim Reservasi...
-                    </motion.div>
+                    </div>
                   ) : (
                     <motion.div
                       className="flex items-center justify-center"

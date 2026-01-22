@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
@@ -32,20 +32,24 @@ export function AuthProvider({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('[AUTH PROVIDER] Auth state changed:', event, session?.user?.id)
-      console.log('[AUTH PROVIDER] Current URL:', window.location.href)
-      console.log('[AUTH PROVIDER] Event details:', { event, hasSession: !!session, userId: session?.user?.id })
-      console.log('[AUTH PROVIDER] Session details:', session)
+      const newUser = session?.user ?? null
+      setUser(newUser)
 
-      setUser(session?.user ?? null)
-
-      // Only refresh router for SIGNED_OUT to avoid conflicts with login redirects
+      // Handle different auth events
       if (event === 'SIGNED_OUT') {
-        console.log('[AUTH PROVIDER] Refreshing router due to auth state change (SIGNED_OUT only)')
-        router.refresh()
-      }
+        setUser(null)
+        setIsLoading(false)
 
-      setIsLoading(false)
+        // Note: LogoutButton handles storage clearing and redirect, so we don't need to do it here
+        // to avoid conflicts and flash messages
+
+      } else if (event === 'INITIAL_SESSION') {
+        setIsLoading(false)
+      } else if (event === 'TOKEN_REFRESHED') {
+        setIsLoading(false)
+      } else {
+        setIsLoading(false)
+      }
     })
 
     return () => {

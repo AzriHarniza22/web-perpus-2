@@ -336,27 +336,20 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          whileHover={{ y: -2 }}
-          whileTap={{ y: 1 }}
         >
-          <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+          <Card className="bg-card backdrop-blur-sm relative overflow-hidden">
             {/* Background Gradient */}
-            <motion.div
+            <div
               className="absolute inset-0 bg-gradient-to-br from-primary-50/50 via-indigo-50/30 to-secondary-50/50 dark:from-primary-900/20 dark:via-indigo-900/20 dark:to-secondary-900/20"
-              initial={{ opacity: 0 }}
-              whileHover={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
             />
 
             <CardHeader className="relative z-10">
               <CardTitle className="flex items-center gap-3">
-                <motion.div
+                <div
                   className="w-10 h-10 bg-gradient-to-r from-primary to-cyan-400 rounded-lg flex items-center justify-center"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
                   <CalendarIcon className="w-5 h-5 text-white" />
-                </motion.div>
+                </div>
                 <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Pilih Tanggal
                 </span>
@@ -487,27 +480,20 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        whileHover={{ y: -2 }}
-        whileTap={{ y: 1 }}
       >
-        <Card className="bg-card backdrop-blur-sm hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
+        <Card className="bg-card backdrop-blur-sm transition-all duration-300 relative overflow-hidden">
           {/* Background Gradient */}
-          <motion.div
+          <div
             className="absolute inset-0 bg-gradient-to-br from-secondary-50/50 via-accent-50/30 to-orange-50/50 dark:from-secondary-900/20 dark:via-accent-900/20 dark:to-orange-900/20 pointer-events-none"
-            initial={{ opacity: 0 }}
-            whileHover={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
           />
 
           <CardHeader className="relative z-10">
             <CardTitle className="flex items-center gap-3">
-              <motion.div
+              <div
                 className="w-10 h-10 bg-gradient-to-r from-secondary to-accent-400 rounded-lg flex items-center justify-center"
-                whileHover={{ scale: 1.1, rotate: -5 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
                 <Sparkles className="w-5 h-5 text-white" />
-              </motion.div>
+              </div>
               <span className="bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">
                 Detail Reservasi
               </span>
@@ -587,10 +573,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
               >
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
+                <div>
                   <Label>Waktu Mulai</Label>
                   <div className="flex gap-2">
                     <Select value={form.watch('startHour')} onValueChange={(value: string) => form.setValue('startHour', value)}>
@@ -617,11 +600,8 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                       </SelectContent>
                     </Select>
                   </div>
-                </motion.div>
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
+                </div>
+                <div>
                   <Label>Waktu Selesai</Label>
                   <div className="flex gap-2">
                     <Select value={form.watch('endHour')} onValueChange={(value: string) => form.setValue('endHour', value)}>
@@ -648,7 +628,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                       </SelectContent>
                     </Select>
                   </div>
-                </motion.div>
+                </div>
               </motion.div>
 
 
@@ -739,9 +719,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                 transition={{ delay: 0.9 }}
               >
                 <Label htmlFor="proposalFile">Upload Proposal File (Optional)</Label>
-                <motion.div
-                  whileHover={{ scale: 1.01 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                <div
                   className="relative"
                 >
                   <Input
@@ -816,7 +794,7 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </motion.div>
+                </div>
                 <p className="text-xs text-gray-500 mt-1">Format yang diterima: PDF, DOC, DOCX (Maks 10MB)</p>
                 <AnimatePresence>
                   {isUploadingFile && (
@@ -895,14 +873,12 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                 </Alert>
               )}
 
-              <motion.div
+              <div
                 className="relative z-10"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
               >
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-secondary to-accent hover:from-secondary-700 hover:to-accent-700 text-white font-medium py-3 group-hover:shadow-lg transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-secondary to-accent hover:from-secondary-700 hover:to-accent-700 text-white font-medium py-3 transition-all duration-300"
                   disabled={createBookingMutation.isPending || isSubmittingOptimistically || isUploadingFile}
                 >
                   {isUploadingFile ? (
@@ -912,21 +888,19 @@ export default function BookingForm({ room, existingBookings }: BookingFormProps
                     </div>
                   ) : createBookingMutation.isPending || isSubmittingOptimistically ? (
                     <div className="flex items-center justify-center">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                       Mengirim Reservasi...
                     </div>
                   ) : (
-                    <motion.div
+                    <div
                       className="flex items-center justify-center"
-                      whileHover={{ x: 2 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
                     >
                       <ArrowRight className="w-4 h-4 mr-2" />
                       Kirim Reservasi
-                    </motion.div>
+                    </div>
                   )}
                 </Button>
-              </motion.div>
+              </div>
             </form>
           </CardContent>
         </Card>

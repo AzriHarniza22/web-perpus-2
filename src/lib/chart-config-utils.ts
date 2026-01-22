@@ -127,6 +127,10 @@ export function getLineChartOptions(overrides: Partial<ChartOptions> = {}): Char
         tension: 0.4
       }
     },
+    plugins: {
+      ...getBaseChartOptions().plugins,
+      ...overrides.plugins
+    },
     ...overrides
   })
 }
@@ -319,15 +323,18 @@ export function createStatusDatasets(
     approved: { label: 'Disetujui', color: CHART_COLORS.success.main },
     pending: { label: 'Menunggu', color: CHART_COLORS.warning.main },
     rejected: { label: 'Ditolak', color: CHART_COLORS.danger.main }
-  }
+  },
+  options: { fill?: boolean; tension?: number } = { fill: false, tension: 0.4 }
 ) {
+  const { fill = false, tension = 0.4 } = options
+  
   return Object.entries(statusConfig).map(([key, config]) => ({
     label: config.label,
     data: statusData[key] || labels.map(() => 0),
     borderColor: config.color,
     backgroundColor: `${config.color}1A`,
-    fill: false,
-    tension: 0.4
+    fill,
+    tension
   }))
 }
 

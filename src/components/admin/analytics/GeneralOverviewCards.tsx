@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Users, Building, MapPin, Clock, BookOpen, CheckCircle, XCircle, Percent, LucideIcon } from 'lucide-react'
+import { TrendingUp, Users, Building, MapPin, Clock, BookOpen, CheckCircle, XCircle, LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Booking, Room, Tour, User } from '@/lib/types'
 import { useInViewAnimation, useHoverAnimation, useStaggerAnimation } from '@/hooks/useAnimations'
@@ -33,111 +33,110 @@ export function GeneralOverviewCards({
 }: GeneralOverviewCardsProps) {
   const staggerAnimation = useStaggerAnimation({ staggerDelay: 0.1, itemDelay: 0.2 })
   const hoverAnimation = useHoverAnimation()
+  
+  // Fungsi untuk menghitung jam terpadat dari data booking
+  const calculatePeakHours = (bookings: Booking[]): { peakHour: string; peakCount: number } => {
+    if (!bookings.length) {
+      return { peakHour: '-', peakCount: 0 }
+    }
+
+    // Hitung jumlah booking per jam
+    const hourCounts: { [key: string]: number } = {}
+    
+    bookings.forEach(booking => {
+      if (booking.start_time) {
+        // Ekstrak jam dari start_time (format: "YYYY-MM-DD HH:mm:ss")
+        const timeMatch = booking.start_time.match(/\d{4}-\d{2}-\d{2} (\d{2}):\d{2}:\d{2}/)
+        if (timeMatch) {
+          const hour = timeMatch[1]
+          hourCounts[hour] = (hourCounts[hour] || 0) + 1
+        }
+      }
+    })
+
+    // Cari jam dengan jumlah booking tertinggi
+    let peakHour = '-'
+    let peakCount = 0
+    
+    Object.entries(hourCounts).forEach(([hour, count]) => {
+      if (count > peakCount) {
+        peakCount = count
+        peakHour = `${hour}:00`
+      }
+    })
+
+    return { peakHour, peakCount }
+  }
+
   const [animatedValues, setAnimatedValues] = useState<{
     totalBookings: number
     approvedBookings: number
     pendingBookings: number
     rejectedBookings: number
+    peakHour: string
+    peakCount: number
     totalRooms: number
     totalTours: number
     totalUsers: number
-    approvalRate: number
   }>({
     totalBookings: 0,
     approvedBookings: 0,
     pendingBookings: 0,
     rejectedBookings: 0,
+    peakHour: '-',
+    peakCount: 0,
     totalRooms: 0,
     totalTours: 0,
-    totalUsers: 0,
-    approvalRate: 0
+    totalUsers: 0
   })
   const [prevValues, setPrevValues] = useState<{
     totalBookings: number
     approvedBookings: number
     pendingBookings: number
     rejectedBookings: number
+    peakHour: string
+    peakCount: number
     totalRooms: number
     totalTours: number
     totalUsers: number
-    approvalRate: number
   }>({
     totalBookings: 0,
     approvedBookings: 0,
     pendingBookings: 0,
     rejectedBookings: 0,
+    peakHour: '-',
+    peakCount: 0,
     totalRooms: 0,
     totalTours: 0,
-    totalUsers: 0,
-    approvalRate: 0
+    totalUsers: 0
   })
 
   // Animate numbers on change
   useEffect(() => {
-    // Debug logging for guest count calculation
-    console.log('=== GUEST COUNT DEBUG ===')
-    console.log('Total bookings:', bookings.length)
-
-    // Analyze bookings by status
-    const statusBreakdown = {
-      pending: bookings.filter((b: Booking) => b.status === 'pending').length,
-      approved: bookings.filter((b: Booking) => b.status === 'approved' || b.status === 'completed').length,
-      rejected: bookings.filter((b: Booking) => b.status === 'rejected').length,
-      completed: bookings.filter((b: Booking) => b.status === 'completed').length,
-      cancelled: bookings.filter((b: Booking) => b.status === 'cancelled').length,
-    }
-    console.log('Status breakdown:', statusBreakdown)
-
-    // Analyze guest counts by status
-    const guestBreakdown = {
-      pending: bookings.filter((b: Booking) => b.status === 'pending').reduce((sum, booking) => sum + (booking.guest_count || 0), 0),
-      approved: bookings.filter((b: Booking) => b.status === 'approved' || b.status === 'completed').reduce((sum, booking) => sum + (booking.guest_count || 0), 0),
-      rejected: bookings.filter((b: Booking) => b.status === 'rejected').reduce((sum, booking) => sum + (booking.guest_count || 0), 0),
-      completed: bookings.filter((b: Booking) => b.status === 'completed').reduce((sum, booking) => sum + (booking.guest_count || 0), 0),
-      cancelled: bookings.filter((b: Booking) => b.status === 'cancelled').reduce((sum, booking) => sum + (booking.guest_count || 0), 0),
-    }
-    console.log('Guest count by status:', guestBreakdown)
-
-    // Show bookings with null guest_count
-    const nullGuestCount = bookings.filter((b: Booking) => b.guest_count === null || b.guest_count === undefined)
-    console.log('Bookings with null/undefined guest_count:', nullGuestCount.length)
-    if (nullGuestCount.length > 0) {
-      console.log('Sample bookings with null guest_count:', nullGuestCount.slice(0, 3).map(b => ({ id: b.id, status: b.status, guest_count: b.guest_count })))
-    }
-
-    // Current calculation (approved and completed bookings only)
-    const currentTotalTours = bookings.filter((b: Booking) => b.status === 'approved' || b.status === 'completed').reduce((sum, booking) => sum + (booking.guest_count || 0), 0)
-    console.log('Current calculation (approved only):', currentTotalTours)
-
-    // Proposed calculation (approved + completed)
-    const proposedTotalTours = bookings.filter((b: Booking) => b.status === 'approved' || b.status === 'completed').reduce((sum, booking) => sum + (booking.guest_count || 0), 0)
-    console.log('Proposed calculation (approved + completed):', proposedTotalTours)
-
-    // All bookings calculation
-    const allBookingsTotal = bookings.reduce((sum, booking) => sum + (booking.guest_count || 0), 0)
-    console.log('All bookings total:', allBookingsTotal)
-
     // Calculate stats inside useEffect to avoid recreating on every render
     const currentStats = {
-      totalBookings: bookings.length,
-      approvedBookings: statusBreakdown.approved,
-      pendingBookings: statusBreakdown.pending,
-      rejectedBookings: statusBreakdown.rejected,
+      totalBookings: bookings.filter((b: Booking) => b.status !== 'cancelled').length,
+      approvedBookings: bookings.filter((b: Booking) => b.status === 'approved' || b.status === 'completed').length,
+      pendingBookings: bookings.filter((b: Booking) => b.status === 'pending').length,
+      rejectedBookings: bookings.filter((b: Booking) => b.status === 'rejected').length,
       totalRooms: rooms.length,
-      totalTours: currentTotalTours, // Keep current calculation for now
-      totalUsers: users.length,
-      approvalRate: bookings.length > 0 ? Math.round((statusBreakdown.approved / bookings.length) * 100) : 0
+      totalTours: bookings.filter((b: Booking) => b.status === 'approved' || b.status === 'completed').reduce((sum, booking) => sum + (booking.guest_count || 0), 0),
+      totalUsers: users.length
     }
+
+    // Hitung jam terpadat
+    const peakHours = calculatePeakHours(bookings)
 
     const currentValues = {
       totalBookings: currentStats.totalBookings,
       approvedBookings: currentStats.approvedBookings,
       pendingBookings: currentStats.pendingBookings,
       rejectedBookings: currentStats.rejectedBookings,
+      peakHour: peakHours.peakHour,
+      peakCount: peakHours.peakCount,
       totalRooms: currentStats.totalRooms,
       totalTours: currentStats.totalTours,
-      totalUsers: currentStats.totalUsers,
-      approvalRate: currentStats.approvalRate
+      totalUsers: currentStats.totalUsers
     }
 
     // Check if values changed
@@ -146,15 +145,16 @@ export function GeneralOverviewCards({
       prevValues.approvedBookings !== currentValues.approvedBookings ||
       prevValues.pendingBookings !== currentValues.pendingBookings ||
       prevValues.rejectedBookings !== currentValues.rejectedBookings ||
+      prevValues.peakHour !== currentValues.peakHour ||
+      prevValues.peakCount !== currentValues.peakCount ||
       prevValues.totalRooms !== currentValues.totalRooms ||
       prevValues.totalTours !== currentValues.totalTours ||
-      prevValues.totalUsers !== currentValues.totalUsers ||
-      prevValues.approvalRate !== currentValues.approvalRate
+      prevValues.totalUsers !== currentValues.totalUsers
 
     if (hasChanged) {
       setPrevValues(currentValues)
 
-      // Animate each value
+      // Animate each numeric value
       const animateValue = (
         key: keyof typeof currentValues,
         targetValue: number,
@@ -189,16 +189,23 @@ export function GeneralOverviewCards({
         requestAnimationFrame(animate)
       }
 
+      // Animate numeric values
       animateValue('totalBookings', currentValues.totalBookings, animatedValues.totalBookings)
       animateValue('approvedBookings', currentValues.approvedBookings, animatedValues.approvedBookings)
       animateValue('pendingBookings', currentValues.pendingBookings, animatedValues.pendingBookings)
       animateValue('rejectedBookings', currentValues.rejectedBookings, animatedValues.rejectedBookings)
+      animateValue('peakCount', currentValues.peakCount, animatedValues.peakCount)
       animateValue('totalRooms', currentValues.totalRooms, animatedValues.totalRooms)
       animateValue('totalTours', currentValues.totalTours, animatedValues.totalTours)
       animateValue('totalUsers', currentValues.totalUsers, animatedValues.totalUsers)
-      animateValue('approvalRate', currentValues.approvalRate, animatedValues.approvalRate)
-   }
- }, [bookings, rooms, tours, users, animatedValues, prevValues])
+
+      // Update peak hour text immediately (no animation needed for text)
+      setAnimatedValues(prev => ({
+        ...prev,
+        peakHour: currentValues.peakHour
+      }))
+    }
+  }, [bookings, rooms, tours, users, animatedValues, prevValues])
 
   const statCards: StatCard[] = [
     {
@@ -230,19 +237,19 @@ export function GeneralOverviewCards({
       bgColor: 'bg-red-500'
     },
     {
-      label: 'Total Ruangan',
-      value: animatedValues.totalRooms,
-      icon: Building,
-      color: 'text-white',
-      bgColor: 'bg-blue-500'
-    },
-    {
       label: 'Total Tamu',
       value: animatedValues.totalTours,
       icon: Users,
       color: 'text-white',
       bgColor: 'bg-blue-500',
       subtitle: 'orang'
+    },
+    {
+      label: 'Total Ruangan',
+      value: animatedValues.totalRooms,
+      icon: Building,
+      color: 'text-white',
+      bgColor: 'bg-blue-500'
     },
     {
       label: 'Total Pengguna',
@@ -253,12 +260,12 @@ export function GeneralOverviewCards({
       subtitle: 'orang'
     },
     {
-      label: 'Tingkat Persetujuan',
-      value: animatedValues.approvalRate,
-      icon: Percent,
+      label: 'Jam Terpadat',
+      value: animatedValues.peakCount,
+      icon: Clock,
       color: 'text-white',
-      bgColor: 'bg-blue-500',
-      subtitle: '%'
+      bgColor: 'bg-purple-500',
+      subtitle: animatedValues.peakHour
     }
   ]
 
@@ -266,7 +273,7 @@ export function GeneralOverviewCards({
     return (
       <motion.div
         {...staggerAnimation.container}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
@@ -316,18 +323,19 @@ export function GeneralOverviewCards({
   }
 
   return (
-    <motion.div
-      {...staggerAnimation.container}
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-    >
+    <div className="space-y-4">
+      
+      <motion.div
+        {...staggerAnimation.container}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+      >
       {statCards.map((stat, index) => (
         <motion.div
           key={stat.label}
           {...staggerAnimation.item}
-          {...hoverAnimation}
           className="group"
         >
-          <Card className="bg-card backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+          <Card className="bg-card backdrop-blur-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -369,5 +377,6 @@ export function GeneralOverviewCards({
         </motion.div>
       ))}
     </motion.div>
+    </div>
   )
 }

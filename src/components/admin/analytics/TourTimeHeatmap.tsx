@@ -31,9 +31,9 @@ export function TourTimeHeatmap({
   tours,
   isLoading = false
 }: TourTimeHeatmapProps) {
-  // Filter tour bookings using the utility function
+  // Filter tour bookings using the utility function dan tidak dibatalkan
   const tourBookings = useMemo(() => {
-    return bookings.filter(isTourBooking)
+    return bookings.filter(booking => isTourBooking(booking) && booking.status !== 'cancelled')
   }, [bookings])
 
   const [timeRange, setTimeRange] = useState<TimeRange>('30')
@@ -99,7 +99,7 @@ export function TourTimeHeatmap({
   
     // Filter bookings by date range
     const filteredBookings = bookings.filter(booking => {
-      const bookingDate = parseISO(booking.created_at)
+      const bookingDate = parseISO(booking.start_time)
       return bookingDate >= startDate && bookingDate <= endDate
     })
   
@@ -108,7 +108,7 @@ export function TourTimeHeatmap({
   
     // Process bookings into day/hour grid
     filteredBookings.forEach(booking => {
-      const bookingDate = parseISO(booking.created_at)
+      const bookingDate = parseISO(booking.start_time)
       const dayOfWeek = getDay(bookingDate) // 0 = Sunday, 1 = Monday, etc.
       const hour = bookingDate.getHours()
   

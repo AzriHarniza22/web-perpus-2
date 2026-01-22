@@ -550,58 +550,14 @@ export default function BookingApprovals() {
             <p className="text-muted-foreground max-w-md mx-auto">
               {searchQuery
                 ? `Tidak ditemukan permintaan yang sesuai dengan pencarian "${searchQuery}".`
-                : `Semua permintaan ${bookingType === 'all' ? '' : bookingType === 'room' ? 'reservasi ruangan' : 'pemesanan tour'} sudah diputuskan.`
+                : `Tidak ada permintaan ${bookingType === 'all' ? 'reservasi' : bookingType === 'room' ? 'reservasi ruangan' : 'pemesanan tour'} yang menunggu persetujuan saat ini.`
               }
             </p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {bookings.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-12"
-        >
-          {bookingType === 'all' ? (
-            <>
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Semua Reservasi Sudah Diputuskan
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Tidak ada permintaan reservasi yang menunggu persetujuan saat ini.
-              </p>
-            </>
-          ) : bookingType === 'room' ? (
-            <>
-              <div className="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Building className="w-8 h-8 text-primary dark:text-primary-foreground" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Tidak Ada Reservasi Ruangan
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Saat ini tidak ada permintaan reservasi ruangan yang menunggu persetujuan.
-              </p>
-            </>
-          ) : (
-            <>
-              <div className="w-16 h-16 bg-secondary/10 dark:bg-secondary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-secondary dark:text-secondary-foreground" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Tidak Ada Pemesanan Tour
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Saat ini tidak ada permintaan pemesanan tour yang menunggu persetujuan.
-              </p>
-            </>
-          )}
-        </motion.div>
-      )}
+
 
       <BookingDetailModal
         booking={selectedBooking}

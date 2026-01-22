@@ -13,11 +13,62 @@ export default function LogoutButton() {
     setIsLoading(true)
 
     try {
-      await supabase.auth.signOut()
-      router.push('/login')
-      router.refresh()
+      console.log('[LOGOUT] Starting comprehensive logout process')
+
+      // 1. Sign out from Supabase
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('[LOGOUT] Supabase sign out error:', error)
+      }
+
+      console.log('[LOGOUT] Supabase sign out successful')
+
+      // 2. Clear ALL browser storage
+      console.log('[LOGOUT] Clearing browser storage')
+
+      // Clear localStorage
+      const keysToRemove = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && (key.includes('sb-') || key.includes('supabase') || key.includes('auth'))) {
+          keysToRemove.push(key)
+        }
+      }
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key)
+        console.log(`[LOGOUT] Removed localStorage key: ${key}`)
+      })
+
+      // Clear sessionStorage
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const key = sessionStorage.key(i)
+        if (key && (key.includes('sb-') || key.includes('supabase') || key.includes('auth'))) {
+          sessionStorage.removeItem(key)
+          console.log(`[LOGOUT] Removed sessionStorage key: ${key}`)
+        }
+      }
+
+      // 3. Clear all cookies manually
+      console.log('[LOGOUT] Clearing all cookies')
+      const cookies = document.cookie.split(';')
+      cookies.forEach(cookie => {
+        const eqPos = cookie.indexOf('=')
+        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim()
+        if (name && (name.includes('sb-') || name.includes('supabase'))) {
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
+          console.log(`[LOGOUT] Cleared cookie: ${name}`)
+        }
+      })
+
+      console.log('[LOGOUT] All storage cleared, redirecting to login')
+
+      // 4. Force complete page reload and redirect
+      window.location.href = '/login'
+
     } catch (error) {
-      console.error('Error logging out:', error)
+      console.error('[LOGOUT] Unexpected error:', error)
+      // Even if there's an error, try to redirect and clear storage
+      window.location.href = '/login'
     } finally {
       setIsLoading(false)
     }

@@ -99,19 +99,21 @@ export default function DashboardLayout({ user, profile, myReservations, allBook
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + index * 0.1, type: "spring", stiffness: 200 }}
             >
-              <Card className="bg-card hover:shadow-xl hover:scale-105 hover:-translate-y-1 cursor-pointer group h-32 transition-all duration-75 ease-out">
-                <CardContent className="p-6 h-full flex flex-col justify-center">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 flex-1">{stat.label}</p>
-                    <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center group-hover:scale-110 flex-shrink-0 transition-transform duration-75 ease-out`}>
-                      <stat.icon className="w-5 h-5 text-white" />
+              <Card className="bg-card group h-32">
+                <CardContent className="p-6 h-full flex items-center">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex flex-col">
+                      <p className="text-base font-medium text-gray-600 dark:text-gray-400">{stat.label}</p>
+                      <p className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                    </div>
+                    <div className={`w-12 h-12 rounded-lg ${stat.bgColor} flex items-center justify-center shrink-0 transition-transform duration-75 ease-out`}>
+                      <stat.icon className="w-6 h-6 text-white" />
                     </div>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
                 </CardContent>
               </Card>
             </motion.div>
