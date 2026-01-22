@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { useInViewAnimation } from '@/hooks/useAnimations'
 
 interface TestInViewProps {
@@ -8,11 +9,12 @@ interface TestInViewProps {
 }
 
 export function TestInView({ title, useInView = false }: TestInViewProps) {
+  // Always call hooks unconditionally to follow React rules
+  const inViewAnim = useInViewAnimation({ triggerOnce: false })
+  
   if (useInView) {
-    const inViewAnim = useInViewAnimation({ triggerOnce: false })
-    
     return (
-      <div
+      <motion.div
         ref={inViewAnim.ref}
         className="p-4 bg-blue-100 border rounded-lg mb-4"
         style={inViewAnim.style}
@@ -23,7 +25,7 @@ export function TestInView({ title, useInView = false }: TestInViewProps) {
         <h3 className="text-lg font-semibold">{title} (with useInViewAnimation)</h3>
         <p>This component uses useInViewAnimation hook</p>
         <p>Status: Should be visible</p>
-      </div>
+      </motion.div>
     )
   }
 
