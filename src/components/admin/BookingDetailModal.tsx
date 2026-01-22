@@ -194,23 +194,14 @@ export default function BookingDetailModal({
                 <div className="bg-muted/50 rounded-lg p-4">
                   <div className="flex items-center space-x-3 mb-3">
                     <Avatar className="w-12 h-12">
-                      <AvatarImage src={booking.profiles?.profile_photo || undefined} alt={booking.profiles?.full_name} />
                       <AvatarFallback className={`bg-gradient-to-br ${config.gradient} text-white font-bold`}>
-                        {booking.profiles?.full_name ? booking.profiles.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+                        {(booking.profiles?.full_name || booking.contact_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-white">{booking.profiles?.full_name || 'Tidak tersedia'}</p>
-                      <p className="text-sm text-muted-foreground">{booking.profiles?.email || 'Tidak tersedia'}</p>
-                      {booking.profiles?.institution && (
-                        <p className="text-xs text-muted-foreground">{booking.profiles.institution}</p>
-                      )}
-                      {booking.contact_name && (
-                        <p className="text-xs text-muted-foreground">Kontak: {booking.contact_name}</p>
-                      )}
-                      {booking.contact_institution && (
-                        <p className="text-xs text-muted-foreground">Institusi Kontak: {booking.contact_institution}</p>
-                      )}
+                      <p className="font-semibold text-gray-900 dark:text-white">{booking.profiles?.full_name || booking.contact_name || 'Tidak tersedia'}</p>
+                      <p className="text-sm text-muted-foreground">{booking.profiles?.email || '-'}</p>
+                      <p className="text-xs text-muted-foreground">{booking.profiles?.institution || booking.contact_institution || '-'}</p>
                     </div>
                   </div>
                 </div>
