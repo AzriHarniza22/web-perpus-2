@@ -5,6 +5,7 @@ export interface User {
   full_name: string | null
   institution: string | null
   phone: string | null
+  profile_photo: string | null
   role: 'user' | 'admin'
   created_at: string
   updated_at: string
