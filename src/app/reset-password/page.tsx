@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -9,11 +9,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { ArrowLeft, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react'
+import { ArrowLeft, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { useToastContext } from '@/components/ToastProvider'
 import { useAuth } from '@/components/AuthProvider'
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -82,9 +82,9 @@ export default function ResetPasswordPage() {
       success('Password Berhasil Diubah', 'Silakan login dengan password baru Anda.')
       router.push('/login')
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Password update error:', error)
-      setError(error.message || 'Terjadi kesalahan saat mengubah password')
+      setError(error instanceof Error ? error.message : 'Terjadi kesalahan saat mengubah password')
     } finally {
       setIsLoading(false)
     }
@@ -93,7 +93,7 @@ export default function ResetPasswordPage() {
   // Show loading while checking authentication
   if (!user && searchParams.get('type') === 'recovery') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-linear-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute top-4 right-4 z-20">
           <ThemeToggle />
         </div>
@@ -113,7 +113,7 @@ export default function ResetPasswordPage() {
   // Show error if not a valid recovery session
   if (!isValidToken) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-linear-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute top-4 left-4 z-20">
           <Link href="/">
             <Button variant="outline" size="sm" className="bg-background/90 backdrop-blur-sm">
@@ -151,7 +151,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-linear-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Animation */}
       <div className="absolute inset-0">
         <motion.div
@@ -160,7 +160,7 @@ export default function ResetPasswordPage() {
             scale: [1, 1.1, 1]
           }}
           transition={{ duration: 20, repeat: Infinity }}
-          className="absolute inset-0 bg-gradient-to-br from-primary-400/10 via-secondary-400/10 to-accent-400/10 dark:from-primary-400/5 dark:via-secondary-400/5 dark:to-accent-400/5"
+          className="absolute inset-0 bg-linear-to-br from-primary-400/10 via-secondary-400/10 to-accent-400/10 dark:from-primary-400/5 dark:via-secondary-400/5 dark:to-accent-400/5"
         />
       </div>
 
@@ -199,7 +199,7 @@ export default function ResetPasswordPage() {
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg mb-6"
             >
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
             </motion.div>
           ) : (
@@ -304,5 +304,27 @@ export default function ResetPasswordPage() {
         </div>
       </motion.div>
     </div>
+  )
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-linear-to-br from-primary-50 via-indigo-50 to-secondary-50 dark:from-gray-900 dark:via-primary-900 dark:to-secondary-900 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
+      <div className="w-full max-w-md text-center">
+        <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+        <p className="text-gray-600 dark:text-gray-300">Memuat...</p>
+      </div>
+    </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <ResetPasswordContent />
+    </Suspense>
   )
 }
