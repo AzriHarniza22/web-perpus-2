@@ -81,7 +81,7 @@ export const AsyncBoundary: React.FC<AsyncBoundaryProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className={cn('flex items-center justify-center', className)}
-      style={gpuProps}
+      style={gpuProps.style}
     >
       <Loading
         variant={loadingComponent}
@@ -137,7 +137,7 @@ export const LoadingFallback: React.FC<LoadingFallbackProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className={cn('fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm', className)}
-            style={gpuProps}
+            style={gpuProps.style}
           >
             <div className="flex flex-col items-center space-y-4">
               {customIcon || <Loading variant="inline" size="xl" />}
@@ -161,7 +161,7 @@ export const LoadingFallback: React.FC<LoadingFallbackProps> = ({
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className={cn('bg-card rounded-lg p-6 space-y-4 border', className)}
-            style={gpuProps}
+            style={gpuProps.style}
           >
             <div className="flex items-center space-x-3">
               <Loading variant="inline" size={size} />
@@ -177,7 +177,7 @@ export const LoadingFallback: React.FC<LoadingFallbackProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className={cn('relative overflow-hidden', className)}
-            style={gpuProps}
+            style={gpuProps.style}
           >
             {children}
             <motion.div
