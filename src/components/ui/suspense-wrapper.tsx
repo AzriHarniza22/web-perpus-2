@@ -40,7 +40,7 @@ export const SuspenseWrapper: React.FC<SuspenseWrapperProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className={cn('flex items-center justify-center min-h-[200px]', className)}
-            style={gpuProps}
+            style={gpuProps.style}
           >
             <Loading variant="fullscreen" message="Memuat..." />
           </motion.div>
