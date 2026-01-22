@@ -120,6 +120,13 @@ export default function ReservationFormCard({ room, existingBookings, selectedDa
     const startDateTime = dayjs(`${selectedDateStr} ${startTimeStr}`).toDate()
     const endDateTime = dayjs(`${selectedDateStr} ${endTimeStr}`).toDate()
 
+    // Check if the booking time is in the future
+    const now = new Date()
+    if (startDateTime <= now) {
+      form.setError('root', { message: 'Waktu mulai harus di masa depan. Silakan pilih waktu yang belum lewat.' })
+      return
+    }
+
     // Check for approved conflicts
     const approvedConflict = existingBookings.some(booking => {
       if (booking.status !== 'approved') return false

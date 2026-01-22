@@ -190,7 +190,26 @@ export async function POST(request: NextRequest) {
 
       if (insertError) {
         console.error('Booking insert error:', insertError)
-        return errorResponse('Gagal membuat booking', 500)
+        console.error('Insert data was:', insertData)
+        
+        // Provide more specific error messages
+        let errorMessage = 'Gagal membuat booking'
+        if (insertError.message?.includes('future_booking')) {
+          errorMessage = 'Waktu mulai harus di masa depan'
+        } else if (insertError.message?.includes('valid_time_range')) {
+          errorMessage = 'Waktu selesai harus setelah waktu mulai'
+        } else if (insertError.message?.includes('no_overlap')) {
+          errorMessage = 'Slot waktu sudah dipesan'
+        } else if (insertError.code === '23503') {
+          errorMessage = 'Ruangan atau pengguna tidak ditemukan'
+        } else if (insertError.code === '42501') {
+          errorMessage = 'Anda tidak memiliki izin untuk membuat booking'
+        }
+        
+        return errorResponse(errorMessage, 500, undefined, { 
+          dbError: insertError.message,
+          dbCode: insertError.code 
+        })
       }
 
       console.log('Booking inserted successfully');
