@@ -153,14 +153,14 @@ export default function BookRoomPage() {
                     </div>
                   </CardHeader>
 
-                  <CardContent className="relative z-10 flex flex-col flex-grow px-6">
+                  <CardContent className="relative z-10 flex flex-col grow px-6">
                     <div className="h-16">
                       <CardDescription className="text-muted-foreground line-clamp-2">
                         {room.description}
                       </CardDescription>
                     </div>
 
-                    <div className="flex-grow">
+                    <div className="grow">
                       <h4 className="font-semibold text-foreground mb-3 flex items-center">
                         <Sparkles className="w-4 h-4 mr-2 text-muted-foreground" />
                         Fasilitas
